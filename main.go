@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+
+	"go-infra/customlogger"
 )
 
 func GetHostname() string {
@@ -19,8 +21,9 @@ func GetHostname() string {
 }
 
 func main() {
+	customlogger.NewCustomLogger()
 
-	file, err := os.OpenFile("infra-api.log", os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile("infra-api.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if os.IsNotExist(err) {
 		os.Create("infra-api.log")
 	}
@@ -44,6 +47,8 @@ func main() {
 	)
 
 	child.Info("Starting Infra tasks", slog.String("Action", "DNS Updated"))
+	child.Info("test")
+	logger.Info("Testin regular logger.")
 
 	file.Close()
 }
