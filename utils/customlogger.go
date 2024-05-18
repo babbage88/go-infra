@@ -1,4 +1,4 @@
-package Customlogger
+package customlogger
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ func GetBuildInfo() *debug.BuildInfo {
 	return buildInfo
 }
 
-func NewCustomLogger() *CustomLogger {
+func NewCustomLogger(opts ...CustomLoggerOption) *CustomLogger {
 	const (
 		defaultLogFileName      = "infra-api.log"
 		defaultRotationInterval = 24 * -1
@@ -49,6 +49,10 @@ func NewCustomLogger() *CustomLogger {
 		RotationInterval: defaultRotationInterval,
 		RotationTime:     defaultRotationTime,
 		LoggingLevel:     defaulLoggingLevel,
+	}
+
+	for _, opt := range opts {
+		opt(c)
 	}
 
 	return c
