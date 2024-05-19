@@ -37,7 +37,7 @@ func GetBuildInfo() *debug.BuildInfo {
 
 func NewCustomLogger(opts ...CustomLoggerOption) *CustomLogger {
 	const (
-		defaultLogFileName      = "infra-api.log"
+		defaultLogFileName      = ""
 		defaultRotationInterval = 24 * -1
 		defaulLoggingLevel      = slog.LevelInfo
 	)
@@ -82,25 +82,37 @@ func WithLogLevel(loglev slog.Level) CustomLoggerOption {
 	}
 }
 
+func HandleLogFile(config *CustomLogger) io.Writer {
+	if config.LogFileName == "" {
+
+		multi := io.MultiWriter(os.Stdout)
+		return multi
+
+	} else {
+		file, err := os.OpenFile(config.LogFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+		if err != nil {
+			if os.IsNotExist(err) {
+				file, err = os.Create(config.LogFileName)
+				if err != nil {
+					fmt.Println("Error creating log file:", err)
+					os.Exit(1)
+				}
+			} else {
+				fmt.Println("Error opening log file:", err)
+				os.Exit(1)
+			}
+		}
+
+		multi := io.MultiWriter(os.Stdout, file)
+		return multi
+	}
+}
+
 // SetupLogger configures and returns a new logger based on the provided configuration
 func SetupLogger(config *CustomLogger) *slog.Logger {
 
-	file, err := os.OpenFile(config.LogFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			file, err = os.Create(config.LogFileName)
-			if err != nil {
-				fmt.Println("Error creating log file:", err)
-				os.Exit(1)
-			}
-		} else {
-			fmt.Println("Error opening log file:", err)
-			os.Exit(1)
-		}
-	}
-
-	multi := io.MultiWriter(os.Stdout, file)
+	multi := HandleLogFile(config)
 	handler := slog.NewJSONHandler(multi, nil)
 
 	logger := slog.New(handler)

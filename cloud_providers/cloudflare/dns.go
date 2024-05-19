@@ -39,5 +39,6 @@ func GetCurrentRecords(czone *CloudflareDnsZone) {
 	slog.Debug(fmt.Sprint(res))
 	slog.Debug(fmt.Sprint(string(body)))
 	slog.Info("Retrieving Current DNS Records")
+	fmt.Println(string(body))
 
 }

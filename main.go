@@ -25,9 +25,9 @@ func main() {
 	// Create a CloudflareDnsZone object with hardcoded values
 	czone := &cloudflaredns.CloudflareDnsZone{
 		BaseUrl:  "https://api.cloudflare.com/client/v4/zones/",
-		ZoneId:   "your_zone_id_here",
+		ZoneId:   "your_zone_id",
 		RecordId: "your_record_id_here",
-		CfToken:  "your_cf_token_here",
+		CfToken:  "your_token_here",
 	}
 
 	// Call the GetCurrentRecords function
