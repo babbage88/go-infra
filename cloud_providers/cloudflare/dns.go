@@ -9,10 +9,11 @@ import (
 )
 
 type CloudflareDnsZone struct {
-	BaseUrl  string
-	ZoneId   string
-	RecordId string
-	CfToken  string
+	BaseUrl     string
+	ZoneId      string
+	RecordId    string
+	CfToken     string
+	DnsRecordId string
 }
 
 func GetCurrentRecords(czone *CloudflareDnsZone) {
@@ -41,4 +42,29 @@ func GetCurrentRecords(czone *CloudflareDnsZone) {
 	slog.Info("Retrieving Current DNS Records")
 	fmt.Println(string(body))
 
+}
+
+func GetDnsRecordDetails(czone *CloudflareDnsZone) {
+	//url := "https://api.cloudflare.com/client/v4/zones/zone_id/dns_records/dns_record_id"
+
+	var bUrl bytes.Buffer
+
+	bUrl.WriteString(czone.BaseUrl)
+	bUrl.WriteString(czone.ZoneId)
+	bUrl.WriteString("/dns_records" + czone.DnsRecordId)
+
+	url := bUrl.String()
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+czone.CfToken)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	fmt.Println(res)
+	fmt.Println(string(body))
 }
