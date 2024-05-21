@@ -25,7 +25,14 @@ type DnsRecordReq struct {
 	Type        string `json:"type"`
 	Comment     string `json:"comment"`
 	Ttl         int16  `json:"ttl"`
-	DnsRecordId string `json:"dnsRecordId"`
+	DnsRecordId string `json:"id"`
+	ZoneId      string `json:"zone_id"`
+	ZoneName    string `json:"zone_name"`
+}
+
+// Define ApiResponse to map the entire JSON response structure
+type DnsApiResponse struct {
+	Result []DnsRecordReq `json:"result"`
 }
 
 func buildRequestUrl(czone *CloudflareDnsZone) string {
@@ -51,7 +58,7 @@ func createPayload(record *DnsRecordReq) (io.Reader, error) {
 	return strings.NewReader(string(data)), nil
 }
 
-func GetCurrentRecords(czone *CloudflareDnsZone) *http.Response {
+func GetCurrentRecords(czone *CloudflareDnsZone) ([]DnsRecordReq, error) {
 	//url := "https://api.cloudflare.com/client/v4/zones/[dns_zone_id]/dns_records"
 
 	url := buildRequestUrl(czone)
@@ -64,15 +71,24 @@ func GetCurrentRecords(czone *CloudflareDnsZone) *http.Response {
 	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()
-	body, _ := io.ReadAll(res.Body)
 
-	// fmt.Println(res)
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	slog.Debug(fmt.Sprint(res))
 	slog.Debug(fmt.Sprint(string(body)))
 	slog.Info("Retrieving Current DNS Records")
-	//fmt.Println(string(body))
 
-	return res
+	// Parse the JSON response
+	var apiResponse DnsApiResponse
+	err = json.Unmarshal(body, &apiResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiResponse.Result, nil
 
 }
 
