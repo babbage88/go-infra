@@ -75,4 +75,18 @@ func main() {
 	clog.Info("Inserting Records into Database: ")
 	infra_db.InsertDnsRecords(db, dns_records)
 
+	// Example of using GetDnsRecordByName
+	name := "trahan.dev"
+	record, err := infra_db.GetDnsRecordByName(db, name, dnsreq.Type)
+	if err != nil {
+		clog.Error("Error fetching DNS record by name", slog.String("Error", err.Error()))
+		return
+	}
+
+	if record != nil {
+		clog.Info("DNS Record found:", slog.String("name", record.Name), slog.String("content", record.Content), slog.String("Id", record.DnsRecordId))
+	} else {
+		clog.Info("No DNS record found with the specified name", slog.String("name", name))
+	}
+
 }
