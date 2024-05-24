@@ -92,7 +92,7 @@ func GetCurrentRecords(czone *CloudflareDnsZone) ([]DnsRecordReq, error) {
 
 }
 
-func GetDnsRecordDetails(czone *CloudflareDnsZone) *http.Response {
+func GetDnsRecordDetails(czone *CloudflareDnsZone) (DnsRecordReq, error) {
 	//url := "https://api.cloudflare.com/client/v4/zones/zone_id/dns_records/dns_record_id"
 
 	url := buildRequestUrl(czone)
@@ -106,7 +106,15 @@ func GetDnsRecordDetails(czone *CloudflareDnsZone) *http.Response {
 
 	defer res.Body.Close()
 
-	return res
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return DnsRecordReq{}, err
+	}
+
+	var dnsDetails DnsRecordReq
+	json.Unmarshal(body, &dnsDetails)
+
+	return dnsDetails, nil
 }
 
 func CreateDnsRecord(czone *CloudflareDnsZone) *http.Response {

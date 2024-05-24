@@ -1,15 +1,12 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"io"
-	"log/slog"
 	"os"
 
 	cloudflaredns "git.trahan.dev/go-infra/cloud_providers/cloudflare"
 	infra_db "git.trahan.dev/go-infra/database"
-	customlogger "git.trahan.dev/go-infra/utils"
+	customlogger "git.trahan.dev/go-infra/utils/logger"
 )
 
 func main() {
@@ -23,6 +20,14 @@ func main() {
 			file.Close()
 		}
 	}()
+
+	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost("10.0.0.92"), infra_db.WithDbPassword(os.Getenv("DB_PASSWORD")))
+
+	db, err := infra_db.InitializeDbConnection(dbConn)
+
+	if err != nil {
+		clog.Error("Error Connecting to Database", err)
+	}
 
 	var api_key string = os.Getenv("CLOUFLARE_DNS_KEY")
 	var cf_zone_ID string = os.Getenv("CF_ZONE_ID")
@@ -48,45 +53,31 @@ func main() {
 	// Fetch the DNS records
 	dns_records, err := cloudflaredns.GetCurrentRecords(czone)
 
-	// Database connection details
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-
-	// Connect to the PostgreSQL database
-	clog.Info("Connecting to database: " + dbHost)
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, dbUser, dbPassword, dbName)
-
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		clog.Error("Error connecting to the database", slog.String("Error", err.Error()))
-		return
-	}
-	defer db.Close()
-
-	if err != nil {
-		clog.Error("Error retrieving DNS records", slog.String("Error", err.Error()))
-		return
-	}
-
 	clog.Info("Inserting Records into Database: ")
+	infra_db.GetDnsRecordByName(db, "_acme-challenge.api.trahan.dev", "TXT")
 	infra_db.InsertDnsRecords(db, dns_records)
 
-	// Example of using GetDnsRecordByName
-	name := "trahan.dev"
-	record, err := infra_db.GetDnsRecordByName(db, name, dnsreq.Type)
-	if err != nil {
-		clog.Error("Error fetching DNS record by name", slog.String("Error", err.Error()))
-		return
-	}
+	defer func() {
+		if err := infra_db.CloseDbConnection(); err != nil {
+			clog.Error("Failed to close the database connection: %v", err)
+		}
+	}()
 
-	if record != nil {
-		clog.Info("DNS Record found:", slog.String("name", record.Name), slog.String("content", record.Content), slog.String("Id", record.DnsRecordId))
-	} else {
-		clog.Info("No DNS record found with the specified name", slog.String("name", name))
-	}
+	/*
+		// Example of using GetDnsRecordByName
+		name := "trahan.dev"
+		record, err := infra_db.GetDnsRecordByName(db, name, dnsreq.Type)
+		if err != nil {
+			clog.Error("Error fetching DNS record by name", slog.String("Error", err.Error()))
+			return
+		}
 
+		if record != nil {
+			clog.Info("DNS Record found:", slog.String("name", record.Name), slog.String("content", record.Content), slog.String("Id", record.DnsRecordId))
+		} else {
+			clog.Info("No DNS record found with the specified name", slog.String("name", name))
+		}
+
+		//cloudflaredns.GetDnsRecordDetails(czone)
+	*/
 }
