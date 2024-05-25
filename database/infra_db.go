@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"sync"
 
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
@@ -50,7 +51,7 @@ func InitializeDbConnection(dbConn *DatabaseConnection) (*sql.DB, error) {
 		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			dbConn.DbHost, type_helper.String(dbConn.DbPort), dbConn.DbUser, dbConn.DbPassword, dbConn.DbName)
 
-		fmt.Println(psqlInfo)
+		//fmt.Println(psqlInfo)
 		db, dbErr = sql.Open("postgres", psqlInfo)
 		if dbErr != nil {
 			slog.Error("Error connecting to the database", slog.String("Error", dbErr.Error()))
@@ -136,7 +137,8 @@ func InsertOrUpdateHostServer(db *sql.DB, records []HostServer) error {
             is_container_host = EXCLUDED.is_container_host,
             is_vm_host = EXCLUDED.is_vm_host,
             is_virtual_machine = EXCLUDED.is_virtual_machine,
-            id_db_host = EXCLUDED.id_db_host`
+            id_db_host = EXCLUDED.id_db_host,
+			last_modified = DEFAULT`
 
 	for _, record := range records {
 		slog.Info("Inserting Host Server record", slog.String("hostname", record.HostName), slog.String("IP", record.IpAddress))
@@ -150,8 +152,38 @@ func InsertOrUpdateHostServer(db *sql.DB, records []HostServer) error {
 	return nil
 }
 
+func deleteRecordsNotInList(db *sql.DB, czone cloudflaredns.CloudflareDnsZone) error {
+	if len(czone.DnsRecords) == 0 {
+		slog.Info("No Records to delete")
+		return nil
+	}
+
+	// Declare a slice of empty interfaces to hold the IDs
+	var ids []interface{}
+	activerecords := make([]string, len(czone.DnsRecords))
+
+	for i, record := range czone.DnsRecords {
+		ids = append(ids, record.DnsRecordId)
+		activerecords[i] = fmt.Sprintf("$%d", i+2) // Start from $2 since $1 is for zone_id
+	}
+
+	// Construct the query using the placeholders
+	query := fmt.Sprintf(
+		"DELETE FROM dns_records WHERE zone_id = $1 AND dns_record_id NOT IN (%s)",
+		strings.Join(activerecords, ", "),
+	)
+
+	slog.Debug("Executing Delete query: ")
+	ids = append([]interface{}{czone.ZoneId}, ids...)
+
+	slog.Info("Running DELETE with WHERE Clause: ", slog.String("query string", query))
+	_, err := db.Exec(query, ids...)
+	return err
+}
+
 // InsertDnsRecords inserts a list of DnsRecords into the PostgreSQL database.
-func InsertDnsRecords(db *sql.DB, records []cloudflaredns.DnsRecordReq) error {
+func InsertDnsRecords(db *sql.DB, czone cloudflaredns.CloudflareDnsZone) error {
+	deleteRecordsNotInList(db, czone)
 
 	query := `
 		INSERT INTO public.dns_records( dns_record_id, zone_name, zone_id, name, content, proxied, type, comment, ttl)
@@ -165,11 +197,14 @@ func InsertDnsRecords(db *sql.DB, records []cloudflaredns.DnsRecordReq) error {
 			proxied = EXCLUDED.proxied,
 			type = EXCLUDED.type,
 			comment = EXCLUDED.comment,
-			ttl = EXCLUDED.ttl;
+			ttl = EXCLUDED.ttl,
+			last_modified = DEFAULT;
 	`
 
-	for _, record := range records {
-		slog.Info("Inserting record", slog.String("dns_record_id", record.DnsRecordId))
+	for _, record := range czone.DnsRecords {
+		fmt.Println("testing")
+		fmt.Println(record.Name)
+		slog.Info("Inserting record", slog.String("record_content", record.Content), slog.String("dns_record_id", record.DnsRecordId))
 		_, err := db.Exec(query, record.DnsRecordId, record.ZoneName, record.ZoneId, record.Name, record.Content, record.Proxied, record.Type, record.Comment, record.Ttl)
 		if err != nil {
 			slog.Error("Error inserting record", slog.String("Error", err.Error()))
@@ -184,7 +219,7 @@ func GetDnsRecordByName(db *sql.DB, name string, rtype string) (*cloudflaredns.D
 	// slog.Info("Querying DNS record", slog.String("name", name), slog.String("type", rtype))
 
 	query := `
-		SELECT dns_record_id, zone_name, zone_id, name, content, proxied, type, comment, ttl
+		SELECT dns_record_id, zone_name, zone_id, name, content, proxied, type, comment, ttl, last_modified
 		FROM public.dns_records
 		WHERE name = $1 AND type = $2;
 	`
@@ -200,6 +235,7 @@ func GetDnsRecordByName(db *sql.DB, name string, rtype string) (*cloudflaredns.D
 		&record.Type,
 		&record.Comment,
 		&record.Ttl,
+		&record.LastModified,
 	)
 
 	if err != nil {
@@ -212,4 +248,55 @@ func GetDnsRecordByName(db *sql.DB, name string, rtype string) (*cloudflaredns.D
 	}
 
 	return &record, nil
+}
+
+func GetDbDnsRecordByZoneId(db *sql.DB, czone *cloudflaredns.CloudflareDnsZone) ([]cloudflaredns.DnsRecordReq, error) {
+	query := `SELECT dns_record_id, zone_name, zone_id, name, content, proxied, type, comment, ttl, last_modified
+			  FROM	public.dns_records
+			  WHERE	zone_id = $1;`
+
+	rows, err := db.Query(query, czone.ZoneId)
+	if err != nil {
+		slog.Error("Error running query", slog.String("Error", err.Error()))
+	}
+	var records []cloudflaredns.DnsRecordReq
+	for rows.Next() {
+		var record cloudflaredns.DnsRecordReq
+
+		if err := rows.Scan(&record.DnsRecordId,
+			&record.ZoneName,
+			&record.ZoneId,
+			&record.Name,
+			&record.Content,
+			&record.Proxied,
+			&record.Type,
+			&record.Comment,
+			&record.Ttl,
+			&record.LastModified); err != nil {
+			slog.Error("Error parsing DB response", slog.String("Error", err.Error()))
+		}
+		slog.Info("Appending DNS Record", slog.String("dns_record_id", record.DnsRecordId), slog.String("name:", record.Name))
+		records = append(records, record)
+	}
+
+	return records, nil
+}
+
+func DeleteDnsRecord(db *sql.DB, record cloudflaredns.DnsRecordReq) error {
+	query := `DELETE FROM public.dns_records
+			  WHERE zone_id = $1 AND dns_record_id = $2`
+
+	slog.Info("Deleting DNS record", slog.String("dns_record_id", record.DnsRecordId), slog.String("name:", record.Name))
+	db.Exec(query, record.ZoneId, record.DnsRecordId)
+
+	return nil
+}
+
+func DeleteDnsRecords(db *sql.DB, records []cloudflaredns.DnsRecordReq) error {
+
+	for _, record := range records {
+		DeleteDnsRecord(db, record)
+	}
+
+	return nil
 }

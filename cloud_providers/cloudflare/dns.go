@@ -8,26 +8,29 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type CloudflareDnsZone struct {
-	BaseUrl       string        `json:"baseUrl"`
-	ZoneId        string        `json:"zoneId"`
-	CfToken       string        `json:"cfToken"`
-	RecordRequest *DnsRecordReq `json:"recordRequest"`
-	SecretsPath   string        `json:"secretsPath"`
+	BaseUrl       string         `json:"baseUrl"`
+	ZoneId        string         `json:"zoneId"`
+	CfToken       string         `json:"cfToken"`
+	RecordRequest *DnsRecordReq  `json:"recordRequest"`
+	SecretsPath   string         `json:"secretsPath"`
+	DnsRecords    []DnsRecordReq `json:"dnsRecords"`
 }
 
 type DnsRecordReq struct {
-	Content     string `json:"content"`
-	Name        string `json:"name"`
-	Proxied     bool   `json:"proxied"`
-	Type        string `json:"type"`
-	Comment     string `json:"comment"`
-	Ttl         int16  `json:"ttl"`
-	DnsRecordId string `json:"id"`
-	ZoneId      string `json:"zone_id"`
-	ZoneName    string `json:"zone_name"`
+	Content      string    `json:"content"`
+	Name         string    `json:"name"`
+	Proxied      bool      `json:"proxied"`
+	Type         string    `json:"type"`
+	Comment      string    `json:"comment"`
+	Ttl          int16     `json:"ttl"`
+	DnsRecordId  string    `json:"id"`
+	ZoneId       string    `json:"zone_id"`
+	ZoneName     string    `json:"zone_name"`
+	LastModified time.Time `json:"last_modified"`
 }
 
 // Define ApiResponse to map the entire JSON response structure
@@ -117,7 +120,7 @@ func GetDnsRecordDetails(czone *CloudflareDnsZone) (DnsRecordReq, error) {
 	return dnsDetails, nil
 }
 
-func CreateDnsRecord(czone *CloudflareDnsZone) *http.Response {
+func CreateDnsRecord(czone *CloudflareDnsZone) (DnsRecordReq, error) {
 	url := buildRequestUrl(czone)
 
 	payload, err := createPayload(czone.RecordRequest)
@@ -133,10 +136,18 @@ func CreateDnsRecord(czone *CloudflareDnsZone) *http.Response {
 
 	defer res.Body.Close()
 
-	return res
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return DnsRecordReq{}, err
+	}
+
+	var createRecordRes DnsRecordReq
+	json.Unmarshal(body, &createRecordRes)
+
+	return createRecordRes, nil
 }
 
-func UpdateDnsRecord(czone *CloudflareDnsZone) *http.Response {
+func UpdateDnsRecord(czone *CloudflareDnsZone) (DnsRecordReq, error) {
 	url := buildRequestUrl(czone)
 
 	payload, err := createPayload(czone.RecordRequest)
@@ -152,5 +163,13 @@ func UpdateDnsRecord(czone *CloudflareDnsZone) *http.Response {
 
 	defer res.Body.Close()
 
-	return res
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return DnsRecordReq{}, err
+	}
+
+	var updateRecordRes DnsRecordReq
+	json.Unmarshal(body, &updateRecordRes)
+
+	return updateRecordRes, nil
 }

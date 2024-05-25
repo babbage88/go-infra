@@ -48,36 +48,20 @@ func main() {
 		ZoneId:        cf_zone_ID,
 		CfToken:       api_key,
 		RecordRequest: dnsreq,
+		DnsRecords:    []cloudflaredns.DnsRecordReq{},
 	}
 
 	// Fetch the DNS records
 	dns_records, err := cloudflaredns.GetCurrentRecords(czone)
 
-	clog.Info("Inserting Records into Database: ")
-	infra_db.GetDnsRecordByName(db, "_acme-challenge.api.trahan.dev", "TXT")
-	infra_db.InsertDnsRecords(db, dns_records)
+	czone.DnsRecords = dns_records
+
+	// infra_db.GetDnsRecordByName(db, "_acme-challenge.api.trahan.dev", "TXT")
+	infra_db.InsertDnsRecords(db, *czone)
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {
 			clog.Error("Failed to close the database connection: %v", err)
 		}
 	}()
-
-	/*
-		// Example of using GetDnsRecordByName
-		name := "trahan.dev"
-		record, err := infra_db.GetDnsRecordByName(db, name, dnsreq.Type)
-		if err != nil {
-			clog.Error("Error fetching DNS record by name", slog.String("Error", err.Error()))
-			return
-		}
-
-		if record != nil {
-			clog.Info("DNS Record found:", slog.String("name", record.Name), slog.String("content", record.Content), slog.String("Id", record.DnsRecordId))
-		} else {
-			clog.Info("No DNS record found with the specified name", slog.String("name", name))
-		}
-
-		//cloudflaredns.GetDnsRecordDetails(czone)
-	*/
 }
