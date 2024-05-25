@@ -7,8 +7,8 @@ import (
 	"os"
 	"sync"
 
-	cloudflaredns "git.trahan.dev/go-infra/cloud_providers/cloudflare"
-	type_helper "git.trahan.dev/go-infra/utils/type_helper"
+	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
+	type_helper "github.com/babbage88/go-infra/utils/type_helper"
 	"github.com/lib/pq"
 )
 

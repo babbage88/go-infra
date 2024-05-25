@@ -4,9 +4,9 @@ import (
 	"io"
 	"os"
 
-	cloudflaredns "git.trahan.dev/go-infra/cloud_providers/cloudflare"
-	infra_db "git.trahan.dev/go-infra/database"
-	customlogger "git.trahan.dev/go-infra/utils/logger"
+	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
+	infra_db "github.com/babbage88/go-infra/database"
+	customlogger "github.com/babbage88/go-infra/utils/logger"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module git.trahan.dev/go-infra
+module github.com/babbage88/go-infra
 
 go 1.22.2
 
