@@ -24,6 +24,8 @@ services:
       placement:
         constraints:
           - node.labels.devtesting == true
+    ports:
+      - "8993:8993"
 networks:
   ovnet1:
     external: true

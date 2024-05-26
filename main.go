@@ -18,6 +18,17 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
+// @title go-infra api
+// @version 1.0
+// @description Automation for hybrid web app deployments
+
+// @contact.name Justin
+// @contact.url trahan@babbage88
+// @contact.email support@swagger.io
+
+// @host localhost:8993
+// @BasePath /
+// @query.collection.format multi
 func main() {
 	db_pw := docker_helper.GetSecret("DB_PW")
 	api_key := docker_helper.GetSecret("trahan.dev_token")
@@ -33,12 +44,17 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
-	mux.HandleFunc("/api/getalldns/", webapi.CreateDnsHttpHandlerWrapper(db))
+	// @Summary Return http Handler function to return all DNS records from Database
+	// @ID GetAlldns
+	// @Produce  json
+	// @Success 200 {object} []cloudflaredns.DnsRecordReq
+	// @Router /api/getalldns [get]
+	mux.HandleFunc("/getalldns/", webapi.CreateDnsHttpHandlerWrapper(db))
 
 	config := customlogger.NewCustomLogger()
 	clog := customlogger.SetupLogger(config)
 
-	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8238 is default")
+	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	flag.Parse()
 
 	clog.Info("Starting http server.")
