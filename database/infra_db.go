@@ -250,6 +250,37 @@ func GetDnsRecordByName(db *sql.DB, name string, rtype string) (*cloudflaredns.D
 	return &record, nil
 }
 
+func GetAllDnsRecords(db *sql.DB) ([]cloudflaredns.DnsRecordReq, error) {
+	query := `SELECT dns_record_id, zone_name, zone_id, name, content, proxied, type, comment, ttl, last_modified
+			  FROM	public.dns_records;`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		slog.Error("Error running query", slog.String("Error", err.Error()))
+	}
+	var records []cloudflaredns.DnsRecordReq
+	for rows.Next() {
+		var record cloudflaredns.DnsRecordReq
+
+		if err := rows.Scan(&record.DnsRecordId,
+			&record.ZoneName,
+			&record.ZoneId,
+			&record.Name,
+			&record.Content,
+			&record.Proxied,
+			&record.Type,
+			&record.Comment,
+			&record.Ttl,
+			&record.LastModified); err != nil {
+			slog.Error("Error parsing DB response", slog.String("Error", err.Error()))
+		}
+		slog.Info("Appending DNS Record", slog.String("dns_record_id", record.DnsRecordId), slog.String("name:", record.Name))
+		records = append(records, record)
+	}
+
+	return records, nil
+}
+
 func GetDbDnsRecordByZoneId(db *sql.DB, czone *cloudflaredns.CloudflareDnsZone) ([]cloudflaredns.DnsRecordReq, error) {
 	query := `SELECT dns_record_id, zone_name, zone_id, name, content, proxied, type, comment, ttl, last_modified
 			  FROM	public.dns_records

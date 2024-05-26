@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  go-infra:
+    image: git.trahan.dev/jtrahan/go-certtest:test
+    #command: tail -f /dev/null
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - ovnet1
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    secrets:
+      - trahan.dev_token
+      - trahan.dev_zoneid
+      - DB_PW
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://10.0.0.93:514"
+        syslog-format: "rfc3164"
+        tag: "dev-goinfra"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.devtesting == true
+networks:
+  ovnet1:
+    external: true
+    name: ovnet1
+secrets:
+  trahan.dev_token:
+    external: true
+  trahan.dev_zoneid:
+    external: true
+  DB_PW:
+    external: true
