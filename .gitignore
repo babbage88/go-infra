@@ -1,6 +1,6 @@
 #ignore binaries
-./main
-./go-infra
+main
+go-infra
 
 # ---> Go
 # If you prefer the allow list template instead of the deny list, see community template:

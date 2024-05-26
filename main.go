@@ -44,11 +44,6 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
-	// @Summary Return http Handler function to return all DNS records from Database
-	// @ID GetAlldns
-	// @Produce  json
-	// @Success 200 {object} []cloudflaredns.DnsRecordReq
-	// @Router /api/getalldns [get]
 	mux.HandleFunc("/getalldns/", webapi.CreateDnsHttpHandlerWrapper(db))
 
 	config := customlogger.NewCustomLogger()
