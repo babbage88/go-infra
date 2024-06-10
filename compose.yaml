@@ -14,6 +14,7 @@ services:
       - trahan.dev_token
       - trahan.dev_zoneid
       - DB_PW
+      - cloudflare_dns_api
     logging:
       driver: syslog
       options:
@@ -36,4 +37,6 @@ secrets:
   trahan.dev_zoneid:
     external: true
   DB_PW:
+    external: true
+  cloudflare_dns_api:
     external: true

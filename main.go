@@ -12,9 +12,9 @@ import (
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
 	infra_db "github.com/babbage88/go-infra/database"
 	_ "github.com/babbage88/go-infra/swagger"
-	docker_helper "github.com/babbage88/go-infra/utils/docker_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	webapi "github.com/babbage88/go-infra/webapi"
+	"github.com/babbage88/go-infra/webutils/certhandler"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -30,10 +30,21 @@ import (
 // @BasePath /
 // @query.collection.format multi
 func main() {
-	db_pw := docker_helper.GetSecret("DB_PW")
-	api_key := docker_helper.GetSecret("trahan.dev_token")
-	cf_zone_ID := docker_helper.GetSecret("trahan.dev_zoneid")
+	/*
+		db_pw := docker_helper.GetSecret("DB_PW")
+		api_key := docker_helper.GetSecret("cloudflare_dns_api")
+		cf_zone_ID := docker_helper.GetSecret("trahan.dev_zoneid")
+		le_ini := docker_helper.GetSecret("trahan.dev_token")
 
+		if le_ini == "" {
+			slog.Warn("Le auth blank")
+		}
+
+		dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost("10.0.0.92"), infra_db.WithDbPassword(db_pw))
+	*/
+	db_pw := os.Getenv("DB_PASSWORD")
+	cf_zone_ID := os.Getenv("BALLOONSTX_CF_ZONE_ID")
+	api_key := os.Getenv("CLOUFLARE_DNS_KEY")
 	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost("10.0.0.92"), infra_db.WithDbPassword(db_pw))
 
 	db, err := infra_db.InitializeDbConnection(dbConn)
@@ -49,15 +60,15 @@ func main() {
 	config := customlogger.NewCustomLogger()
 	clog := customlogger.SetupLogger(config)
 
-	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
+	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	flag.Parse()
 
 	clog.Info("Starting http server.")
-	http.ListenAndServe(*srvport, mux)
+	//http.ListenAndServe(*srvport, mux)
 
 	app := &cli.App{
-		Name:  "boom",
-		Usage: "make an explosive entrance",
+		Name:  "goincli",
+		Usage: "Testing CLI",
 		Action: func(*cli.Context) error {
 
 			dnsreq := &cloudflaredns.DnsRecordReq{
@@ -106,4 +117,12 @@ func main() {
 			file.Close()
 		}
 	}()
+
+	renewreq := certhandler.CertDnsRenewReq{
+		AuthFile:   "/home/jtrahan/cfau.ini",
+		DomainName: "goinfra.trahan.dev",
+		Provider:   "cloudflare",
+	}
+
+	renewreq.Renew()
 }
