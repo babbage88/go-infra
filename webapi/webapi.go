@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	_ "github.com/babbage88/go-infra/swagger"
-
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
 	infra_db "github.com/babbage88/go-infra/database"
 )
@@ -17,18 +15,7 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
-// @Summary Return http Handler function to return all DNS records from Database
-// @ID GetAlldns
-// @Produce  json
-// @Success 200 {object} []cloudflaredns.DnsRecordReq
-// @Router /getalldns [get]
-
 func CreateDnsHttpHandlerWrapper(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
-	// @Summary Return http Handler function to return all DNS records from Database
-	// @ID GetAlldns
-	// @Produce  json
-	// @Success 200 {object} []cloudflaredns.DnsRecordReq
-	// @Router /getalldns [get]
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			enableCors(&w)

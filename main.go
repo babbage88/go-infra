@@ -11,24 +11,11 @@ import (
 
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
 	infra_db "github.com/babbage88/go-infra/database"
-	_ "github.com/babbage88/go-infra/swagger"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	webapi "github.com/babbage88/go-infra/webapi"
 	"github.com/babbage88/go-infra/webutils/certhandler"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
-// @title go-infra api
-// @version 1.0
-// @description Automation for hybrid web app deployments
-
-// @contact.name Justin
-// @contact.url trahan@babbage88
-// @contact.email support@swagger.io
-
-// @host localhost:8993
-// @BasePath /
-// @query.collection.format multi
 func main() {
 	/*
 		db_pw := docker_helper.GetSecret("DB_PW")
@@ -54,7 +41,6 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 	mux.HandleFunc("/getalldns/", webapi.CreateDnsHttpHandlerWrapper(db))
 
 	config := customlogger.NewCustomLogger()
@@ -122,7 +108,7 @@ func main() {
 		AuthFile:   "/home/jtrahan/cfau.ini",
 		DomainName: "goinfra.trahan.dev",
 		Provider:   "cloudflare",
-		Email:      "fake@example",
+		Email:      "justin@trahan.dev",
 	}
 
 	renewreq.Renew()
