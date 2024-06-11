@@ -11,6 +11,7 @@ type CertDnsRenewReq struct {
 	AuthFile   string `json:"authFile"`
 	DomainName string `json:"domainName"`
 	Provider   string `json:"provider"`
+	Email      string `json:"email"`
 }
 
 type Renewal interface {
@@ -18,7 +19,15 @@ type Renewal interface {
 }
 
 func (c CertDnsRenewReq) Renew() []string {
-	cmd := exec.Command("certbot", "certonly", "--dns-cloudflare", "--dns-cloudflare-credentials", c.AuthFile, "--dns-cloudflare-propagation-seconds", "60", "-d", c.DomainName)
+	cmd := exec.Command("certbot",
+		"certonly",
+		"--dns-cloudflare",
+		"--dns-cloudflare-credentials", c.AuthFile,
+		"--dns-cloudflare-propagation-seconds", "60",
+		"--email", c.Email,
+		"--agree-tos",
+		"--no-eff-email",
+		"-d", c.DomainName)
 
 	slog.Info("Starting command to renew certificate", slog.String("Domain", c.DomainName), slog.String("DNS Provider", c.Provider))
 

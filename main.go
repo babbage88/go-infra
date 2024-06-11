@@ -122,6 +122,7 @@ func main() {
 		AuthFile:   "/home/jtrahan/cfau.ini",
 		DomainName: "goinfra.trahan.dev",
 		Provider:   "cloudflare",
+		Email:      "fake@example",
 	}
 
 	renewreq.Renew()
