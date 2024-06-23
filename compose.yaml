@@ -1,11 +1,10 @@
 version: "3.8"
 services:
   go-infra:
-    image: git.trahan.dev/jtrahan/go-certtest:test
-    #command: tail -f /dev/null
+    image: git.trahan.dev/jtrahan/go-infra:dev
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     networks:
       - ovnet1
     volumes:
@@ -24,7 +23,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.devtesting == true
+          - node.labels.dev01 == true
     ports:
       - "8993:8993"
 networks:
