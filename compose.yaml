@@ -14,18 +14,13 @@ services:
       - trahan.dev_zoneid
       - DB_PW
       - cloudflare_dns_api
-    logging:
-      driver: syslog
-      options:
-        syslog-address: "udp://10.0.0.93:514"
-        syslog-format: "rfc3164"
-        tag: "dev-goinfra"
     deploy:
       placement:
         constraints:
           - node.labels.dev01 == true
     ports:
       - "8993:8993"
+    user: root
 networks:
   ovnet1:
     external: true

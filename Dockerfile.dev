@@ -77,5 +77,5 @@ COPY --from=build /bin/server /bin/
 EXPOSE 8080
 
 # What the container should run when it is started.
-#ENTRYPOINT [ "/bin/server" ]
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT [ "/bin/server" ]
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
