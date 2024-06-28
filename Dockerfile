@@ -1,30 +1,23 @@
-# Use an official Golang runtime as a parent image
-FROM golang:alpine
+FROM golang:latest as build
 
-# Install any runtime dependencies that are needed to run your application.
-# Leverage a cache mount to /var/cache/apk/ to speed up subsequent builds.
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk --update add \
-    ca-certificates \
-    certbot\
-    certbot-dns-cloudflare\
-    tzdata \
-    bash \
-    coreutils\
-    curl \
-    && \
-    update-ca-certificates
-
-# Set the working directory inside the container
-WORKDIR /app
+WORKDIR /src
 
 # Copy the local package files to the container's workspace
-COPY . /app
+COPY . .
 
 # Build the Go application inside the container
-RUN go build -o go-docker-cli
+RUN cd /src && go build -o go-infra
 
-RUN go install
+FROM alpine:latest as final
 
-# Define the command to run your application
-ENTRYPOINT ["./go-docker-cli"]
+# Install any runtime dependencies that are needed to run your application
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk --update add certbot \
+    certbot-dns-cloudflare
+
+WORKDIR /app
+
+COPY --from=build /src/go-infra /app/
+
+# Define the command to keep the container running
+ENTRYPOINT ["tail", "-f", "/dev/null"]

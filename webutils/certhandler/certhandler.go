@@ -1,7 +1,7 @@
 package certhandler
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
 	"log/slog"
 	"os/exec"
@@ -29,25 +29,19 @@ func (c CertDnsRenewReq) Renew() []string {
 		"--no-eff-email",
 		"-d", c.DomainName)
 
+	var outb, errb bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
+
 	slog.Info("Starting command to renew certificate", slog.String("Domain", c.DomainName), slog.String("DNS Provider", c.Provider))
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		slog.Error("Error configuring StdoutPipe", slog.String("Error", err.Error()))
-	}
-
 	// start the command after having set up the pipe
-	if err := cmd.Start(); err != nil {
+	if err := cmd.Run(); err != nil {
 		slog.Error("Error executing command", slog.String("Error", err.Error()))
 	}
 
-	// read command's stdout line by line
-	in := bufio.NewScanner(stdout)
 	var cmdoutput []string
-	for in.Scan() {
-		fmt.Printf(in.Text())
-		cmdoutput = append(cmdoutput, in.Text())
-	}
+	cmdoutput = append(cmdoutput, outb.String(), errb.String())
+	fmt.Println("out:", outb.String(), "err:", errb.String())
 
 	return cmdoutput
 }

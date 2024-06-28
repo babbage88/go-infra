@@ -14,7 +14,6 @@ import (
 	docker_helper "github.com/babbage88/go-infra/utils/docker_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	webapi "github.com/babbage88/go-infra/webapi"
-	"github.com/babbage88/go-infra/webutils/certhandler"
 )
 
 func main() {
@@ -43,15 +42,16 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/getalldns/", webapi.CreateDnsHttpHandlerWrapper(db))
+	mux.HandleFunc("/requestcert/", webapi.RenewCertHandler)
 
 	config := customlogger.NewCustomLogger()
 	clog := customlogger.SetupLogger(config)
 
-	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
+	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	flag.Parse()
 
 	clog.Info("Starting http server.")
-	//http.ListenAndServe(*srvport, mux)
+	http.ListenAndServe(*srvport, mux)
 
 	app := &cli.App{
 		Name:  "goincli",
@@ -84,7 +84,7 @@ func main() {
 
 			czone.DnsRecords = dns_records
 
-			infra_db.InsertDnsRecords(db, *czone)
+			//infra_db.InsertDnsRecords(db, *czone)
 			return nil
 		},
 	}
@@ -104,13 +104,4 @@ func main() {
 			file.Close()
 		}
 	}()
-
-	renewreq := certhandler.CertDnsRenewReq{
-		AuthFile:   "/home/jtrahan/cfau.ini",
-		DomainName: "goinfra.trahan.dev",
-		Provider:   "cloudflare",
-		Email:      "justin@trahan.dev",
-	}
-
-	renewreq.Renew()
 }
