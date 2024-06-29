@@ -12,7 +12,7 @@ import (
 var jwtkeydotEnv = env_helper.NewDotEnvSource().GetEnvVarValue()
 var jwtKey = []byte(jwtkeydotEnv)
 
-func createToken(userid string) (string, error) {
+func createToken(userid int64) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"userid": userid,
@@ -29,8 +29,8 @@ func createToken(userid string) (string, error) {
 	return tokenString, nil
 }
 
-func CreateToken(username string) (string, error) {
-	return createToken(username)
+func CreateToken(userid int64) (string, error) {
+	return createToken(userid)
 }
 
 func verifyToken(tokenString string) error {

@@ -25,7 +25,6 @@ type User struct {
 	Username     string    `json:"userName"`
 	Password     string    `json:"password"`
 	Email        string    `json:"email"`
-	ApiTokens    []string  `json:"apiTokens"`
 	CreatedAt    time.Time `json:"created"`
 	LastModified time.Time `json:"last_modified"`
 }

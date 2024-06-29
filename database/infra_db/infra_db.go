@@ -190,18 +190,16 @@ func DeleteHostServer(db *sql.DB, id int64) error {
 
 func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 	query := `
-		INSERT INTO users (username, password, email, api_tokens)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO users (username, password, email)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (username) DO UPDATE
-		SET password = EXCLUDED.password, email = EXCLUDED.email, api_tokens = EXCLUDED.api_tokens
+		SET password = EXCLUDED.password, email = EXCLUDED.email
 		RETURNING id`
 
-	apiTokens := pq.Array(user.ApiTokens)
 	err := db.QueryRow(query,
 		user.Username,
 		user.Password,
 		user.Email,
-		apiTokens,
 	).Scan(&user.Id)
 
 	slog.Info("Inserted or Upated User in DB.", slog.String("UserId", fmt.Sprint(user.Id)), slog.String("Username", user.Username))
@@ -211,25 +209,22 @@ func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
 	query := `SELECT 
 				id, username, password, email, 
-				api_tokens, created_at, last_modified
+				created_at, last_modified
 		FROM users WHERE id = $1`
 
 	var user db_models.User
-	var apiTokens pq.StringArray
 	slog.Info("Retrieving user from Database", slog.String("UserId", fmt.Sprint(id)))
 	err := db.QueryRow(query, id).Scan(
 		&user.Id,
 		&user.Username,
 		&user.Password,
 		&user.Email,
-		&apiTokens,
 		&user.CreatedAt,
 		&user.LastModified,
 	)
 	if err != nil {
 		return nil, err
 	}
-	user.ApiTokens = []string(apiTokens)
 	slog.Info("User found in Database.", slog.String("Username", user.Username))
 
 	return &user, nil
@@ -238,18 +233,16 @@ func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
 func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
 	query := `SELECT 
 				id, username, password, email, 
-				api_tokens, created_at, last_modified
+				created_at, last_modified
 		FROM users WHERE username = $1`
 
 	var user db_models.User
-	var apiTokens pq.StringArray
 	slog.Info("Retrieving user from Database", slog.String("UserName", username))
 	err := db.QueryRow(query, username).Scan(
 		&user.Id,
 		&user.Username,
 		&user.Password,
 		&user.Email,
-		&apiTokens,
 		&user.CreatedAt,
 		&user.LastModified,
 	)
@@ -261,7 +254,6 @@ func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
 		slog.Error("Error retrieving user from database", slog.String("Error", err.Error()))
 		return nil, err
 	}
-	user.ApiTokens = []string(apiTokens)
 	slog.Info("User found in Database.", slog.String("UserId", fmt.Sprint(user.Id)))
 
 	return &user, nil

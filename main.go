@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/babbage88/go-infra/auth/hashing"
+	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
 	infra_db "github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
@@ -18,10 +19,9 @@ func createTestUserInstance(username string, password string, email string, toke
 	}
 
 	testuser := db_models.User{
-		Username:  username,
-		Password:  hashedpw,
-		Email:     email,
-		ApiTokens: tokens,
+		Username: username,
+		Password: hashedpw,
+		Email:    email,
 	}
 
 	return testuser
@@ -55,7 +55,14 @@ func main() {
 	verify_pw := hashing.VerifyPassword("testpw", user.Password)
 
 	if verify_pw {
-		fmt.Printf("Password is verified for User: %s \n", user.Username)
+		slog.Info("Password is verified for User: %s", slog.String("UserName", user.Username))
+		slog.Info("Generating AuthToken for UserId", slog.String("UserId", fmt.Sprint(user.Id)))
+		token, err := jwt_auth.CreateToken(user.Id)
+		if err != nil {
+			slog.Error("Error Generating JWT AuthToken", slog.String("Error", err.Error()))
+		}
+		infra_db.InsertOrUpdateUser(db, user)
+		fmt.Println(token)
 	}
 
 	if !verify_pw {
