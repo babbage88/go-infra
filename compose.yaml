@@ -1,11 +1,10 @@
 version: "3.8"
 services:
   go-infra:
-    image: git.trahan.dev/jtrahan/go-certtest:test
-    #command: tail -f /dev/null
+    image: git.trahan.dev/jtrahan/go-infra:dev
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     networks:
       - ovnet1
     volumes:
@@ -15,18 +14,13 @@ services:
       - trahan.dev_zoneid
       - DB_PW
       - cloudflare_dns_api
-    logging:
-      driver: syslog
-      options:
-        syslog-address: "udp://10.0.0.93:514"
-        syslog-format: "rfc3164"
-        tag: "dev-goinfra"
     deploy:
       placement:
         constraints:
-          - node.labels.devtesting == true
+          - node.labels.dev01 == true
     ports:
       - "8993:8993"
+    user: root
 networks:
   ovnet1:
     external: true

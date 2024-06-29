@@ -3,6 +3,7 @@ package type_helper
 import (
 	"fmt"
 	"log/slog"
+	"strconv"
 )
 
 func String(n int32) string {
@@ -26,4 +27,13 @@ func String(n int32) string {
 			return string(buf[pos:])
 		}
 	}
+}
+
+func ParseInt64(s string) (int64, error) {
+	intValue, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		slog.Error("Error parsing int64 from string", slog.String("string:", s))
+		return 0, err
+	}
+	return intValue, nil
 }

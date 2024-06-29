@@ -1,129 +1,78 @@
 package main
 
 import (
-	"flag"
-	"io"
+	"database/sql"
+	"fmt"
 	"log/slog"
-	"net/http"
-	"os"
 
-	"github.com/urfave/cli/v2"
-
-	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
-	infra_db "github.com/babbage88/go-infra/database"
-	_ "github.com/babbage88/go-infra/swagger"
-	customlogger "github.com/babbage88/go-infra/utils/logger"
-	webapi "github.com/babbage88/go-infra/webapi"
-	"github.com/babbage88/go-infra/webutils/certhandler"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"github.com/babbage88/go-infra/auth/hashing"
+	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
+	infra_db "github.com/babbage88/go-infra/database/infra_db"
+	db_models "github.com/babbage88/go-infra/database/models"
+	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 )
 
-// @title go-infra api
-// @version 1.0
-// @description Automation for hybrid web app deployments
+func createTestUserInstance(username string, password string, email string, tokens []string) db_models.User {
+	hashedpw, err := hashing.HashPassword(password)
+	if err != nil {
+		slog.Error("Error hashing password", slog.String("Error", err.Error()))
+	}
 
-// @contact.name Justin
-// @contact.url trahan@babbage88
-// @contact.email support@swagger.io
+	testuser := db_models.User{
+		Username: username,
+		Password: hashedpw,
+		Email:    email,
+	}
 
-// @host localhost:8993
-// @BasePath /
-// @query.collection.format multi
-func main() {
-	/*
-		db_pw := docker_helper.GetSecret("DB_PW")
-		api_key := docker_helper.GetSecret("cloudflare_dns_api")
-		cf_zone_ID := docker_helper.GetSecret("trahan.dev_zoneid")
-		le_ini := docker_helper.GetSecret("trahan.dev_token")
+	return testuser
+}
 
-		if le_ini == "" {
-			slog.Warn("Le auth blank")
-		}
-
-		dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost("10.0.0.92"), infra_db.WithDbPassword(db_pw))
-	*/
-	db_pw := os.Getenv("DB_PASSWORD")
-	cf_zone_ID := os.Getenv("BALLOONSTX_CF_ZONE_ID")
-	api_key := os.Getenv("CLOUFLARE_DNS_KEY")
+func initializeDbConn() *sql.DB {
+	var db_pw = env_helper.NewDotEnvSource(env_helper.WithVarName("DB_PW")).GetEnvVarValue()
 	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost("10.0.0.92"), infra_db.WithDbPassword(db_pw))
 
-	db, err := infra_db.InitializeDbConnection(dbConn)
+	db, _ := infra_db.InitializeDbConnection(dbConn)
 
-	if err != nil {
-		slog.Error("Error Connecting to Database", slog.String("Error", err.Error()))
-	}
+	return db
+}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
-	mux.HandleFunc("/getalldns/", webapi.CreateDnsHttpHandlerWrapper(db))
-
-	config := customlogger.NewCustomLogger()
-	clog := customlogger.SetupLogger(config)
+func main() {
 
 	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	flag.Parse()
+	//flag.Parse()
+	//api_aerver.StartWebApiServer(db, srvport)
 
-	clog.Info("Starting http server.")
-	//http.ListenAndServe(*srvport, mux)
+	db := initializeDbConn()
+	var tokens []string
 
-	app := &cli.App{
-		Name:  "goincli",
-		Usage: "Testing CLI",
-		Action: func(*cli.Context) error {
+	tokens = append(tokens, "0984023874098324")
 
-			dnsreq := &cloudflaredns.DnsRecordReq{
-				Content:     "10.0.0.32",
-				Name:        "testgo",
-				Proxied:     false,
-				Type:        "A",
-				Comment:     "Testing Golang",
-				Ttl:         3600,
-				DnsRecordId: "",
-			}
+	testuser := createTestUserInstance("devtest", "testpw", "devtest@trahan.dev", tokens)
 
-			// Create a CloudflareDnsZone object with hardcoded values
-			czone := &cloudflaredns.CloudflareDnsZone{
-				BaseUrl:       "https://api.cloudflare.com/client/v4/zones/",
-				ZoneId:        cf_zone_ID,
-				CfToken:       api_key,
-				RecordRequest: dnsreq,
-				DnsRecords:    []cloudflaredns.DnsRecordReq{},
-			}
+	infra_db.InsertOrUpdateUser(db, &testuser)
+	user, _ := infra_db.GetUserByUsername(db, testuser.Username)
 
-			dns_records, err := cloudflaredns.GetCurrentRecords(czone)
-			if err != nil {
-				slog.Error("Error getting DNS rocords from CF", slog.String("Error", err.Error()))
-			}
+	verify_pw := hashing.VerifyPassword("testpw", user.Password)
 
-			czone.DnsRecords = dns_records
-
-			infra_db.InsertDnsRecords(db, *czone)
-			return nil
-		},
+	if verify_pw {
+		slog.Info("Password is verified for User: %s", slog.String("UserName", user.Username))
+		slog.Info("Generating AuthToken for UserId", slog.String("UserId", fmt.Sprint(user.Id)))
+		token, err := jwt_auth.CreateToken(user.Id)
+		if err != nil {
+			slog.Error("Error Generating JWT AuthToken", slog.String("Error", err.Error()))
+		}
+		infra_db.InsertAuthToken(db, &token)
+		fmt.Println(token)
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		slog.Error("Error Running command", slog.String("Error", err.Error()))
+	if !verify_pw {
+		fmt.Printf("Could not Verify Passworf for User: %s \n", user.Username)
 	}
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {
-			clog.Error("Failed to close the database connection: %v", err)
+			slog.Error("Failed to close the database connection: %v", err)
 		}
 	}()
 
-	defer func() {
-		if file, ok := clog.Handler().(io.Closer); ok {
-			file.Close()
-		}
-	}()
-
-	renewreq := certhandler.CertDnsRenewReq{
-		AuthFile:   "/home/jtrahan/cfau.ini",
-		DomainName: "goinfra.trahan.dev",
-		Provider:   "cloudflare",
-		Email:      "fake@example",
-	}
-
-	renewreq.Renew()
 }

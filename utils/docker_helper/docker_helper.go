@@ -17,3 +17,14 @@ func GetSecret(secret string) string {
 
 	return ret_val
 }
+
+/*
+From main
+
+	db_pw := docker_helper.GetSecret("DB_PW")
+	le_ini := docker_helper.GetSecret("trahan.dev_token")
+
+	if le_ini == "" {
+		slog.Warn("Le auth blank")
+	}
+*/

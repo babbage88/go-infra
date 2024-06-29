@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
+	db_models "github.com/babbage88/go-infra/database/models"
 	type_helper "github.com/babbage88/go-infra/utils/type_helper"
 	"github.com/lib/pq"
 )
@@ -22,19 +23,6 @@ type DatabaseConnection struct {
 }
 
 type DatabaseConnectionOptions func(*DatabaseConnection)
-
-type HostServer struct {
-	HostName         string   `json:"hostname"`
-	IpAddress        string   `json:"ip_address"`
-	UserName         string   `json:"username"`
-	PublicSshKeyname string   `json:"public_ssh_key"`
-	HostedDomains    []string `json:"hosted_domains"`
-	SslKeyPath       string   `json:"ssl_key_path"`
-	IsContainerHost  bool     `json:"is_container_host"`
-	IsVmHost         bool     `json:"is_vm_host"`
-	IsVirtualMachine bool     `json:"is_virtual_machine"`
-	IsDbHost         bool     `json:"is_db_host"`
-}
 
 // Global db instance
 var (
@@ -122,7 +110,7 @@ func WithDbName(dbName string) DatabaseConnectionOptions {
 	}
 }
 
-func InsertOrUpdateHostServer(db *sql.DB, records []HostServer) error {
+func InsertOrUpdateHostServer(db *sql.DB, records []db_models.HostServer) error {
 	query := `
         INSERT INTO host_servers (
             hostname, ip_address, username, public_ssh_keyname, hosted_domains,
@@ -150,6 +138,176 @@ func InsertOrUpdateHostServer(db *sql.DB, records []HostServer) error {
 		}
 	}
 	return nil
+}
+
+func ReadHostServer(db *sql.DB, id int64) (*db_models.HostServer, error) {
+	query := `SELECT 
+				id, 
+				hostname, 
+				ip_address, 
+				username, 
+				public_ssh_keyname, 
+				hosted_domains, 
+				ssl_key_path, 
+				is_container_host, 
+				is_vm_host, 
+				is_virtual_machine, 
+				is_db_host,
+				created_at,
+				last_modified
+		FROM host_servers WHERE id = $1`
+
+	var hostServer db_models.HostServer
+	var hostedDomains pq.StringArray
+	err := db.QueryRow(query, id).Scan(
+		&hostServer.Id,
+		&hostServer.HostName,
+		&hostServer.IpAddress,
+		&hostServer.UserName,
+		&hostServer.PublicSshKeyname,
+		&hostedDomains,
+		&hostServer.SslKeyPath,
+		&hostServer.IsContainerHost,
+		&hostServer.IsVmHost,
+		&hostServer.IsVirtualMachine,
+		&hostServer.IsDbHost,
+		&hostServer.CreatedAt,
+		&hostServer.LastModified,
+	)
+	if err != nil {
+		return nil, err
+	}
+	hostServer.HostedDomains = []string(hostedDomains)
+
+	return &hostServer, nil
+}
+
+func DeleteHostServer(db *sql.DB, id int64) error {
+	query := "DELETE FROM host_servers WHERE id = $1"
+	_, err := db.Exec(query, id)
+	return err
+}
+
+func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
+	query := `
+		INSERT INTO users (username, password, email)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (username) DO UPDATE
+		SET password = EXCLUDED.password, email = EXCLUDED.email
+		RETURNING id`
+
+	err := db.QueryRow(query,
+		user.Username,
+		user.Password,
+		user.Email,
+	).Scan(&user.Id)
+
+	slog.Info("Inserted or Upated User in DB.", slog.String("UserId", fmt.Sprint(user.Id)), slog.String("Username", user.Username))
+	return err
+}
+
+func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
+	query := `SELECT 
+				id, username, password, email, 
+				created_at, last_modified
+		FROM users WHERE id = $1`
+
+	var user db_models.User
+	slog.Info("Retrieving user from Database", slog.String("UserId", fmt.Sprint(id)))
+	err := db.QueryRow(query, id).Scan(
+		&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&user.CreatedAt,
+		&user.LastModified,
+	)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("User found in Database.", slog.String("Username", user.Username))
+
+	return &user, nil
+}
+
+func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
+	query := `SELECT 
+				id, username, password, email, 
+				created_at, last_modified
+		FROM users WHERE username = $1`
+
+	var user db_models.User
+	slog.Info("Retrieving user from Database", slog.String("UserName", username))
+	err := db.QueryRow(query, username).Scan(
+		&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&user.CreatedAt,
+		&user.LastModified,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			slog.Error("No user found with the given username", slog.String("UserName", username), slog.String("Error", err.Error()))
+			return nil, fmt.Errorf("no user found with username: %s", username)
+		}
+		slog.Error("Error retrieving user from database", slog.String("Error", err.Error()))
+		return nil, err
+	}
+	slog.Info("User found in Database.", slog.String("UserId", fmt.Sprint(user.Id)))
+
+	return &user, nil
+}
+
+func DeleteUser(db *sql.DB, id int64) error {
+	query := "DELETE FROM users WHERE id = $1"
+	_, err := db.Exec(query, id)
+	slog.Info("Deleting user from Database", slog.String("UserId", fmt.Sprint(id)))
+	return err
+}
+
+func InsertAuthToken(db *sql.DB, authToken *db_models.AuthToken) error {
+	query := `
+		INSERT INTO auth_tokens (user_id, token, expiration)
+		VALUES ($1, $2, $3)
+		RETURNING id`
+
+	err := db.QueryRow(query,
+		authToken.UserId,
+		authToken.Token,
+		authToken.Expiration,
+	).Scan(&authToken.Id)
+
+	slog.Info("AuthToken added to Database for UserId", slog.String("UserId", fmt.Sprint(authToken.UserId)))
+	return err
+}
+
+func GetAuthTokenFromDb(db *sql.DB, token string) (*db_models.AuthToken, error) {
+	query := `SELECT 
+				id, user_id, token, expiration, created_at, last_modified
+			  FROM 
+			  	auth_tokens WHERE id = $1`
+
+	var authToken db_models.AuthToken
+	err := db.QueryRow(query, token).Scan(
+		&authToken.Id,
+		&authToken.UserId,
+		&authToken.Token,
+		&authToken.Expiration,
+	)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("Reading AuthToken form Database")
+
+	return &authToken, nil
+}
+
+func DeleteAuthTokenById(db *sql.DB, id int64) error {
+	query := "DELETE FROM auth_tokens WHERE id = $1"
+	slog.Info("Deleting Auth toke with Id", slog.String("Id", fmt.Sprint(id)))
+	_, err := db.Exec(query, id)
+	return err
 }
 
 func deleteRecordsNotInList(db *sql.DB, czone cloudflaredns.CloudflareDnsZone) error {
