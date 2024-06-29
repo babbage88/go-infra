@@ -5,6 +5,7 @@ import (
 
 	"log/slog"
 
+	"github.com/babbage88/go-infra/utils/type_helper"
 	"github.com/joho/godotenv"
 )
 
@@ -18,10 +19,19 @@ type VarValueProvider interface {
 	GetEnvVarValue() string
 }
 
+type int64ValueProvider interface {
+	ParseEnvVarInt64() (int64, error)
+}
+
 type EnvVarsOptions func(*EnvVars)
 
 func (dotvar EnvVars) GetEnvVarValue() string {
 	return getDotEnvVariable(dotvar.VarName, dotvar.DotFileName)
+}
+
+func (dotvar EnvVars) ParseEnvVarInt64() (int64, error) {
+	s := getDotEnvVariable(dotvar.VarName, dotvar.DotFileName)
+	return type_helper.ParseInt64(s)
 }
 
 func NewDotEnvSource(opts ...EnvVarsOptions) *EnvVars {

@@ -14,7 +14,12 @@ var jwtkeydotEnv = env_helper.NewDotEnvSource().GetEnvVarValue()
 var jwtKey = []byte(jwtkeydotEnv)
 
 func createToken(userid int64) (db_models.AuthToken, error) {
-	expire_time := time.Now().Add(time.Hour * 24)
+	var expire_minutes, err = env_helper.NewDotEnvSource(env_helper.WithVarName("EXPIRATION_MINUTES")).ParseEnvVarInt64()
+	if err != nil {
+		slog.Error("Error Parsing int64 from .env EXPIRATION_MINUTES, setting value to 60.", slog.String("Error", err.Error()))
+		expire_minutes = 60
+	}
+	expire_time := time.Now().Add(time.Minute * time.Duration(expire_minutes))
 	var retval db_models.AuthToken
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
