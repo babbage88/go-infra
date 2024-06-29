@@ -182,13 +182,13 @@ func ReadHostServer(db *sql.DB, id int64) (*db_models.HostServer, error) {
 	return &hostServer, nil
 }
 
-func deleteHostServer(db *sql.DB, id int64) error {
+func DeleteHostServer(db *sql.DB, id int64) error {
 	query := "DELETE FROM host_servers WHERE id = $1"
 	_, err := db.Exec(query, id)
 	return err
 }
 
-func insertOrUpdateUser(db *sql.DB, user *db_models.User) error {
+func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 	query := `
 		INSERT INTO users (username, password, email, api_tokens)
 		VALUES ($1, $2, $3, $4)
@@ -207,7 +207,7 @@ func insertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 	return err
 }
 
-func readUser(db *sql.DB, id int64) (*db_models.User, error) {
+func ReadUser(db *sql.DB, id int64) (*db_models.User, error) {
 	query := `SELECT 
 				id, username, password, email, 
 				api_tokens, created_at, last_modified
@@ -232,13 +232,13 @@ func readUser(db *sql.DB, id int64) (*db_models.User, error) {
 	return &user, nil
 }
 
-func deleteUser(db *sql.DB, id int64) error {
+func DeleteUser(db *sql.DB, id int64) error {
 	query := "DELETE FROM users WHERE id = $1"
 	_, err := db.Exec(query, id)
 	return err
 }
 
-func insertAuthToken(db *sql.DB, authToken *db_models.AuthToken) error {
+func InsertAuthToken(db *sql.DB, authToken *db_models.AuthToken) error {
 	query := `
 		INSERT INTO auth_tokens (user_id, token, expiration)
 		VALUES ($1, $2, $3)
@@ -253,7 +253,7 @@ func insertAuthToken(db *sql.DB, authToken *db_models.AuthToken) error {
 	return err
 }
 
-func readAuthToken(db *sql.DB, id int64) (*db_models.AuthToken, error) {
+func ReadAuthToken(db *sql.DB, id int64) (*db_models.AuthToken, error) {
 	query := `SELECT 
 				id, user_id, token, expiration, created_at, last_modified
 			  FROM 
@@ -273,7 +273,7 @@ func readAuthToken(db *sql.DB, id int64) (*db_models.AuthToken, error) {
 	return &authToken, nil
 }
 
-func deleteAuthToken(db *sql.DB, id int64) error {
+func DeleteAuthToken(db *sql.DB, id int64) error {
 	query := "DELETE FROM auth_tokens WHERE id = $1"
 	_, err := db.Exec(query, id)
 	return err
