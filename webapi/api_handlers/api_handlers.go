@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	jwt_auth "github.com/babbage88/go-infra/auth"
+	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
 	infra_db "github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
