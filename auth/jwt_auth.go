@@ -2,6 +2,7 @@ package jwt_auth
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
@@ -11,15 +12,17 @@ import (
 var jwtkeydotEnv = env_helper.NewDotEnvSource().GetEnvVarValue()
 var jwtKey = []byte(jwtkeydotEnv)
 
-func createToken(username string) (string, error) {
+func createToken(userid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"username": username,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+			"userid": userid,
+			"exp":    time.Now().Add(time.Hour * 24).Unix(),
 		})
 
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
+
+		slog.Error("Error creating jwt token", slog.String("Error", err.Error()))
 		return "", err
 	}
 
@@ -36,10 +39,12 @@ func verifyToken(tokenString string) error {
 	})
 
 	if err != nil {
+		slog.Error("Failed parsing jwt token", slog.String("Error", err.Error()))
 		return err
 	}
 
 	if !token.Valid {
+		slog.Error("Token is not valid.", slog.String("Error", err.Error()))
 		return fmt.Errorf("invalid token")
 	}
 

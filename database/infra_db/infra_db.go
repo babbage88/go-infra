@@ -140,6 +140,145 @@ func InsertOrUpdateHostServer(db *sql.DB, records []db_models.HostServer) error 
 	return nil
 }
 
+func ReadHostServer(db *sql.DB, id int64) (*db_models.HostServer, error) {
+	query := `SELECT 
+				id, 
+				hostname, 
+				ip_address, 
+				username, 
+				public_ssh_keyname, 
+				hosted_domains, 
+				ssl_key_path, 
+				is_container_host, 
+				is_vm_host, 
+				is_virtual_machine, 
+				is_db_host,
+				created_at,
+				last_modified
+		FROM host_servers WHERE id = $1`
+
+	var hostServer db_models.HostServer
+	var hostedDomains pq.StringArray
+	err := db.QueryRow(query, id).Scan(
+		&hostServer.Id,
+		&hostServer.HostName,
+		&hostServer.IpAddress,
+		&hostServer.UserName,
+		&hostServer.PublicSshKeyname,
+		&hostedDomains,
+		&hostServer.SslKeyPath,
+		&hostServer.IsContainerHost,
+		&hostServer.IsVmHost,
+		&hostServer.IsVirtualMachine,
+		&hostServer.IsDbHost,
+		&hostServer.CreatedAt,
+		&hostServer.LastModified,
+	)
+	if err != nil {
+		return nil, err
+	}
+	hostServer.HostedDomains = []string(hostedDomains)
+
+	return &hostServer, nil
+}
+
+func deleteHostServer(db *sql.DB, id int64) error {
+	query := "DELETE FROM host_servers WHERE id = $1"
+	_, err := db.Exec(query, id)
+	return err
+}
+
+func insertOrUpdateUser(db *sql.DB, user *db_models.User) error {
+	query := `
+		INSERT INTO users (username, password, email, api_tokens)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (username) DO UPDATE
+		SET password = EXCLUDED.password, email = EXCLUDED.email, api_tokens = EXCLUDED.api_tokens
+		RETURNING id`
+
+	apiTokens := pq.Array(user.ApiTokens)
+	err := db.QueryRow(query,
+		user.Username,
+		user.Password,
+		user.Email,
+		apiTokens,
+	).Scan(&user.Id)
+
+	return err
+}
+
+func readUser(db *sql.DB, id int64) (*db_models.User, error) {
+	query := `SELECT 
+				id, username, password, email, 
+				api_tokens, created_at, last_modified
+		FROM users WHERE id = $1`
+
+	var user db_models.User
+	var apiTokens pq.StringArray
+	err := db.QueryRow(query, id).Scan(
+		&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&apiTokens,
+		&user.CreatedAt,
+		&user.LastModified,
+	)
+	if err != nil {
+		return nil, err
+	}
+	user.ApiTokens = []string(apiTokens)
+
+	return &user, nil
+}
+
+func deleteUser(db *sql.DB, id int64) error {
+	query := "DELETE FROM users WHERE id = $1"
+	_, err := db.Exec(query, id)
+	return err
+}
+
+func insertAuthToken(db *sql.DB, authToken *db_models.AuthToken) error {
+	query := `
+		INSERT INTO auth_tokens (user_id, token, expiration)
+		VALUES ($1, $2, $3)
+		RETURNING id`
+
+	err := db.QueryRow(query,
+		authToken.UserId,
+		authToken.Token,
+		authToken.Expiration,
+	).Scan(&authToken.Id)
+
+	return err
+}
+
+func readAuthToken(db *sql.DB, id int64) (*db_models.AuthToken, error) {
+	query := `SELECT 
+				id, user_id, token, expiration, created_at, last_modified
+			  FROM 
+			  	auth_tokens WHERE id = $1`
+
+	var authToken db_models.AuthToken
+	err := db.QueryRow(query, id).Scan(
+		&authToken.Id,
+		&authToken.UserId,
+		&authToken.Token,
+		&authToken.Expiration,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authToken, nil
+}
+
+func deleteAuthToken(db *sql.DB, id int64) error {
+	query := "DELETE FROM auth_tokens WHERE id = $1"
+	_, err := db.Exec(query, id)
+	return err
+}
+
 func deleteRecordsNotInList(db *sql.DB, czone cloudflaredns.CloudflareDnsZone) error {
 	if len(czone.DnsRecords) == 0 {
 		slog.Info("No Records to delete")
