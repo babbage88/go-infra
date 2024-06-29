@@ -254,6 +254,11 @@ func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
 		&user.LastModified,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			slog.Error("No user found with the given username", slog.String("UserName", username), slog.String("Error", err.Error()))
+			return nil, fmt.Errorf("no user found with username: %s", username)
+		}
+		slog.Error("Error retrieving user from database", slog.String("Error", err.Error()))
 		return nil, err
 	}
 	user.ApiTokens = []string(apiTokens)
