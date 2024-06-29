@@ -2,14 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"log/slog"
 
 	"github.com/babbage88/go-infra/auth/hashing"
 	infra_db "github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
-	api_aerver "github.com/babbage88/go-infra/webapi/api_server"
 )
 
 func createTestUserInstance(username string, password string, email string, tokens []string) db_models.User {
@@ -39,12 +37,11 @@ func initializeDbConn() *sql.DB {
 
 func main() {
 
-	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	flag.Parse()
+	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
+	//flag.Parse()
+	//api_aerver.StartWebApiServer(db, srvport)
 
 	db := initializeDbConn()
-	api_aerver.StartWebApiServer(db, srvport)
-
 	var tokens []string
 
 	tokens = append(tokens, "123456789")
