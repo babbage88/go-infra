@@ -61,7 +61,7 @@ func main() {
 		if err != nil {
 			slog.Error("Error Generating JWT AuthToken", slog.String("Error", err.Error()))
 		}
-		infra_db.InsertOrUpdateUser(db, user)
+		infra_db.InsertAuthToken(db, &token)
 		fmt.Println(token)
 	}
 

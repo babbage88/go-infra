@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	db_models "github.com/babbage88/go-infra/database/models"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -12,24 +13,33 @@ import (
 var jwtkeydotEnv = env_helper.NewDotEnvSource().GetEnvVarValue()
 var jwtKey = []byte(jwtkeydotEnv)
 
-func createToken(userid int64) (string, error) {
+func createToken(userid int64) (db_models.AuthToken, error) {
+	expire_time := time.Now().Add(time.Hour * 24)
+	var retval db_models.AuthToken
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"userid": userid,
-			"exp":    time.Now().Add(time.Hour * 24).Unix(),
+			"exp":    expire_time.Unix(),
 		})
 
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
 
-		slog.Error("Error creating jwt token", slog.String("Error", err.Error()))
-		return "", err
+		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
+		return retval, err
 	}
 
-	return tokenString, nil
+	retval = db_models.AuthToken{
+		UserId:     userid,
+		Expiration: expire_time,
+		Token:      tokenString,
+	}
+
+	return retval, nil
 }
 
-func CreateToken(userid int64) (string, error) {
+func CreateToken(userid int64) (db_models.AuthToken, error) {
 	return createToken(userid)
 }
 
