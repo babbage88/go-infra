@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log/slog"
 
 	"github.com/babbage88/go-infra/auth/hashing"
@@ -44,11 +45,22 @@ func main() {
 	db := initializeDbConn()
 	var tokens []string
 
-	tokens = append(tokens, "123456789")
+	tokens = append(tokens, "0984023874098324")
 
-	testuser := createTestUserInstance("testuser", "testpw", "test@trahan.dev", tokens)
+	testuser := createTestUserInstance("devtest", "testpw", "devtest@trahan.dev", tokens)
 
 	infra_db.InsertOrUpdateUser(db, &testuser)
+	user, _ := infra_db.GetUserByUsername(db, testuser.Username)
+
+	verify_pw := hashing.VerifyPassword("testpw", user.Password)
+
+	if verify_pw {
+		fmt.Printf("Password is verified for User: %s \n", user.Username)
+	}
+
+	if !verify_pw {
+		fmt.Printf("Could not Verify Passworf for User: %s \n", user.Username)
+	}
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {

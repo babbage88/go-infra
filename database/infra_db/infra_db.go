@@ -208,7 +208,7 @@ func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 	return err
 }
 
-func ReadUser(db *sql.DB, id int64) (*db_models.User, error) {
+func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
 	query := `SELECT 
 				id, username, password, email, 
 				api_tokens, created_at, last_modified
@@ -231,6 +231,33 @@ func ReadUser(db *sql.DB, id int64) (*db_models.User, error) {
 	}
 	user.ApiTokens = []string(apiTokens)
 	slog.Info("User found in Database.", slog.String("Username", user.Username))
+
+	return &user, nil
+}
+
+func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
+	query := `SELECT 
+				id, username, password, email, 
+				api_tokens, created_at, last_modified
+		FROM users WHERE username = $1`
+
+	var user db_models.User
+	var apiTokens pq.StringArray
+	slog.Info("Retrieving user from Database", slog.String("UserName", username))
+	err := db.QueryRow(query, username).Scan(
+		&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.Email,
+		&apiTokens,
+		&user.CreatedAt,
+		&user.LastModified,
+	)
+	if err != nil {
+		return nil, err
+	}
+	user.ApiTokens = []string(apiTokens)
+	slog.Info("User found in Database.", slog.String("UserId", fmt.Sprint(user.Id)))
 
 	return &user, nil
 }
