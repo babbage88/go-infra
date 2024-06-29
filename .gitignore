@@ -2,7 +2,7 @@
 main
 go-infra
 .env*
-
+*.env
 # env exports
 devtest.sh
 
