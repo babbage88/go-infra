@@ -6,13 +6,15 @@ import (
 	"log/slog"
 	"net/http"
 
-	infra_db "github.com/babbage88/go-infra/database"
+	infra_db "github.com/babbage88/go-infra/database/infra_db"
+
 	docker_helper "github.com/babbage88/go-infra/utils/docker_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	webapi "github.com/babbage88/go-infra/webapi"
 )
 
 func main() {
+
 	db_pw := docker_helper.GetSecret("DB_PW")
 	le_ini := docker_helper.GetSecret("trahan.dev_token")
 

@@ -44,7 +44,7 @@ func NewDotEnvSource(opts ...EnvVarsOptions) *EnvVars {
 	return envars
 }
 
-func WithotFileName(dotFileName string) EnvVarsOptions {
+func WithDotEnvFileName(dotFileName string) EnvVarsOptions {
 	return func(c *EnvVars) {
 		c.DotFileName = dotFileName
 	}

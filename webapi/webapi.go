@@ -187,7 +187,7 @@ func ProtectedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenString = tokenString[len("Bearer "):]
 
-	err := verifyToken(tokenString)
+	err := jwt_auth.VerifyToken(tokenString)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, "Invalid token")
