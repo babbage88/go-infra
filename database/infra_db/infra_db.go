@@ -204,6 +204,7 @@ func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 		apiTokens,
 	).Scan(&user.Id)
 
+	slog.Info("Inserted or Upated User in DB.", slog.String("UserId", fmt.Sprint(user.Id)), slog.String("Username", user.Username))
 	return err
 }
 
@@ -215,6 +216,7 @@ func ReadUser(db *sql.DB, id int64) (*db_models.User, error) {
 
 	var user db_models.User
 	var apiTokens pq.StringArray
+	slog.Info("Retrieving user from Database", slog.String("UserId", fmt.Sprint(id)))
 	err := db.QueryRow(query, id).Scan(
 		&user.Id,
 		&user.Username,
@@ -228,6 +230,7 @@ func ReadUser(db *sql.DB, id int64) (*db_models.User, error) {
 		return nil, err
 	}
 	user.ApiTokens = []string(apiTokens)
+	slog.Info("User found in Database.", slog.String("Username", user.Username))
 
 	return &user, nil
 }
@@ -235,6 +238,7 @@ func ReadUser(db *sql.DB, id int64) (*db_models.User, error) {
 func DeleteUser(db *sql.DB, id int64) error {
 	query := "DELETE FROM users WHERE id = $1"
 	_, err := db.Exec(query, id)
+	slog.Info("Deleting user from Database", slog.String("UserId", fmt.Sprint(id)))
 	return err
 }
 
@@ -250,17 +254,18 @@ func InsertAuthToken(db *sql.DB, authToken *db_models.AuthToken) error {
 		authToken.Expiration,
 	).Scan(&authToken.Id)
 
+	slog.Info("AuthToken added to Database for UserId", slog.String("UserId", fmt.Sprint(authToken.UserId)))
 	return err
 }
 
-func ReadAuthToken(db *sql.DB, id int64) (*db_models.AuthToken, error) {
+func GetAuthTokenFromDb(db *sql.DB, token string) (*db_models.AuthToken, error) {
 	query := `SELECT 
 				id, user_id, token, expiration, created_at, last_modified
 			  FROM 
 			  	auth_tokens WHERE id = $1`
 
 	var authToken db_models.AuthToken
-	err := db.QueryRow(query, id).Scan(
+	err := db.QueryRow(query, token).Scan(
 		&authToken.Id,
 		&authToken.UserId,
 		&authToken.Token,
@@ -269,12 +274,14 @@ func ReadAuthToken(db *sql.DB, id int64) (*db_models.AuthToken, error) {
 	if err != nil {
 		return nil, err
 	}
+	slog.Info("Reading AuthToken form Database")
 
 	return &authToken, nil
 }
 
-func DeleteAuthToken(db *sql.DB, id int64) error {
+func DeleteAuthTokenById(db *sql.DB, id int64) error {
 	query := "DELETE FROM auth_tokens WHERE id = $1"
+	slog.Info("Deleting Auth toke with Id", slog.String("Id", fmt.Sprint(id)))
 	_, err := db.Exec(query, id)
 	return err
 }
