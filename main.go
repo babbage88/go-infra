@@ -49,7 +49,7 @@ func main() {
 
 	testuser := createTestUserInstance("devtest", "testpw", "devtest@trahan.dev", tokens)
 
-	infra_db.InsertOrUpdateUser(db, &testuser)
+	//infra_db.InsertOrUpdateUser(db, &testuser)
 	user, _ := infra_db.GetUserByUsername(db, testuser.Username)
 
 	verify_pw := hashing.VerifyPassword("testpw", user.Password)
