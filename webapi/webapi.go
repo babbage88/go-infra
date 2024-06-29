@@ -3,12 +3,15 @@ package webapi
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
 
+	jwt_auth "github.com/babbage88/go-infra/auth"
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
-	infra_db "github.com/babbage88/go-infra/database"
+	infra_db "github.com/babbage88/go-infra/database/infra_db"
+	db_models "github.com/babbage88/go-infra/database/models"
 	"github.com/babbage88/go-infra/webutils/certhandler"
 )
 
@@ -150,4 +153,46 @@ func RenewCertHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 	slog.Info("Response sent successfully")
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var u db_models.User
+	json.NewDecoder(r.Body).Decode(&u)
+	fmt.Printf("The user request value %v", u)
+
+	if u.Username == "Chek" && u.Password == "123456" {
+		tokenString, err := jwt_auth.CreateToken(u.Username)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Errorf("No username found")
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, tokenString)
+		return
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Invalid credentials")
+	}
+}
+
+func ProtectedHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Missing authorization header")
+		return
+	}
+	tokenString = tokenString[len("Bearer "):]
+
+	err := verifyToken(tokenString)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Invalid token")
+		return
+	}
+
+	slog.Info("Token has breen verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
 }

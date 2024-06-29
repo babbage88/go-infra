@@ -1,6 +1,7 @@
 #ignore binaries
 main
 go-infra
+.env*
 
 # env exports
 devtest.sh

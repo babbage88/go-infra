@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
+	db_models "github.com/babbage88/go-infra/database/models"
 	type_helper "github.com/babbage88/go-infra/utils/type_helper"
 	"github.com/lib/pq"
 )
@@ -22,19 +23,6 @@ type DatabaseConnection struct {
 }
 
 type DatabaseConnectionOptions func(*DatabaseConnection)
-
-type HostServer struct {
-	HostName         string   `json:"hostname"`
-	IpAddress        string   `json:"ip_address"`
-	UserName         string   `json:"username"`
-	PublicSshKeyname string   `json:"public_ssh_key"`
-	HostedDomains    []string `json:"hosted_domains"`
-	SslKeyPath       string   `json:"ssl_key_path"`
-	IsContainerHost  bool     `json:"is_container_host"`
-	IsVmHost         bool     `json:"is_vm_host"`
-	IsVirtualMachine bool     `json:"is_virtual_machine"`
-	IsDbHost         bool     `json:"is_db_host"`
-}
 
 // Global db instance
 var (
@@ -122,7 +110,7 @@ func WithDbName(dbName string) DatabaseConnectionOptions {
 	}
 }
 
-func InsertOrUpdateHostServer(db *sql.DB, records []HostServer) error {
+func InsertOrUpdateHostServer(db *sql.DB, records []db_models.HostServer) error {
 	query := `
         INSERT INTO host_servers (
             hostname, ip_address, username, public_ssh_keyname, hosted_domains,
