@@ -100,8 +100,6 @@ func verifyToken(tokenString string) error {
 		return fmt.Errorf("invalid token")
 	}
 
-	//fmt.Printf("token Header: %v\nClaims: %v\n", token.Header, token.Claims)
-
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package api_aerver
+package api_server
 
 import (
 	"database/sql"
