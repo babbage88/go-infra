@@ -42,6 +42,7 @@ func createTables(db *sql.DB) {
 		username VARCHAR(255),
 		password TEXT,
 		email VARCHAR(255),
+		role VARCHAR(255),
 		created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		last_modified TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT unique_username UNIQUE (username),

@@ -15,24 +15,48 @@ import (
 var jwtkeydotEnv = env_helper.NewDotEnvSource().GetEnvVarValue()
 var jwtKey = []byte(jwtkeydotEnv)
 
-func createToken(userid int64) (db_models.AuthToken, error) {
+type MyJWTClaims struct {
+	*jwt.RegisteredClaims
+	UserInfo interface{}
+}
+
+func createTokenString(sub string, userInfo interface{}) (string, time.Time, error) {
 	var expire_minutes, err = env_helper.NewDotEnvSource(env_helper.WithVarName("EXPIRATION_MINUTES")).ParseEnvVarInt64()
+	var jwt_algo = env_helper.NewDotEnvSource(env_helper.WithVarName("JWT_ALGORITHM")).GetEnvVarValue()
+
 	if err != nil {
 		slog.Error("Error Parsing int64 from .env EXPIRATION_MINUTES, setting value to 60.", slog.String("Error", err.Error()))
 		expire_minutes = 60
 	}
-	expire_time := time.Now().Add(time.Minute * time.Duration(expire_minutes))
-	var retval db_models.AuthToken
+	token := jwt.New(jwt.GetSigningMethod(jwt_algo))
+	exp := time.Now().Add(time.Minute * time.Duration(expire_minutes))
+	token.Claims = &MyJWTClaims{
+		&jwt.RegisteredClaims{
+			// Set the userid and expiration as the standard claim.
+			ExpiresAt: jwt.NewNumericDate(exp),
+			Subject:   sub,
+		},
+		// UserInfo passed from caller as map[string]string
+		userInfo,
+	}
+	val, err := token.SignedString(jwtKey)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"userid": userid,
-			"exp":    expire_time.Unix(),
-		})
-
-	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
+		return "", exp, err
+	}
+	return val, exp, nil
+}
 
+func createToken(userid int64, role string, email string) (db_models.AuthToken, error) {
+
+	var retval db_models.AuthToken
+	userInfo := map[string]interface{}{
+		"role":  role,
+		"email": email,
+	}
+
+	tokenString, expire_time, err := createTokenString(fmt.Sprint(userid), userInfo)
+	if err != nil {
 		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
 		return retval, err
 	}
@@ -46,12 +70,12 @@ func createToken(userid int64) (db_models.AuthToken, error) {
 	return retval, nil
 }
 
-func CreateToken(userid int64) (db_models.AuthToken, error) {
-	return createToken(userid)
+func CreateToken(userid int64, role string, email string) (db_models.AuthToken, error) {
+	return createToken(userid, role, email)
 }
 
-func CreateTokenanAddToDb(db *sql.DB, userid int64) (db_models.AuthToken, error) {
-	token, err := createToken(userid)
+func CreateTokenanAddToDb(db *sql.DB, userid int64, role string, email string) (db_models.AuthToken, error) {
+	token, err := createToken(userid, role, email)
 	if err != nil {
 		slog.Error("Error creating signed token", slog.String("Error", err.Error()))
 	}
@@ -75,6 +99,8 @@ func verifyToken(tokenString string) error {
 		slog.Error("Token is not valid.", slog.String("Error", err.Error()))
 		return fmt.Errorf("invalid token")
 	}
+
+	fmt.Printf("token Header: %v\nClaims: %v\n", token.Header, token.Claims)
 
 	return nil
 }

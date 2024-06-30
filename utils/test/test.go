@@ -11,7 +11,7 @@ import (
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 )
 
-func CreateTestUserInstance(username string, password string, email string) (db_models.User, error) {
+func CreateTestUserInstance(username string, password string, email string, role string) (db_models.User, error) {
 	hashedpw, err := hashing.HashPassword(password)
 	if err != nil {
 		slog.Error("Error hashing password", slog.String("Error", err.Error()))
@@ -21,6 +21,7 @@ func CreateTestUserInstance(username string, password string, email string) (db_
 		Username: username,
 		Password: hashedpw,
 		Email:    email,
+		Role:     role,
 	}
 
 	return testuser, nil

@@ -181,7 +181,7 @@ func LoginHandler(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 		verify_pw := hashing.VerifyPassword(u.Password, dbuser.Password)
 
 		if verify_pw {
-			token, err := jwt_auth.CreateTokenanAddToDb(db, u.Id)
+			token, err := jwt_auth.CreateTokenanAddToDb(db, u.Id, u.Role, u.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
