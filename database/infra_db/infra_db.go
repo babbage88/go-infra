@@ -39,7 +39,6 @@ func InitializeDbConnection(dbConn *DatabaseConnection) (*sql.DB, error) {
 		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			dbConn.DbHost, type_helper.String(dbConn.DbPort), dbConn.DbUser, dbConn.DbPassword, dbConn.DbName)
 
-		//fmt.Println(psqlInfo)
 		db, dbErr = sql.Open("postgres", psqlInfo)
 		if dbErr != nil {
 			slog.Error("Error connecting to the database", slog.String("Error", dbErr.Error()))

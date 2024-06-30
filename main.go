@@ -12,7 +12,7 @@ import (
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 )
 
-func createTestUserInstance(username string, password string, email string, tokens []string) db_models.User {
+func createTestUserInstance(username string, password string, email string) db_models.User {
 	hashedpw, err := hashing.HashPassword(password)
 	if err != nil {
 		slog.Error("Error hashing password", slog.String("Error", err.Error()))
@@ -43,11 +43,8 @@ func main() {
 	//api_aerver.StartWebApiServer(db, srvport)
 
 	db := initializeDbConn()
-	var tokens []string
 
-	tokens = append(tokens, "0984023874098324")
-
-	testuser := createTestUserInstance("devtest", "testpw", "devtest@trahan.dev", tokens)
+	testuser := createTestUserInstance("devtest", "testpw", "devtest@trahan.dev")
 
 	infra_db.InsertOrUpdateUser(db, &testuser)
 	user, _ := infra_db.GetUserByUsername(db, testuser.Username)

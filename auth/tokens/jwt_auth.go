@@ -1,10 +1,12 @@
 package jwt_auth
 
 import (
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"time"
 
+	"github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
@@ -46,6 +48,17 @@ func createToken(userid int64) (db_models.AuthToken, error) {
 
 func CreateToken(userid int64) (db_models.AuthToken, error) {
 	return createToken(userid)
+}
+
+func CreateTokenanAddToDb(db *sql.DB, userid int64) (db_models.AuthToken, error) {
+	token, err := createToken(userid)
+	if err != nil {
+		slog.Error("Error creating signed token", slog.String("Error", err.Error()))
+	}
+
+	infra_db.InsertAuthToken(db, &token)
+
+	return token, nil
 }
 
 func verifyToken(tokenString string) error {

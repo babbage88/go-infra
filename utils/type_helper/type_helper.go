@@ -29,6 +29,15 @@ func String(n int32) string {
 	}
 }
 
+func ParseInt32(s string) (int32, error) {
+	intValue, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		slog.Error("Error parsing int64 from string", slog.String("string:", s))
+		return 0, err
+	}
+	return int32(intValue), nil
+}
+
 func ParseInt64(s string) (int64, error) {
 	intValue, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {

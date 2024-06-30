@@ -23,6 +23,10 @@ type int64ValueProvider interface {
 	ParseEnvVarInt64() (int64, error)
 }
 
+type int32ValueProvider interface {
+	ParseEnvVarInt32() (int64, error)
+}
+
 type EnvVarsOptions func(*EnvVars)
 
 func (dotvar EnvVars) GetEnvVarValue() string {
@@ -32,6 +36,11 @@ func (dotvar EnvVars) GetEnvVarValue() string {
 func (dotvar EnvVars) ParseEnvVarInt64() (int64, error) {
 	s := getDotEnvVariable(dotvar.VarName, dotvar.DotFileName)
 	return type_helper.ParseInt64(s)
+}
+
+func (dotvar EnvVars) ParseEnvVarInt32() (int32, error) {
+	s := getDotEnvVariable(dotvar.VarName, dotvar.DotFileName)
+	return type_helper.ParseInt32(s)
 }
 
 func NewDotEnvSource(opts ...EnvVarsOptions) *EnvVars {
