@@ -11,8 +11,9 @@ import (
 
 func StartWebApiServer(db *sql.DB, srvadr *string) error {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/getalldns", webapi.CreateDnsHttpHandlerWrapper(db))
-	mux.HandleFunc("/requestcert", webapi.WithAuth(webapi.RenewCertHandler))
+	mux.HandleFunc("/getalldns", webapi.AuthMidleware(webapi.CreateDnsHttpHandlerWrapper(db)))
+	mux.HandleFunc("/requestcert", webapi.AuthMidleware(webapi.RenewCertHandler))
+	mux.HandleFunc("/login", webapi.LoginHandler(db))
 	mux.HandleFunc("/healthCheck", webapi.HealthCheckHandler)
 
 	config := customlogger.NewCustomLogger()

@@ -38,14 +38,7 @@ func initializeDbConn() *sql.DB {
 	return db
 }
 
-func main() {
-
-	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	//flag.Parse()
-	//api_aerver.StartWebApiServer(db, srvport)
-
-	db := initializeDbConn()
-
+func testUserDb(db *sql.DB) {
 	testuser, _ := test.CreateTestUserInstance("jt", "testpw", "jt@trahan.dev", "admin")
 	test.CreateUserDb(db, &testuser)
 
@@ -69,6 +62,17 @@ func main() {
 	if !verify_pw {
 		fmt.Printf("Could not Verify Passworf for User: %s \n", user.Username)
 	}
+
+}
+
+func main() {
+
+	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
+	//flag.Parse()
+	//api_aerver.StartWebApiServer(db, srvport)
+
+	db := initializeDbConn()
+	testUserDb(db)
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {
