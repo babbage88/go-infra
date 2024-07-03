@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log/slog"
 
@@ -11,6 +12,7 @@ import (
 	db_models "github.com/babbage88/go-infra/database/models"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/utils/test"
+	"github.com/babbage88/go-infra/webapi/api_server"
 )
 
 func createTestUserInstance(username string, password string, email string, role string) db_models.User {
@@ -29,9 +31,10 @@ func createTestUserInstance(username string, password string, email string, role
 	return testuser
 }
 
-func initializeDbConn() *sql.DB {
-	var db_pw = env_helper.NewDotEnvSource(env_helper.WithVarName("DB_PW")).GetEnvVarValue()
-	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost("10.0.0.92"), infra_db.WithDbPassword(db_pw))
+func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
+	db_pw := envars.GetVarMapValue("DB_PW")
+	db_host := envars.GetVarMapValue("DB_HOST")
+	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw))
 
 	db, _ := infra_db.InitializeDbConnection(dbConn)
 
@@ -67,12 +70,15 @@ func testUserDb(db *sql.DB) {
 
 func main() {
 
-	//srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	//flag.Parse()
-	//api_aerver.StartWebApiServer(db, srvport)
+	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
+	hostEnvironment := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
+	flag.Parse()
+	envars := env_helper.NewDotEnvSource(env_helper.WithDotEnvFileName(*hostEnvironment))
+	envars.ParseEnvVariables()
 
-	db := initializeDbConn()
+	db := initializeDbConn(envars)
 	testUserDb(db)
+	api_server.StartWebApiServer(db, srvport)
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {

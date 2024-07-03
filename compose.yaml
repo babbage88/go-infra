@@ -20,6 +20,8 @@ services:
           - node.labels.dev01 == true
     ports:
       - "8993:8993"
+    env_file:
+      - ./.env
     user: root
 networks:
   ovnet1:
