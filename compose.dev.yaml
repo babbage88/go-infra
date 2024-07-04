@@ -4,7 +4,7 @@ services:
     image: git.trahan.dev/jtrahan/go-infra:${DOCKER_IMG_TAG-dev}
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ${DOCKER_FILE-Dockerfile}
     networks:
       - ovnet1
     volumes:
@@ -20,7 +20,7 @@ services:
         constraints:
           - node.labels.dev01 == true
     ports:
-      - "8993:8993"
+      - "${PORT-8993}:8993"
     env_file:
       - ./.env
     user: root

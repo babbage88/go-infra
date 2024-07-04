@@ -1,6 +1,7 @@
 package webapi
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,11 +9,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/babbage88/go-infra/auth/hashing"
 	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
 	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
 	infra_db "github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
+	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/webutils/certhandler"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type CfCertRequestResponse struct {
@@ -155,44 +159,81 @@ func RenewCertHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("Response sent successfully")
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var u db_models.User
-	json.NewDecoder(r.Body).Decode(&u)
-	fmt.Printf("The user request value %v", u)
-
-	if u.Username == "Chek" && u.Password == "123456" {
-		tokenString, err := jwt_auth.CreateToken(u.Username)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Errorf("No username found")
+func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			enableCors(&w)
+			return
 		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, tokenString)
-		return
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "Invalid credentials")
+
+		enableCors(&w)
+
+		w.Header().Set("Content-Type", "application/json")
+
+		var u db_models.User
+		json.NewDecoder(r.Body).Decode(&u)
+		fmt.Printf("The user request value %v", u)
+
+		dbuser, err := infra_db.GetUserByUsername(db, u.Username)
+		if err != nil {
+			slog.Error("Error getting user from database", slog.String("Error", err.Error()))
+		}
+		verify_pw := hashing.VerifyPassword(u.Password, dbuser.Password)
+
+		if verify_pw {
+			token, err := jwt_auth.CreateTokenanAddToDb(envars, db, u.Id, u.Role, u.Email)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				slog.Error("Error verifying password", slog.String("Error", err.Error()))
+			}
+			jsonResponse, _ := json.Marshal(token)
+			w.WriteHeader(http.StatusOK)
+			w.Write(jsonResponse)
+			return
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprint(w, "Invalid credentials")
+		}
 	}
 }
 
-func ProtectedHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	tokenString := r.Header.Get("Authorization")
-	if tokenString == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "Missing authorization header")
-		return
-	}
-	tokenString = tokenString[len("Bearer "):]
+func AuthMidleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			enableCors(&w)
+			return
+		}
 
-	err := jwt_auth.VerifyToken(tokenString)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "Invalid token")
-		return
-	}
+		enableCors(&w)
 
-	slog.Info("Token has breen verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
+		w.Header().Set("Content-Type", "application/json")
+		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+		if len(authHeader) != 2 {
+			fmt.Println("Malformed token")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Malformed Token"))
+		} else {
+			jwtToken := authHeader[1]
+			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				}
+				SECRETKEY := env_helper.NewDotEnvSource(env_helper.WithVarName("JWT_KEY")).GetEnvVarValue()
+				return []byte(SECRETKEY), nil
+			})
+
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				ctx := context.WithValue(r.Context(), "props", claims)
+				// Access context values in handlers like this
+				// props, _ := r.Context().Value("props").(jwt.MapClaims)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			} else {
+				slog.Error("Error validating tokem", slog.String("Error", err.Error()))
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized"))
+			}
+		}
+
+		slog.Info("Token has breen verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
+	}
 }
