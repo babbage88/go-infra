@@ -20,9 +20,9 @@ type MyJWTClaims struct {
 	UserInfo interface{}
 }
 
-func createTokenString(sub string, userInfo interface{}) (string, time.Time, error) {
-	var expire_minutes, err = env_helper.NewDotEnvSource(env_helper.WithVarName("EXPIRATION_MINUTES")).ParseEnvVarInt64()
-	var jwt_algo = env_helper.NewDotEnvSource(env_helper.WithVarName("JWT_ALGORITHM")).GetEnvVarValue()
+func createTokenString(envars *env_helper.EnvVars, sub string, userInfo interface{}) (string, time.Time, error) {
+	var expire_minutes, err = envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
+	var jwt_algo = envars.GetVarMapValue("JWT_ALGORITHM")
 
 	if err != nil {
 		slog.Error("Error Parsing int64 from .env EXPIRATION_MINUTES, setting value to 60.", slog.String("Error", err.Error()))
@@ -47,7 +47,7 @@ func createTokenString(sub string, userInfo interface{}) (string, time.Time, err
 	return val, exp, nil
 }
 
-func createToken(userid int64, role string, email string) (db_models.AuthToken, error) {
+func createToken(envars *env_helper.EnvVars, userid int64, role string, email string) (db_models.AuthToken, error) {
 
 	var retval db_models.AuthToken
 	userInfo := map[string]interface{}{
@@ -55,7 +55,7 @@ func createToken(userid int64, role string, email string) (db_models.AuthToken, 
 		"email": email,
 	}
 
-	tokenString, expire_time, err := createTokenString(fmt.Sprint(userid), userInfo)
+	tokenString, expire_time, err := createTokenString(envars, fmt.Sprint(userid), userInfo)
 	if err != nil {
 		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
 		return retval, err
@@ -70,12 +70,12 @@ func createToken(userid int64, role string, email string) (db_models.AuthToken, 
 	return retval, nil
 }
 
-func CreateToken(userid int64, role string, email string) (db_models.AuthToken, error) {
-	return createToken(userid, role, email)
+func CreateToken(envars *env_helper.EnvVars, userid int64, role string, email string) (db_models.AuthToken, error) {
+	return createToken(envars, userid, role, email)
 }
 
-func CreateTokenanAddToDb(db *sql.DB, userid int64, role string, email string) (db_models.AuthToken, error) {
-	token, err := createToken(userid, role, email)
+func CreateTokenanAddToDb(envars *env_helper.EnvVars, db *sql.DB, userid int64, role string, email string) (db_models.AuthToken, error) {
+	token, err := createToken(envars, userid, role, email)
 	if err != nil {
 		slog.Error("Error creating signed token", slog.String("Error", err.Error()))
 	}

@@ -159,7 +159,7 @@ func RenewCertHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("Response sent successfully")
 }
 
-func LoginHandler(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			enableCors(&w)
@@ -181,7 +181,7 @@ func LoginHandler(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 		verify_pw := hashing.VerifyPassword(u.Password, dbuser.Password)
 
 		if verify_pw {
-			token, err := jwt_auth.CreateTokenanAddToDb(db, u.Id, u.Role, u.Email)
+			token, err := jwt_auth.CreateTokenanAddToDb(envars, db, u.Id, u.Role, u.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))

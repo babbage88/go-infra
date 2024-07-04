@@ -41,7 +41,7 @@ func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
 	return db
 }
 
-func testUserDb(db *sql.DB) {
+func testUserDb(envars *env_helper.EnvVars, db *sql.DB) {
 	testuser, _ := test.CreateTestUserInstance("jt", "testpw", "jt@trahan.dev", "admin")
 	test.CreateUserDb(db, &testuser)
 
@@ -53,7 +53,7 @@ func testUserDb(db *sql.DB) {
 		slog.Info("Password is verified for User: %s", slog.String("UserName", user.Username))
 		slog.Info("Generating AuthToken for UserId", slog.String("UserId", fmt.Sprint(user.Id)))
 
-		token, err := jwt_auth.CreateTokenanAddToDb(db, user.Id, user.Role, user.Email)
+		token, err := jwt_auth.CreateTokenanAddToDb(envars, db, user.Id, user.Role, user.Email)
 		if err != nil {
 			slog.Error("Error Generating JWT AuthToken", slog.String("Error", err.Error()))
 		}
@@ -77,8 +77,8 @@ func main() {
 	envars.ParseEnvVariables()
 
 	db := initializeDbConn(envars)
-	testUserDb(db)
-	api_server.StartWebApiServer(db, srvport)
+	testUserDb(envars, db)
+	api_server.StartWebApiServer(envars, db, srvport)
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {

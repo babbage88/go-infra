@@ -5,15 +5,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/babbage88/go-infra/utils/env_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	webapi "github.com/babbage88/go-infra/webapi/api_handlers"
 )
 
-func StartWebApiServer(db *sql.DB, srvadr *string) error {
+func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/getalldns", webapi.AuthMidleware(webapi.CreateDnsHttpHandlerWrapper(db)))
 	mux.HandleFunc("/requestcert", webapi.AuthMidleware(webapi.RenewCertHandler))
-	mux.HandleFunc("/login", webapi.LoginHandler(db))
+	mux.HandleFunc("/login", webapi.LoginHandler(envars, db))
 	mux.HandleFunc("/healthCheck", webapi.HealthCheckHandler)
 
 	config := customlogger.NewCustomLogger()

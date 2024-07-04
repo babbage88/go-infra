@@ -32,7 +32,9 @@ func (c CertDnsRenewReq) Renew() []string {
 	var outb, errb bytes.Buffer
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
+	debugg := cmd.String()
 
+	slog.Info("Command being ran:", slog.String("Command", debugg))
 	slog.Info("Starting command to renew certificate", slog.String("Domain", c.DomainName), slog.String("DNS Provider", c.Provider))
 	// start the command after having set up the pipe
 	if err := cmd.Run(); err != nil {
