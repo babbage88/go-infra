@@ -189,8 +189,8 @@ func DeleteHostServer(db *sql.DB, id int64) error {
 
 func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 	query := `
-		INSERT INTO users (username, password, email)
-		VALUES ($1, $2, $3)
+		INSERT INTO users (username, password, email, role)
+		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (username) DO UPDATE
 		SET password = EXCLUDED.password, email = EXCLUDED.email
 		RETURNING id`
@@ -199,6 +199,7 @@ func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 		user.Username,
 		user.Password,
 		user.Email,
+		user.Role,
 	).Scan(&user.Id)
 
 	slog.Info("Inserted or Upated User in DB.", slog.String("UserId", fmt.Sprint(user.Id)), slog.String("Username", user.Username))
@@ -207,8 +208,7 @@ func InsertOrUpdateUser(db *sql.DB, user *db_models.User) error {
 
 func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
 	query := `SELECT 
-				id, username, password, email, 
-				created_at, last_modified
+				id, username, password, email, role, created_at, last_modified
 		FROM users WHERE id = $1`
 
 	var user db_models.User
@@ -218,6 +218,7 @@ func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
 		&user.Username,
 		&user.Password,
 		&user.Email,
+		&user.Role,
 		&user.CreatedAt,
 		&user.LastModified,
 	)
@@ -230,9 +231,7 @@ func GetUserById(db *sql.DB, id int64) (*db_models.User, error) {
 }
 
 func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
-	query := `SELECT 
-				id, username, password, email, 
-				created_at, last_modified
+	query := `SELECT id, username, password, email, role, created_at, last_modified
 		FROM users WHERE username = $1`
 
 	var user db_models.User
@@ -242,6 +241,7 @@ func GetUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
 		&user.Username,
 		&user.Password,
 		&user.Email,
+		&user.Role,
 		&user.CreatedAt,
 		&user.LastModified,
 	)

@@ -11,7 +11,7 @@ import (
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 )
 
-func CreateTestUserInstance(username string, password string, email string) (db_models.User, error) {
+func CreateTestUserInstance(username string, password string, email string, role string) (db_models.User, error) {
 	hashedpw, err := hashing.HashPassword(password)
 	if err != nil {
 		slog.Error("Error hashing password", slog.String("Error", err.Error()))
@@ -21,16 +21,17 @@ func CreateTestUserInstance(username string, password string, email string) (db_
 		Username: username,
 		Password: hashedpw,
 		Email:    email,
+		Role:     role,
 	}
 
 	return testuser, nil
 }
 
-func InitializeDbConn() (*sql.DB, error) {
-	var db_host = env_helper.NewDotEnvSource(env_helper.WithVarName("DB_HOST")).GetEnvVarValue()
-	var db_pw = env_helper.NewDotEnvSource(env_helper.WithVarName("DB_PW")).GetEnvVarValue()
-	var db_user = env_helper.NewDotEnvSource(env_helper.WithVarName("DB_USER")).GetEnvVarValue()
-	var db_port, _ = env_helper.NewDotEnvSource(env_helper.WithVarName("DB_PORT")).ParseEnvVarInt32()
+func InitializeDbConn(envars *env_helper.EnvVars) (*sql.DB, error) {
+	var db_host = envars.GetVarMapValue("BH_HOST")
+	var db_pw = envars.GetVarMapValue("DB_PW")
+	var db_user = envars.GetVarMapValue("DB_USER")
+	var db_port, _ = envars.ParseEnvVarInt32("DB_PORT")
 
 	dbConn := infra_db.NewDatabaseConnection(
 		infra_db.WithDbHost(db_host),
