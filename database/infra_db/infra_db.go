@@ -309,6 +309,13 @@ func DeleteAuthTokenById(db *sql.DB, id int64) error {
 	return err
 }
 
+func DeleteExpiredAuthTokens(db *sql.DB, id int64) error {
+	query := "DELETE FROM public.auth_tokens WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC';"
+	slog.Info("Deleting expired AuthTokens", slog.String("Id", fmt.Sprint(id)))
+	_, err := db.Exec(query, id)
+	return err
+}
+
 func deleteRecordsNotInList(db *sql.DB, czone cloudflaredns.CloudflareDnsZone) error {
 	if len(czone.DnsRecords) == 0 {
 		slog.Info("No Records to delete")
