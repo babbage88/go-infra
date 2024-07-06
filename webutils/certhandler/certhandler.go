@@ -27,7 +27,11 @@ func (c CertDnsRenewReq) Renew() []string {
 		"--email", c.Email,
 		"--agree-tos",
 		"--no-eff-email",
-		"-d", c.DomainName)
+		"-d", c.DomainName,
+		"--config-dir", ".certbot/config",
+		"--logs-dir", ".certbot/logs",
+		"--work-dir", ".certbot/work",
+	)
 
 	var outb, errb bytes.Buffer
 	cmd.Stdout = &outb
