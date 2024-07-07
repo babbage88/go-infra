@@ -117,7 +117,7 @@ func RenewCertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("Received POST request")
+	slog.Info("Received POST request for Cert Renewal")
 
 	var req certhandler.CertDnsRenewReq
 	err := json.NewDecoder(r.Body).Decode(&req)
