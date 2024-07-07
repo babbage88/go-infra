@@ -77,7 +77,6 @@ func main() {
 	envars.ParseEnvVariables()
 
 	db := initializeDbConn(envars)
-	testUserDb(envars, db)
 	api_server.StartWebApiServer(envars, db, srvport)
 
 	defer func() {
