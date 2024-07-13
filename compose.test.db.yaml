@@ -13,10 +13,6 @@ services:
       - POSTGRES_DB=-${DB_NAME-goinfra_db}
     networks:
       - ovnet3
-    deploy:
-      replicas: 2
-      placement:
-        max_replicas_per_node: 1
 networks:
   ovnet3:
     external: true
