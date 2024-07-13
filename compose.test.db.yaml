@@ -1,8 +1,7 @@
 version: '3.9'
 services:
   postgres:
-    user: ${PG_UID-1002}
-    group: ${PG_GID-1003}
+    user: "${PG_UID-1002}:${PG_GID-1003}"
     image: postgres:14-alpine
     ports:
       - 5432:5432
