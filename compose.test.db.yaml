@@ -6,7 +6,7 @@ services:
     ports:
       - ${DB_PORT-5432}:5432
     volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
+      - ${DB_PATH-/etc/goinfra/postgres}:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${DB_PW}
       - POSTGRES_USER=${DB_USER-goinfra}
