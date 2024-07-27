@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 services:
   go-infra:
     image: jtrahan88/goinfra:${DOCKER_IMG_TAG-dev}
@@ -15,8 +15,6 @@ services:
       - swarm.env
     ports:
       - "8993:8993"
-    env_file:
-      - /run/secrets/swarm.env
 networks:
   ovnet1:
     external: true
