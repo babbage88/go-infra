@@ -8,7 +8,7 @@ services:
     networks:
       - ovnet1
     volumes:
-      - ${LE_VOL-/mnt/share/gluster/letsencrypt}:/etc/letsencrypt
+      - ${LE_VOL-/etc/letsencrypt}:/etc/letsencrypt
       #- ./Docker.env:/app/.env
     secrets:
       - cf_token.ini
