@@ -1,22 +1,18 @@
 version: '3.9'
 services:
   postgres:
+    user: "${PG_UID-1002}:${PG_GID-1003}"
     image: postgres:14-alpine
     ports:
-      - 5432:5432
+      - ${DB_PORT-5432}:5432
     volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
+      - ${DB_PATH-/etc/goinfra/postgres}:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=${DB_PW}
-      - POSTGRES_USER=${DB_USER-goinfra}
-      - POSTGRES_DB=-${DB_NAME-goinfra_db}
+      POSTGRES_PASSWORD: ${DB_PW}
+      POSTGRES_USER: ${DB_USER-goinfra}
+      POSTGRES_DB: ${DB_NAME-goinfra_db}
     networks:
       - ovnet3
-    deploy:
-      replicas: 2
-      placement:
-        max_replicas_per_node: 1
-networks:
+networks:  
   ovnet3:
     external: true
-    

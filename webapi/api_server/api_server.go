@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/babbage88/go-infra/utils/env_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	webapi "github.com/babbage88/go-infra/webapi/api_handlers"
@@ -16,6 +18,7 @@ func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) e
 	mux.HandleFunc("/requestcert", webapi.AuthMidleware(webapi.RenewCertHandler))
 	mux.HandleFunc("/login", webapi.LoginHandler(envars, db))
 	mux.HandleFunc("/healthCheck", webapi.HealthCheckHandler)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	config := customlogger.NewCustomLogger()
 	clog := customlogger.SetupLogger(config)
