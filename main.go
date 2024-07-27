@@ -76,10 +76,6 @@ func main() {
 	envars := env_helper.NewDotEnvSource(env_helper.WithDotEnvFileName(*hostEnvironment))
 	fmt.Printf("EnVars file name: %s\n", envars.DotFileName)
 	envars.ParseEnvVariables()
-	test := envars.GetVarMapValue("JWT_KEY")
-	db_us_test := envars.GetVarMapValue("DB_USER")
-	fmt.Printf("JWT_KEY from %s is %s\n", *hostEnvironment, test)
-	fmt.Printf("DB_USER from %s is %s\n", *hostEnvironment, db_us_test)
 
 	db := initializeDbConn(envars)
 	api_server.StartWebApiServer(envars, db, srvport)
