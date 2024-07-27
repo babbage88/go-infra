@@ -74,6 +74,7 @@ func main() {
 	hostEnvironment := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
 	flag.Parse()
 	envars := env_helper.NewDotEnvSource(env_helper.WithDotEnvFileName(*hostEnvironment))
+	fmt.Printf("EnVars file name: %s\n", envars.DotFileName)
 	envars.ParseEnvVariables()
 
 	db := initializeDbConn(envars)
