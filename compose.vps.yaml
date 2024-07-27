@@ -19,6 +19,7 @@ networks:
   ovnet1:
     external: true
     name: ovnet1
+entrypoint: "/app/server --envfile run/secrets/swarm.env"
 secrets:
   cf_token.ini:
     external: true
