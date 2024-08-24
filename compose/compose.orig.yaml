@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  go-infra:
+    image: git.trahan.dev/jtrahan/go-infra:${DOCKER_IMG_TAG-dev}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - ovnet1
+    volumes:
+      - /mnt/share/gluster/letsencrypt:/etc/letsencrypt
+      - ./Docker.env:/app/.env
+    secrets:
+      - cf_token.ini
+      - trahan.dev_zoneid
+      - DB_PW
+      - cloudflare_dns_api
+    deploy:
+      placement:
+        constraints:
+          - node.labels.dev01 == true
+    ports:
+      - "8993:8993"
+    env_file:
+      - ./.env
+networks:
+  ovnet1:
+    external: true
+    name: ovnet1
+secrets:
+  cf_token.ini:
+    external: true
+  trahan.dev_zoneid:
+    external: true
+  DB_PW:
+    external: true
+  cloudflare_dns_api:
+    external: true
