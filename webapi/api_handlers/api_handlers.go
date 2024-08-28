@@ -19,11 +19,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type CfCertRequestResponse struct {
-	DomainName       string              `json:"domainName"`
-	CertbotCmdOutput ParsedCertbotOutput `json:"certbotOutput"`
-}
-
 type ParsedCertbotOutput struct {
 	CertificateInfo string `json:"certificateInfo"`
 	Warnings        string `json:"warnings"`
@@ -130,22 +125,15 @@ func RenewCertHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("Decoded request body", slog.String("DomainName", req.DomainName))
 
 	// Call the Renew method
-	cmdOutput := req.Renew()
+	cert_info, err := req.Renew()
 
-	// Parse the output
-	parsedOutput := parseCertbotOutput(cmdOutput)
-
-	slog.Info("Renewal command executed", slog.String("Output", strings.Join(cmdOutput, "\n")))
+	slog.Info("Renewal command executed")
 
 	// Prepare the response
-	resp := CfCertRequestResponse{
-		DomainName:       req.DomainName,
-		CertbotCmdOutput: parsedOutput,
-	}
 
-	slog.Info("Marshaling JSON response", slog.String("DomainName", resp.DomainName))
+	slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainName))
 	// Serialize response to JSON
-	jsonResponse, err := json.Marshal(resp)
+	jsonResponse, err := json.Marshal(cert_info)
 	if err != nil {
 		slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
 		http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)

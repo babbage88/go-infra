@@ -8,13 +8,18 @@ services:
     networks:
       - ovnet1
     volumes:
-      - ${LE_VOL-/etc/goinfracerts}:/app/.certbot/config
+      - ${LE_VOL-/mnt/share/gluster/goinfra}:/app/.certbot/config
     secrets:
       - cf_token.ini
       - docker.dev.env
     ports:
       - "8993:8993"
     entrypoint: "/app/server --envfile /run/secrets/docker.dev.env"
+    user: appuser
+    deploy:
+      placement:
+        constraints:
+          - node.labels.dev01 == true
 networks:
   ovnet1:
     external: true
