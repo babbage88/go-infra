@@ -99,52 +99,54 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 	}
 }
 
-func RenewCertHandler(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	if r.Method == "OPTIONS" {
-		slog.Info("Received OPTIONS request")
-		return
+func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		if r.Method == "OPTIONS" {
+			slog.Info("Received OPTIONS request")
+			return
+		}
+
+		if r.Method != http.MethodPost {
+			slog.Error("Invalid request method", slog.String("Method", r.Method))
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		slog.Info("Received POST request for Cert Renewal")
+
+		var req certhandler.CertDnsRenewReq
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		slog.Info("Decoded request body", slog.String("DomainName", req.DomainName))
+
+		// Pass envars to the Renew method
+		cert_info, err := req.Renew(envars)
+
+		slog.Info("Renewal command executed")
+
+		// Prepare the response
+
+		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainName))
+		// Serialize response to JSON
+		jsonResponse, err := json.Marshal(cert_info)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Set response headers and write JSON response
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+		slog.Info("Response sent successfully")
 	}
-
-	if r.Method != http.MethodPost {
-		slog.Error("Invalid request method", slog.String("Method", r.Method))
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	slog.Info("Received POST request for Cert Renewal")
-
-	var req certhandler.CertDnsRenewReq
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
-		http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	slog.Info("Decoded request body", slog.String("DomainName", req.DomainName))
-
-	// Call the Renew method
-	cert_info, err := req.Renew()
-
-	slog.Info("Renewal command executed")
-
-	// Prepare the response
-
-	slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainName))
-	// Serialize response to JSON
-	jsonResponse, err := json.Marshal(cert_info)
-	if err != nil {
-		slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
-		http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Set response headers and write JSON response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResponse)
-	slog.Info("Response sent successfully")
 }
 
 func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWriter, r *http.Request) {

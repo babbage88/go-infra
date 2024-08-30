@@ -11,10 +11,10 @@ services:
       - ${LE_VOL-/mnt/share/gluster/goinfra}:/app/.certbot/config
     secrets:
       - cf_token.ini
-      - docker.dev.env
+      - Docker.env
     ports:
       - "8993:8993"
-    entrypoint: "/app/server --envfile /run/secrets/docker.dev.env"
+    entrypoint: "/app/server --envfile /run/secrets/Docker.env"
     user: appuser
     deploy:
       placement:
@@ -27,5 +27,5 @@ networks:
 secrets:
   cf_token.ini:
     external: true
-  docker.dev.env:
+  Docker.env:
     external: true

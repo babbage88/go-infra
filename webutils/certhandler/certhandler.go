@@ -57,11 +57,12 @@ func (c CertDnsRenewReq) GetDomainName() (string, error) {
 	return domain, nil
 }
 
-func (c CertDnsRenewReq) Renew() (CertificateData, error) {
+func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, error) {
 	domname, err := c.GetDomainName()
 	savedir := fmt.Sprintf(domname, "/")
 	live_dir := fmt.Sprint(certbotConfigDir, "/live/", savedir)
-	authFile := env_helper.NewDotEnvSource(env_helper.WithVarName("CF_INI")).GetEnvVarValue()
+
+	authFile := envars.GetVarMapValue("CLOUDFLARE_AUTH_FILE")
 
 	cmd := exec.Command("certbot",
 		"certonly",
