@@ -1,7 +1,6 @@
 package certhandler
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -37,7 +36,6 @@ type CertificateData struct {
 	ChainPEM   string `json:"chain_pem"`
 	Fullchain  string `json:"fullchain_pem"`
 	PrivKey    string `json:"priv_key"`
-	CmdOutput  string `json:"cmdoutput"`
 }
 
 type Renewal interface {
@@ -81,14 +79,9 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 	)
 
 	var cert_info CertificateData
-	var outb, errb bytes.Buffer
-	cmd.Stdout = &outb
-	cmd.Stderr = &errb
 
 	slog.Info("Starting command to renew certificate", slog.String("Domain", c.DomainName), slog.String("DNS Provider", c.Provider))
 	err = cmd.Run()
-
-	cmdstring := fmt.Sprint("out:", outb.String(), "err:", errb.String())
 
 	if err != nil {
 		slog.Error("Error executing renewal command.")
@@ -104,14 +97,13 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 	fullchain_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "fullchain.pem"), certPrefix, certSuffix)
 
 	privkey_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "privkey.pem"), keyPrefix, keySuffix)
-	slog.Info("cert", slog.String("cert", cert_str))
+	slog.Info("priv", slog.String("priv", privkey_str))
 
 	cert_info.CertPEM = cert_str
 	cert_info.ChainPEM = chain_str
 	cert_info.Fullchain = fullchain_str
 	cert_info.PrivKey = privkey_str
 	cert_info.DomainName = c.DomainName
-	cert_info.CmdOutput = cmdstring
 
 	return cert_info, err
 }
