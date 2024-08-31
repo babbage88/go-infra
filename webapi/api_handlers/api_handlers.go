@@ -141,11 +141,19 @@ func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
 			return
 		}
 
-		// Set response headers and write JSON response
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonResponse)
-		slog.Info("Response sent successfully")
+		if req.ZipFiles {
+			w.Header().Set("Content-Type", "application/zip")
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", req.DomainName))
+			http.ServeFile(w, r, cert_info.ZipDir)
+		} else {
+
+			// Set response headers and write JSON response
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(jsonResponse)
+			slog.Info("Response sent successfully")
+
+		}
 	}
 }
 

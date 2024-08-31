@@ -1,6 +1,7 @@
 package certhandler
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -28,6 +29,7 @@ type CertDnsRenewReq struct {
 	DomainName string `json:"domainName"`
 	Provider   string `json:"provider"`
 	Email      string `json:"email"`
+	ZipFiles   bool   `json:"zipFiles"`
 }
 
 type CertificateData struct {
@@ -36,6 +38,7 @@ type CertificateData struct {
 	ChainPEM   string `json:"chain_pem"`
 	Fullchain  string `json:"fullchain_pem"`
 	PrivKey    string `json:"priv_key"`
+	ZipDir     string
 }
 
 type Renewal interface {
@@ -88,22 +91,29 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 		return cert_info, err
 	}
 	live_dir := fmt.Sprint(certbotConfigDir, "/live/", savedir)
-	slog.Info("live_dir", slog.String("val", live_dir))
 
 	cert_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "cert.pem"), certPrefix, certSuffix)
 
 	chain_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "chain.pem"), certPrefix, certSuffix)
 
-	fullchain_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "fullchain.pem"), certPrefix, certSuffix)
+	fullchain_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "fullchain.pem"))
+	fullchain_str := string(fullchain_byte)
 
 	privkey_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "privkey.pem"), keyPrefix, keySuffix)
-	slog.Info("priv", slog.String("priv", privkey_str))
 
 	cert_info.CertPEM = cert_str
 	cert_info.ChainPEM = chain_str
 	cert_info.Fullchain = fullchain_str
 	cert_info.PrivKey = privkey_str
 	cert_info.DomainName = c.DomainName
+
+	if c.ZipFiles {
+		cert_info.ZipDir = fmt.Sprint(live_dir, "certs.zip")
+		err := createZipFile(live_dir, cert_info)
+		if err != nil {
+			return cert_info, err
+		}
+	}
 
 	return cert_info, err
 }
@@ -121,4 +131,39 @@ func ReadAndTrimFile(filename string, beginMarker string, endMarker string) (str
 	slog.Info("Paring finished", slog.String("Content", contentStr))
 
 	return strings.TrimSpace(contentStr), nil
+}
+
+func createZipFile(liveDir string, certInfo CertificateData) error {
+	zipFileName := fmt.Sprintf("%s/certs.zip", liveDir)
+	zipFile, err := os.Create(zipFileName)
+	if err != nil {
+		return err
+	}
+	defer zipFile.Close()
+
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// List of files to include in the zip
+	files := []struct {
+		Name, Content string
+	}{
+		{"cert.pem", certInfo.CertPEM},
+		{"chain.pem", certInfo.ChainPEM},
+		{"fullchain.pem", certInfo.Fullchain},
+		{"privkey.pem", certInfo.PrivKey},
+	}
+
+	for _, file := range files {
+		f, err := zipWriter.Create(file.Name)
+		if err != nil {
+			return err
+		}
+		_, err = f.Write([]byte(file.Content))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

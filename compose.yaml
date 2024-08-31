@@ -7,8 +7,8 @@ services:
       dockerfile: Dockerfile
     networks:
       - ovnet1
-    volumes:
-      - ${LE_VOL-/mnt/share/gluster/goinfra}:/app/.certbot/config
+    #volumes:
+      #- ${LE_VOL-/mnt/share/gluster/goinfra}:/app/.certbot/config
     secrets:
       - cf_token.ini
       - Docker.env
