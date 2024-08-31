@@ -15,7 +15,7 @@ import (
 func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/getalldns", webapi.AuthMidleware(webapi.CreateDnsHttpHandlerWrapper(db)))
-	mux.HandleFunc("/requestcert", webapi.AuthMidleware(webapi.RenewCertHandler))
+	mux.HandleFunc("/requestcert", webapi.AuthMidleware(webapi.RenewCertHandler(envars)))
 	mux.HandleFunc("/login", webapi.LoginHandler(envars, db))
 	mux.HandleFunc("/healthCheck", webapi.HealthCheckHandler)
 	mux.Handle("/metrics", promhttp.Handler())
