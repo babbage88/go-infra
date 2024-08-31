@@ -59,10 +59,11 @@ func (c CertDnsRenewReq) GetDomainName() (string, error) {
 
 func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, error) {
 	domname, err := c.GetDomainName()
-	savedir := fmt.Sprintf(domname, "/")
-	live_dir := fmt.Sprint(certbotConfigDir, "/live/", savedir)
+	savedir := fmt.Sprint(domname, "/")
 
-	authFile := envars.GetVarMapValue("CLOUDFLARE_AUTH_FILE")
+	authFile := envars.GetVarMapValue("CF_INI")
+	fmt.Printf("authfil: %s", authFile)
+	fmt.Printf("cert savedir value: %s", savedir)
 
 	cmd := exec.Command("certbot",
 		"certonly",
@@ -93,6 +94,8 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 		slog.Error("Error executing renewal command.")
 		return cert_info, err
 	}
+	live_dir := fmt.Sprint(certbotConfigDir, "/live/", savedir)
+	slog.Info("live_dir", slog.String("val", live_dir))
 
 	cert_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "cert.pem"), certPrefix, certSuffix)
 
@@ -100,7 +103,8 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 
 	fullchain_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "fullchain.pem"), certPrefix, certSuffix)
 
-	privkey_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "privkey.key"), keyPrefix, keySuffix)
+	privkey_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "privkey.pem"), keyPrefix, keySuffix)
+	slog.Info("cert", slog.String("cert", cert_str))
 
 	cert_info.CertPEM = cert_str
 	cert_info.ChainPEM = chain_str
