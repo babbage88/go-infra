@@ -33,12 +33,13 @@ type CertDnsRenewReq struct {
 }
 
 type CertificateData struct {
-	DomainName string `json:"domainName"`
-	CertPEM    string `json:"cert_pem"`
-	ChainPEM   string `json:"chain_pem"`
-	Fullchain  string `json:"fullchain_pem"`
-	PrivKey    string `json:"priv_key"`
-	ZipDir     string
+	DomainName      string `json:"domainName"`
+	CertPEM         string `json:"cert_pem"`
+	ChainPEM        string `json:"chain_pem"`
+	Fullchain       string `json:"fullchain_pem"`
+	FullchainAndKey string `json:"fullchain_and_key"`
+	PrivKey         string `json:"priv_key"`
+	ZipDir          string
 }
 
 type Renewal interface {
@@ -92,20 +93,26 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 	}
 	live_dir := fmt.Sprint(certbotConfigDir, "/live/", savedir)
 
-	cert_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "cert.pem"), certPrefix, certSuffix)
+	cert_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "cert.pem"))
+	cert_str := string(cert_byte)
 
-	chain_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "chain.pem"), certPrefix, certSuffix)
+	chain_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "chain.pem"))
+	chain_str := string(chain_byte)
 
 	fullchain_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "fullchain.pem"))
 	fullchain_str := string(fullchain_byte)
 
-	privkey_str, _ := ReadAndTrimFile(fmt.Sprint(live_dir, "privkey.pem"), keyPrefix, keySuffix)
+	privkey_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "privkey.pem"))
+	privkey_str := string(privkey_byte)
+
+	fullchain_and_key := fmt.Sprint(fullchain_str, privkey_str)
 
 	cert_info.CertPEM = cert_str
 	cert_info.ChainPEM = chain_str
 	cert_info.Fullchain = fullchain_str
 	cert_info.PrivKey = privkey_str
 	cert_info.DomainName = c.DomainName
+	cert_info.FullchainAndKey = fullchain_and_key
 
 	if c.ZipFiles {
 		cert_info.ZipDir = fmt.Sprint(live_dir, "certs.zip")
@@ -152,6 +159,7 @@ func createZipFile(liveDir string, certInfo CertificateData) error {
 		{"chain.pem", certInfo.ChainPEM},
 		{"fullchain.pem", certInfo.Fullchain},
 		{"privkey.pem", certInfo.PrivKey},
+		{"fullchainandkey.pem", certInfo.FullchainAndKey},
 	}
 
 	for _, file := range files {
