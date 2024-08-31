@@ -17,9 +17,11 @@ services:
     entrypoint: "/app/server --envfile /run/secrets/Docker.env"
     user: appuser
     deploy:
+      replicas: 3
       placement:
+        max_replicas_per_node: 1
         constraints:
-          - node.labels.dev01 == true
+          - node.labels.goinfra == true
 networks:
   ovnet1:
     external: true
