@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-infra
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-infra
+  template:
+    metadata:
+      labels:
+        app: go-infra
+    spec:
+      containers:
+      - name: go-infra
+        image: jtrahan88/goinfra:dev
+        ports:
+        - containerPort: 8993
+        command: ["/app/server"]
+        args: ["--envfile", "/run/secrets/Docker.env"]
+        env:
+        - name: DOCKER_IMG_TAG
+          value: "dev"
+        volumeMounts:
+        - name: cf-token-ini
+          mountPath: "/run/secrets/cf_token.ini"
+          subPath: cf_token.ini
+        - name: k3s-env
+          mountPath: "/run/secrets/k3s.env"
+          subPath: k3s.env
+      volumes:
+      - name: cf-token-ini
+        secret:
+          secretName: cf-token-ini
+      - name: k3s-env
+        secret:
+          secretName: k3s-env
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - go-infra
+            topologyKey: "kubernetes.io/hostname" # Ensuring max one replica per node
