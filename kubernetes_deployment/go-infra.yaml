@@ -19,6 +19,8 @@ spec:
         - containerPort: 8993
         command: ["/app/server"]
         args: ["--envfile", "/run/secrets/Docker.env"]
+        imagePullSecrets:
+        - name: dockerhub-registry-secret
         env:
         - name: DOCKER_IMG_TAG
           value: "dev"
