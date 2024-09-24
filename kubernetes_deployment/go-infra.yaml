@@ -19,8 +19,6 @@ spec:
         - containerPort: 8993
         command: ["/app/server"]
         args: ["--envfile", "/run/secrets/k3s.env"]
-        imagePullSecrets:
-        - name: regcred
         env:
         - name: DOCKER_IMG_TAG
           value: "v1.0.1"
@@ -38,6 +36,8 @@ spec:
       - name: k3s-env
         secret:
           secretName: k3s-env
+      imagePullSecrets:
+      - name: regcred
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -47,4 +47,5 @@ spec:
                 operator: In
                 values:
                 - go-infra
-            topologyKey: "kubernetes.io/hostname" # Ensuring max one replica per node
+            topologyKey: "kubernetes.io/hostname"
+     
