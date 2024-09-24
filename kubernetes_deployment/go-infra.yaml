@@ -14,16 +14,16 @@ spec:
     spec:
       containers:
       - name: go-infra
-        image: jtrahan88/goinfra:dev
+        image: docker.io/jtrahan88/goinfra:v1.0.1
         ports:
         - containerPort: 8993
         command: ["/app/server"]
         args: ["--envfile", "/run/secrets/Docker.env"]
         imagePullSecrets:
-        - name: dockerhub-registry-secret
+        - name: regcred
         env:
         - name: DOCKER_IMG_TAG
-          value: "dev"
+          value: "v1.0.1"
         volumeMounts:
         - name: cf-token-ini
           mountPath: "/run/secrets/cf_token.ini"
