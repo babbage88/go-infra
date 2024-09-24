@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: go-infra
-        image: docker.io/jtrahan88/goinfra:v1.0.1
+        image: docker.io/jtrahan88/goinfra:devk3
         ports:
         - containerPort: 8993
         command: ["/app/server"]
@@ -48,4 +48,4 @@ spec:
                 values:
                 - go-infra
             topologyKey: "kubernetes.io/hostname"
-     
+
