@@ -18,7 +18,7 @@ spec:
         ports:
         - containerPort: 8993
         command: ["/app/server"]
-        args: ["--envfile", "/run/secrets/Docker.env"]
+        args: ["--envfile", "/run/secrets/k3s.env"]
         imagePullSecrets:
         - name: regcred
         env:
