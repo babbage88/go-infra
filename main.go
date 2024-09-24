@@ -35,7 +35,11 @@ func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
 	db_pw := envars.GetVarMapValue("DB_PW")
 	db_user := envars.GetVarMapValue("DB_USER")
 	db_host := envars.GetVarMapValue("DB_HOST")
-	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw), infra_db.WithDbUser(db_user))
+	db_port, err := envars.ParseEnvVarInt32("DB_PORT")
+	if err != nil {
+		fmt.Errorf("Error Parsing DB_PORT from .env file", err)
+	}
+	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw), infra_db.WithDbUser(db_user), infra_db.WithDbPort(db_port))
 
 	db, _ := infra_db.InitializeDbConnection(dbConn)
 
