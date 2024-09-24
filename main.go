@@ -33,8 +33,9 @@ func createTestUserInstance(username string, password string, email string, role
 
 func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
 	db_pw := envars.GetVarMapValue("DB_PW")
+	db_user := envars.GetVarMapValue("DB_USER")
 	db_host := envars.GetVarMapValue("DB_HOST")
-	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw))
+	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw), infra_db.WithDbUser(db_user))
 
 	db, _ := infra_db.InitializeDbConnection(dbConn)
 
