@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: go-infra
-        image: docker.io/jtrahan88/goinfra:devk3
+        image: docker.io/jtrahan88/goinfra:devk31
         ports:
         - containerPort: 8993
         command: ["/app/server"]
