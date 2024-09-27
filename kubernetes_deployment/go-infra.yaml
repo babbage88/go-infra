@@ -37,7 +37,7 @@ spec:
         secret:
           secretName: k3s-env
       imagePullSecrets:
-      - name: regcred
+      - name: dockercred
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
