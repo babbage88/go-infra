@@ -14,21 +14,24 @@ spec:
     spec:
       containers:
       - name: go-infra
-        image: docker.io/jtrahan88/goinfra:v1.0.3
+        image: git.trahan.dev/jtrahan/goinfra:k3test
         ports:
         - containerPort: 8993
         command: ["/app/server"]
-        args: ["--envfile", "/run/secrets/k3s.env"]
-        env:
-        - name: DOCKER_IMG_TAG
-          value: "v1.0.3"
         volumeMounts:
         - name: cf-token-ini
           mountPath: "/run/secrets/cf_token.ini"
           subPath: cf_token.ini
         - name: k3s-env
-          mountPath: "/run/secrets/k3s.env"
+          mountPath: "/app/.env"
           subPath: k3s.env
+          resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
       volumes:
       - name: cf-token-ini
         secret:

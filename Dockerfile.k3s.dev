@@ -80,5 +80,5 @@ COPY --from=build /bin/server /app/
 EXPOSE 8080
 
 # What the container should run when it is started.
-ENTRYPOINT [ "/app/server", "--envfile=/run/secrets/k3s.env" ]
+ENTRYPOINT [ "/app/server" ]
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
