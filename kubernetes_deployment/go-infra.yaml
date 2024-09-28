@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: go-infra
-        image: git.trahan.dev/jtrahan/goinfra:k3test
+        image: git.trahan.dev/jtrahan/goinfra:v1.0.2
         ports:
         - containerPort: 8993
         command: ["/app/server"]

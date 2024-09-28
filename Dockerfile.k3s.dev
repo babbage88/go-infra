@@ -71,6 +71,10 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
+
+#make appuser the owner of /app working dir
+RUN chown -R appuser:appuser /app/
+
 USER appuser
 
 # Copy the executable from the "build" stage.
