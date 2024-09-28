@@ -12,9 +12,20 @@ spec:
       labels:
         app: go-infra
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname # Use the hostname label
+                operator: In
+                values:
+                - trahkube1
+                - trahkube2
+                - trahkube3
       containers:
       - name: go-infra
-        image: jtrahan88/goinfra:v1.0.3
+        image: git.trahan.dev/jtrahan/goinfra:v1.0.3
         imagePullPolicy: Always
         ports:
         - containerPort: 8993
@@ -42,14 +53,3 @@ spec:
           secretName: k3s-env
       imagePullSecrets:
       - name: dockercred
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - go-infra
-            topologyKey: "kubernetes.io/hostname"
-
