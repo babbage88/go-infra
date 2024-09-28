@@ -25,7 +25,7 @@ spec:
         - name: k3s-env
           mountPath: "/app/.env"
           subPath: k3s.env
-          resources:
+        resources:
           limits:
             memory: "512Mi"
             cpu: "500m"
