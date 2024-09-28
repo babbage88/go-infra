@@ -64,8 +64,8 @@ func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, err
 	savedir := fmt.Sprint(domname, "/")
 
 	authFile := envars.GetVarMapValue("CF_INI")
-	fmt.Printf("authfil: %s", authFile)
-	fmt.Printf("cert savedir value: %s", savedir)
+	fmt.Printf("authfil: %s\n", authFile)
+	fmt.Printf("cert savedir value: %s\n", savedir)
 
 	cmd := exec.Command("certbot",
 		"certonly",
