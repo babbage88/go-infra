@@ -77,7 +77,13 @@ func main() {
 
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	hostEnvironment := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
+	version := flag.Bool("version", false, "Show the current version.")
 	flag.Parse()
+
+	if *version {
+		showVersion()
+		return
+	}
 	envars := env_helper.NewDotEnvSource(env_helper.WithDotEnvFileName(*hostEnvironment))
 	fmt.Printf("EnVars file name: %s\n", envars.DotFileName)
 	envars.ParseEnvVariables()
