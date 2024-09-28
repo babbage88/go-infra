@@ -206,7 +206,6 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 
 		w.Header().Set("Content-Type", "application/json")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		fmt.Println("Authorization header: ", r.Header.Get("Authorization"))
 		if len(authHeader) != 2 {
 			fmt.Println("Malformed token")
 			w.WriteHeader(http.StatusUnauthorized)
@@ -219,7 +218,6 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 				}
 				// Retrieve the secret key from environment variables
 				SECRETKEY := envars.GetVarMapValue("JWT_KEY")
-				fmt.Println("SECRETKEY: ", SECRETKEY)
 				if SECRETKEY == "" {
 					return nil, fmt.Errorf("secret key not found")
 				}
