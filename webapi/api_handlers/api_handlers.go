@@ -179,7 +179,7 @@ func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWr
 		verify_pw := hashing.VerifyPassword(u.Password, dbuser.Password)
 
 		if verify_pw {
-			token, err := jwt_auth.CreateTokenanAddToDb(envars, db, u.Id, u.Role, u.Email)
+			token, err := jwt_auth.CreateTokenanAddToDb(envars, db, dbuser.Id, u.Role, u.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
@@ -195,7 +195,7 @@ func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWr
 	}
 }
 
-func AuthMidleware(next http.HandlerFunc) http.HandlerFunc {
+func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			enableCors(&w)
@@ -214,24 +214,26 @@ func AuthMidleware(next http.HandlerFunc) http.HandlerFunc {
 			jwtToken := authHeader[1]
 			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
-				SECRETKEY := env_helper.NewDotEnvSource(env_helper.WithVarName("JWT_KEY")).GetEnvVarValue()
+				// Retrieve the secret key from environment variables
+				SECRETKEY := envars.GetVarMapValue("JWT_KEY")
+				if SECRETKEY == "" {
+					return nil, fmt.Errorf("secret key not found")
+				}
 				return []byte(SECRETKEY), nil
 			})
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				ctx := context.WithValue(r.Context(), "props", claims)
-				// Access context values in handlers like this
-				// props, _ := r.Context().Value("props").(jwt.MapClaims)
 				next.ServeHTTP(w, r.WithContext(ctx))
 			} else {
-				slog.Error("Error validating tokem", slog.String("Error", err.Error()))
+				slog.Error("Error validating token", slog.String("Error", err.Error()))
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Unauthorized"))
 			}
 		}
 
-		slog.Info("Token has breen verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
+		slog.Info("Token has been verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
 	}
 }
