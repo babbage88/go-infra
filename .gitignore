@@ -1,3 +1,5 @@
+**/*.certbot
+**/*test_cert/
 #ignore binaries
 main
 go-infra
