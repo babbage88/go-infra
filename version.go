@@ -7,7 +7,7 @@ import (
 
 const (
 	Author  = "Justin Trahan"
-	Version = "v1.0.3"
+	Version = "v1.1.4"
 	Name    = "go-infra"
 )
 
