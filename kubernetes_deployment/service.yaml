@@ -9,4 +9,4 @@ spec:
   - protocol: TCP
     port: 8993
     targetPort: 8993
-  type: LoadBalancer # This exposes it publicly
+  type: LoadBalancer

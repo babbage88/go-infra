@@ -13,7 +13,7 @@ spec:
     - name: go-infra-service
       port: 8993
   tls:
-    secretName: trhan-dev-cert
+    secretName: trahan-dev-cert
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute

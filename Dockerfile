@@ -44,11 +44,9 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-RUN chown appuser:appuser /app/
+RUN chown -R appuser:appuser /app/
 USER appuser
 RUN mkdir .certbot
-
-#--config-dir ~/.certbot/config --logs-dir ~/.certbot/logs --work-dir ~/.certbot/work
 
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /app/
