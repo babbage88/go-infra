@@ -23,11 +23,11 @@ spec:
                 - trahkube1
       containers:
       - name: go-infra
-        image: git.trahan.dev/jtrahan/goinfra:v1.0.3
+        image: git.trahan.dev/jtrahan/goinfra:v1.0.4
         imagePullPolicy: Always
         ports:
         - containerPort: 8993
-        command: ["/app/server"]
+        command: [ "/app/server" ]
         volumeMounts:
         - name: cf-token-ini
           mountPath: "/run/secrets/cf_token.ini"
