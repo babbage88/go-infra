@@ -54,6 +54,4 @@ COPY --from=build /bin/server /app/
 # Expose the port that the application listens on.
 EXPOSE 8080
 
-# What the container should run when it is started.
 ENTRYPOINT [ "/app/server" ]
-#ENTRYPOINT ["tail", "-f", "/dev/null"]
