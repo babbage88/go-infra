@@ -23,6 +23,8 @@ spec:
                 - trahkube1
                 - trahkube2
                 - trahkube3
+                - trahkube4
+                - trahk3worker1
       containers:
       - name: go-infra
         #image: git.trahan.dev/jtrahan/goinfra:v1.0.3
