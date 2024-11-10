@@ -1,4 +1,4 @@
-package certhandler
+package cert_renew
 
 import (
 	"archive/zip"

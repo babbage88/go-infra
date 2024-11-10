@@ -1,4 +1,4 @@
-package webapi
+package authapi
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	infra_db "github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
 	"github.com/babbage88/go-infra/utils/env_helper"
-	"github.com/babbage88/go-infra/webutils/certhandler"
+	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -99,7 +99,7 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 	}
 }
 
-func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
+func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
 		if r.Method == "OPTIONS" {
@@ -115,7 +115,7 @@ func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
 
 		slog.Info("Received POST request for Cert Renewal")
 
-		var req certhandler.CertDnsRenewReq
+		var req cert_renew.CertDnsRenewReq
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))

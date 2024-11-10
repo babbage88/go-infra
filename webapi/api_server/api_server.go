@@ -9,15 +9,15 @@ import (
 
 	"github.com/babbage88/go-infra/utils/env_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
-	webapi "github.com/babbage88/go-infra/webapi/api_handlers"
+	"github.com/babbage88/go-infra/webapi/authapi"
 )
 
 func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) error {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/getalldns", webapi.AuthMiddleware(envars, webapi.CreateDnsHttpHandlerWrapper(db)))
-	mux.HandleFunc("/requestcert", webapi.AuthMiddleware(envars, webapi.RenewCertHandler(envars)))
-	mux.HandleFunc("/login", webapi.LoginHandler(envars, db))
-	mux.HandleFunc("/healthCheck", webapi.HealthCheckHandler)
+	mux.HandleFunc("/getalldns", authapi.AuthMiddleware(envars, authapi.CreateDnsHttpHandlerWrapper(db)))
+	mux.HandleFunc("/requestcert", authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars)))
+	mux.HandleFunc("/login", authapi.LoginHandler(envars, db))
+	mux.HandleFunc("/healthCheck", authapi.HealthCheckHandler)
 	mux.Handle("/metrics", promhttp.Handler())
 
 	config := customlogger.NewCustomLogger()
