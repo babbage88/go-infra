@@ -312,7 +312,7 @@ CREATE TABLE public.user_hosted_k8 (
     price_tier_code_id integer NOT NULL,
     user_id integer NOT NULL,
     organization_id integer,
-    current_host_server_ids[] integer NOT NULL,
+    current_host_server_ids integer[] NOT NULL,
     user_application_ids integer[],
     user_certificate_ids integer[],
     k8_type character varying(255) DEFAULT 'k3s' NOT NULL,
