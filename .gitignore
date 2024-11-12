@@ -1,3 +1,4 @@
+**db.dev.env
 **/*.certbot
 **/*test_cert/
 #ignore binaries
