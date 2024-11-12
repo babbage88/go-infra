@@ -1,0 +1,12 @@
+info: {}
+paths:
+    /login:
+        post:
+            operationId: idOfloginEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/dbmodels.AuthToken'
+            summary: Login user, verify hased pw and return JWT to user.
+            tags:
+                - login-tag
+swagger: "2.0"

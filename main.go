@@ -13,6 +13,8 @@ import (
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/utils/test"
 	"github.com/babbage88/go-infra/webapi/api_server"
+
+	_ "github.com/pdrum/swagger-automation/docs"
 )
 
 func createTestUserInstance(username string, password string, email string, role string) db_models.User {
@@ -32,6 +34,7 @@ func createTestUserInstance(username string, password string, email string, role
 }
 
 func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
+	db_name := envars.GetVarMapValue("DB_NAME")
 	db_pw := envars.GetVarMapValue("DB_PW")
 	db_user := envars.GetVarMapValue("DB_USER")
 	db_host := envars.GetVarMapValue("DB_HOST")
@@ -39,7 +42,11 @@ func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
 	if err != nil {
 		fmt.Errorf("Error Parsing DB_PORT from .env file", err)
 	}
-	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw), infra_db.WithDbUser(db_user), infra_db.WithDbPort(db_port))
+	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host),
+		infra_db.WithDbPassword(db_pw),
+		infra_db.WithDbUser(db_user),
+		infra_db.WithDbPort(db_port),
+		infra_db.WithDbName(db_name))
 
 	db, _ := infra_db.InitializeDbConnection(dbConn)
 

@@ -12,6 +12,30 @@ import (
 	"github.com/babbage88/go-infra/webapi/authapi"
 )
 
+// Package classification goinfra.
+//
+// Go-Infra API forInfrastruction Automation.
+//
+//     Schemes: http
+//     BasePath: /
+//     Version: 1.0.5
+//     Host: infra.test.trahan.dev
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Security:
+//     - basic
+//
+//    SecurityDefinitions:
+//    basic:
+//      type: basic
+//
+// swagger:meta
+
 func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/getalldns", authapi.AuthMiddleware(envars, authapi.CreateDnsHttpHandlerWrapper(db)))
