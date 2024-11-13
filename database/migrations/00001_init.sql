@@ -222,9 +222,9 @@ END $$;
 -- +goose StatementBegin
 -- +goose envsub on
 -- Creating go-infra app/api user for development/testing
-INSERT INTO public.users
-(id, username, "password", email, "role", created_at, last_modified)
-VALUES(nextval('users_id_seq'::regclass), 'devuser', '${DEV_DB_USER_PW}', 'devuser@test.trahan.dev', 'admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+ INSERT INTO public.users
+ (id, username, "password", email, "role", created_at, last_modified)
+ VALUES(nextval('users_id_seq'::regclass), 'devuser', '${DEV_APP_USER_PW}', 'devuser@test.trahan.dev', 'admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO public.dns_records (dns_record_id,zone_name,zone_id,"name","content",proxied,"type","comment",ttl,created_at,last_modified) VALUES
 	 ('c7b13dc759c2be9ba60f3e4f2af764ff','balloonstx.com','dd9ea021cc2896395ab45c975389f1aa','autodiscover.balloonstx.com','autodiscover.outlook.com',true,'CNAME','',1,'2024-05-25 14:05:54.48794-05','2024-05-25 14:05:54.48794-05'),

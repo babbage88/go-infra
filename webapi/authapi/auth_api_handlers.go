@@ -19,12 +19,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type ParsedCertbotOutput struct {
-	CertificateInfo string `json:"certificateInfo"`
-	Warnings        string `json:"warnings"`
-	DebugLog        string `json:"debugLog"`
-}
-
 const apiToken = "your-secret-api-token"
 
 func WithAuth(next http.HandlerFunc) http.HandlerFunc {
