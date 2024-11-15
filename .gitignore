@@ -1,3 +1,6 @@
+database/migrations/00002_user_perms.sql
+database/migrations/00003_con.sql
+database/migrations/00004_grant.sql
 vendor/**
 **db.dev.env
 **/*.certbot
