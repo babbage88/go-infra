@@ -1,118 +1,85 @@
 package test
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
+	"log"
 	"log/slog"
+	"os"
+	"time"
 
-	"github.com/babbage88/go-infra/auth/hashing"
-	infra_db "github.com/babbage88/go-infra/database/infra_db"
-	db_models "github.com/babbage88/go-infra/database/models"
-	env_helper "github.com/babbage88/go-infra/utils/env_helper"
+	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreateTestUserInstance(username string, password string, email string, role string) (db_models.User, error) {
-	hashedpw, err := hashing.HashPassword(password)
+func pgxPoolConfig() *pgxpool.Config {
+	const defaultMaxConns = int32(4)
+	const defaultMinConns = int32(0)
+	const defaultMaxConnLifetime = time.Hour
+	const defaultMaxConnIdleTime = time.Minute * 30
+	const defaultHealthCheckPeriod = time.Minute
+	const defaultConnectTimeout = time.Second * 5
+	connString := os.Getenv("DATABASE_URL")
+
+	dbConfig, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		slog.Error("Error hashing password", slog.String("Error", err.Error()))
+		slog.Error("Failed to create a config, error: ", "Error", err)
 	}
 
-	testuser := db_models.User{
-		Username: username,
-		Password: hashedpw,
-		Email:    email,
-		Role:     role,
+	dbConfig.MaxConns = defaultMaxConns
+	dbConfig.MinConns = defaultMinConns
+	dbConfig.MaxConnLifetime = defaultMaxConnLifetime
+	dbConfig.MaxConnIdleTime = defaultMaxConnIdleTime
+	dbConfig.HealthCheckPeriod = defaultHealthCheckPeriod
+	dbConfig.ConnConfig.ConnectTimeout = defaultConnectTimeout
+	dbConfig.BeforeAcquire = func(ctx context.Context, c *pgx.Conn) bool {
+		slog.Info("Before acquiring the connection pool to the database!!")
+		return true
 	}
 
-	return testuser, nil
+	dbConfig.AfterRelease = func(c *pgx.Conn) bool {
+		slog.Info("After releasing the connection pool to the database!!")
+		return true
+	}
+
+	dbConfig.BeforeClose = func(c *pgx.Conn) {
+		log.Println("Closed the connection pool to the database!!")
+	}
+
+	return dbConfig
+
 }
 
-func InitializeDbConn(envars *env_helper.EnvVars) (*sql.DB, error) {
-	var db_host = envars.GetVarMapValue("BH_HOST")
-	var db_pw = envars.GetVarMapValue("DB_PW")
-	var db_user = envars.GetVarMapValue("DB_USER")
-	var db_port, _ = envars.ParseEnvVarInt32("DB_PORT")
-
-	dbConn := infra_db.NewDatabaseConnection(
-		infra_db.WithDbHost(db_host),
-		infra_db.WithDbPassword(db_pw),
-		infra_db.WithDbUser(db_user),
-		infra_db.WithDbPort(db_port),
-	)
-
-	db, err := infra_db.InitializeDbConnection(dbConn)
+func TestCreateUserQuery(username string, hashed_pw string) (infra_db_pg.User, error) {
+	// Create database connection
+	connPool, err := pgxpool.NewWithConfig(context.Background(), pgxPoolConfig())
 	if err != nil {
-		slog.Error("Error initializing Database connection", slog.String("Error", err.Error()),
-			slog.String("DB_HOST", dbConn.DbHost),
-			slog.String("DB_USER", dbConn.DbUser),
-			slog.String("DB_PORT", fmt.Sprint(dbConn.DbPort)))
+		slog.Error("Error while creating connection to the database!!", "Error", err)
 	}
 
-	return db, nil
-}
-
-func CreateUserDb(db *sql.DB, user *db_models.User) error {
-	err := infra_db.InsertOrUpdateUser(db, user)
+	connection, err := connPool.Acquire(context.Background())
 	if err != nil {
-		slog.Error("Error adding or updating user in databse", slog.String("Error", err.Error()))
+		slog.Error("Error while acquiring connection from the database pool!!", "Error", err)
+	}
+	defer connection.Release()
+
+	err = connection.Ping(context.Background())
+	if err != nil {
+		slog.Error("Could not ping database")
 	}
 
-	return err
-}
+	slog.Info("Connected to the database!!", "Database", os.Getenv("DATABASE_URL"))
 
-func AddAuthTokenToDb(db *sql.DB, token *db_models.AuthToken) error {
-	err := infra_db.InsertAuthToken(db, token)
-	if err != nil {
-		slog.Error("Error adding or updating AuthToken in databse", slog.String("Error", err.Error()))
+	// Set up parameters for the new user
+	params := infra_db_pg.CreateUserParams{
+		Username: pgtype.Text{String: "johndoe", Valid: true},
+		Password: pgtype.Text{String: "password123", Valid: true},
+		Email:    pgtype.Text{String: "johndoe@example.com", Valid: true},
+		Role:     pgtype.Text{String: "user", Valid: true},
 	}
 
-	return err
-}
-
-func AddHostToDb(db *sql.DB, host *db_models.HostServer) error {
-	var host_slice []db_models.HostServer = make([]db_models.HostServer, 1)
-	host_slice = append(host_slice, *host)
-
-	err := infra_db.InsertOrUpdateHostServer(db, host_slice)
-	if err != nil {
-		slog.Error("Error adding or updating HostServer in databse", slog.String("Error", err.Error()))
-	}
-
-	return err
-}
-
-func AddHostsToDb(db *sql.DB, hosts []db_models.HostServer) error {
-	err := infra_db.InsertOrUpdateHostServer(db, hosts)
-	if err != nil {
-		slog.Error("Error adding or updating HostServers in databse", slog.String("Error", err.Error()))
-	}
-
-	return err
-}
-
-func GetDbUserByUsername(db *sql.DB, username string) (*db_models.User, error) {
-	user, err := infra_db.GetUserByUsername(db, username)
-	if err != nil {
-		slog.Error("Error retrieving user from databse", slog.String("Error", err.Error()))
-	}
-
-	return user, nil
-}
-
-func GetDbUserById(db *sql.DB, id int64) (*db_models.User, error) {
-	user, err := infra_db.GetUserById(db, id)
-	if err != nil {
-		slog.Error("Error retrieving user from databse", slog.String("Error", err.Error()))
-	}
-
-	return user, nil
-}
-
-func GetDbAuthToken(db *sql.DB, tokenstr string) (*db_models.AuthToken, error) {
-	token, err := infra_db.GetAuthTokenFromDb(db, tokenstr)
-	if err != nil {
-		slog.Error("Error retrieving AuthToken from databse", slog.String("Error", err.Error()))
-	}
-
-	return token, nil
+	queries := infra_db_pg.New(connPool)
+	newUser, err := queries.CreateUser(context.Background(), params)
+	return newUser, err
 }

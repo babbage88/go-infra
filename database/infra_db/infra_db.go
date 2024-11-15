@@ -34,7 +34,7 @@ var (
 func InitializeDbConnection(dbConn *DatabaseConnection) (*sql.DB, error) {
 	dbOnce.Do(func() {
 		// Connect to the PostgreSQL database
-		slog.Info("Connecting to database: " + dbConn.DbHost)
+		slog.Info("Connecting to database: %s on server %s", dbConn.DbName, dbConn.DbHost)
 
 		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			dbConn.DbHost, type_helper.String(dbConn.DbPort), dbConn.DbUser, dbConn.DbPassword, dbConn.DbName)
@@ -140,17 +140,17 @@ func InsertOrUpdateHostServer(db *sql.DB, records []db_models.HostServer) error 
 }
 
 func ReadHostServer(db *sql.DB, id int64) (*db_models.HostServer, error) {
-	query := `SELECT 
-				id, 
-				hostname, 
-				ip_address, 
-				username, 
-				public_ssh_keyname, 
-				hosted_domains, 
-				ssl_key_path, 
-				is_container_host, 
-				is_vm_host, 
-				is_virtual_machine, 
+	query := `SELECT
+				id,
+				hostname,
+				ip_address,
+				username,
+				public_ssh_keyname,
+				hosted_domains,
+				ssl_key_path,
+				is_container_host,
+				is_vm_host,
+				is_virtual_machine,
 				is_db_host,
 				created_at,
 				last_modified

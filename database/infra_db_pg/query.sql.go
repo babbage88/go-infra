@@ -7,6 +7,7 @@ package infra_db_pg
 
 import (
 	"context"
+	"net/netip"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -20,7 +21,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3, $4
 )
-RETURNING id, username, password, email, role, created_at, last_modified
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
 `
 
 type CreateUserParams struct {
@@ -46,6 +47,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
 	)
 	return i, err
 }
@@ -60,11 +63,238 @@ func (q *Queries) DeleteUserById(ctx context.Context, id int32) error {
 	return err
 }
 
+const disableUserById = `-- name: DisableUserById :one
+UPDATE users
+  set "enabled" = $2
+WHERE id = $1
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+`
+
+type DisableUserByIdParams struct {
+	ID      int32
+	Enabled bool
+}
+
+func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams) (User, error) {
+	row := q.db.QueryRow(ctx, disableUserById, arg.ID, arg.Enabled)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT
+	id,
+	username,
+	"password",
+	email,
+	"role",
+	created_at,
+	last_modified,
+	"enabled",
+	is_deleted
+FROM public.users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const getUserIdByName = `-- name: GetUserIdByName :one
+SELECT
+	id
+FROM public.users
+where username = $1
+`
+
+func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserIdByName, username)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertHostServer = `-- name: InsertHostServer :one
+INSERT INTO host_servers (
+            hostname, ip_address, username, public_ssh_keyname, hosted_domains,
+            ssl_key_path, is_container_host, is_vm_host, is_virtual_machine, id_db_host
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		ON CONFLICT (hostname, ip_address)
+        DO UPDATE SET
+            username = EXCLUDED.username,
+            public_ssh_keyname = EXCLUDED.public_ssh_keyname,
+            hosted_domains = EXCLUDED.hosted_domains,
+            ssl_key_path = EXCLUDED.ssl_key_path,
+            is_container_host = EXCLUDED.is_container_host,
+            is_vm_host = EXCLUDED.is_vm_host,
+            is_virtual_machine = EXCLUDED.is_virtual_machine,
+            id_db_host = EXCLUDED.id_db_host,
+			last_modified = DEFAULT
+RETURNING id, hostname, ip_address, username, public_ssh_keyname, hosted_domains, ssl_key_path, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+`
+
+type InsertHostServerParams struct {
+	Hostname         string
+	IpAddress        netip.Addr
+	Username         pgtype.Text
+	PublicSshKeyname pgtype.Text
+	HostedDomains    []string
+	SslKeyPath       pgtype.Text
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+}
+
+func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerParams) (HostServer, error) {
+	row := q.db.QueryRow(ctx, insertHostServer,
+		arg.Hostname,
+		arg.IpAddress,
+		arg.Username,
+		arg.PublicSshKeyname,
+		arg.HostedDomains,
+		arg.SslKeyPath,
+		arg.IsContainerHost,
+		arg.IsVmHost,
+		arg.IsVirtualMachine,
+		arg.IDDbHost,
+	)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.Username,
+		&i.PublicSshKeyname,
+		&i.HostedDomains,
+		&i.SslKeyPath,
+		&i.IsContainerHost,
+		&i.IsVmHost,
+		&i.IsVirtualMachine,
+		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const insertUserHostedDb = `-- name: InsertUserHostedDb :one
+INSERT INTO public.user_hosted_db (
+  price_tier_code_id,
+  user_id,
+  current_host_server_id,
+  current_kube_cluster_id,
+  user_application_ids,
+  db_platform_id,
+  fqdn,
+  pub_ip_address,
+  listen_port,
+  private_ip_address,
+  created_at,
+  last_modified)
+VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+RETURNING id, price_tier_code_id, user_id, current_host_server_id, current_kube_cluster_id, user_application_ids, db_platform_id, fqdn, pub_ip_address, listen_port, private_ip_address, created_at, last_modified
+`
+
+type InsertUserHostedDbParams struct {
+	PriceTierCodeID      int32
+	UserID               int32
+	CurrentHostServerID  int32
+	CurrentKubeClusterID pgtype.Int4
+	UserApplicationIds   []int32
+	DbPlatformID         int32
+	PubIpAddress         netip.Addr
+	PrivateIpAddress     *netip.Addr
+}
+
+func (q *Queries) InsertUserHostedDb(ctx context.Context, arg InsertUserHostedDbParams) (UserHostedDb, error) {
+	row := q.db.QueryRow(ctx, insertUserHostedDb,
+		arg.PriceTierCodeID,
+		arg.UserID,
+		arg.CurrentHostServerID,
+		arg.CurrentKubeClusterID,
+		arg.UserApplicationIds,
+		arg.DbPlatformID,
+		arg.PubIpAddress,
+		arg.PrivateIpAddress,
+	)
+	var i UserHostedDb
+	err := row.Scan(
+		&i.ID,
+		&i.PriceTierCodeID,
+		&i.UserID,
+		&i.CurrentHostServerID,
+		&i.CurrentKubeClusterID,
+		&i.UserApplicationIds,
+		&i.DbPlatformID,
+		&i.Fqdn,
+		&i.PubIpAddress,
+		&i.ListenPort,
+		&i.PrivateIpAddress,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const softDeleteUserById = `-- name: SoftDeleteUserById :one
+UPDATE users
+  set is_deleted = $2
+WHERE id = $1
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+`
+
+type SoftDeleteUserByIdParams struct {
+	ID        int32
+	IsDeleted bool
+}
+
+func (q *Queries) SoftDeleteUserById(ctx context.Context, arg SoftDeleteUserByIdParams) (User, error) {
+	row := q.db.QueryRow(ctx, softDeleteUserById, arg.ID, arg.IsDeleted)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
 const updateUserEmailById = `-- name: UpdateUserEmailById :one
 UPDATE users
   set email = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
 `
 
 type UpdateUserEmailByIdParams struct {
@@ -83,6 +313,8 @@ func (q *Queries) UpdateUserEmailById(ctx context.Context, arg UpdateUserEmailBy
 		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
 	)
 	return i, err
 }
@@ -91,7 +323,7 @@ const updateUserPasswordById = `-- name: UpdateUserPasswordById :one
 UPDATE users
   set password = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
 `
 
 type UpdateUserPasswordByIdParams struct {
@@ -110,6 +342,8 @@ func (q *Queries) UpdateUserPasswordById(ctx context.Context, arg UpdateUserPass
 		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
 	)
 	return i, err
 }
@@ -118,7 +352,7 @@ const updateUserRoleById = `-- name: UpdateUserRoleById :one
 UPDATE users
   set email = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
 `
 
 type UpdateUserRoleByIdParams struct {
@@ -137,6 +371,8 @@ func (q *Queries) UpdateUserRoleById(ctx context.Context, arg UpdateUserRoleById
 		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
 	)
 	return i, err
 }

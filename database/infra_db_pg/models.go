@@ -50,6 +50,12 @@ type HostServer struct {
 	LastModified     pgtype.Timestamptz
 }
 
+type HostedDbPlatform struct {
+	ID                int32
+	PlatformName      string
+	DefaultListenPort pgtype.Int4
+}
+
 type User struct {
 	ID           int32
 	Username     pgtype.Text
@@ -58,6 +64,8 @@ type User struct {
 	Role         pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
+	Enabled      bool
+	IsDeleted    bool
 }
 
 type UserHostedDb struct {
@@ -92,4 +100,13 @@ type UserHostedK8 struct {
 	PrivateIpAddress     *netip.Addr
 	CreatedAt            pgtype.Timestamptz
 	LastModified         pgtype.Timestamptz
+}
+
+type UsersAudit struct {
+	AuditID   int32
+	UserID    pgtype.Int4
+	Username  pgtype.Text
+	Email     pgtype.Text
+	DeletedAt pgtype.Timestamptz
+	DeletedBy pgtype.Text
 }

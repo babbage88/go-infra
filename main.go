@@ -7,13 +7,11 @@ import (
 	"log/slog"
 
 	"github.com/babbage88/go-infra/auth/hashing"
-	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
 	infra_db "github.com/babbage88/go-infra/database/infra_db"
 	db_models "github.com/babbage88/go-infra/database/models"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
-	"github.com/babbage88/go-infra/utils/test"
+	test "github.com/babbage88/go-infra/utils/test"
 	"github.com/babbage88/go-infra/webapi/api_server"
-
 	_ "github.com/pdrum/swagger-automation/docs"
 )
 
@@ -53,55 +51,43 @@ func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
 	return db
 }
 
-func testUserDb(envars *env_helper.EnvVars, db *sql.DB) {
-	testuser, _ := test.CreateTestUserInstance("jt", "testpw", "jt@trahan.dev", "admin")
-	test.CreateUserDb(db, &testuser)
-
-	user, _ := test.GetDbUserByUsername(db, testuser.Username)
-
-	verify_pw := hashing.VerifyPassword("testpw", user.Password)
-
-	if verify_pw {
-		slog.Info("Password is verified for User: %s", slog.String("UserName", user.Username))
-		slog.Info("Generating AuthToken for UserId", slog.String("UserId", fmt.Sprint(user.Id)))
-
-		token, err := jwt_auth.CreateTokenanAddToDb(envars, db, user.Id, user.Role, user.Email)
-		if err != nil {
-			slog.Error("Error Generating JWT AuthToken", slog.String("Error", err.Error()))
-		}
-
-		fmt.Println(token.Token)
-		jwt_auth.VerifyToken(token.Token)
-	}
-
-	if !verify_pw {
-		fmt.Printf("Could not Verify Passworf for User: %s \n", user.Username)
-	}
-
-}
-
 func main() {
 
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	hostEnvironment := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
+	username := flag.String("username", "jtrahan", "Username to create")
 	version := flag.Bool("version", false, "Show the current version.")
+	testfuncs := flag.Bool("test", false, "run test module")
 	flag.Parse()
 
 	if *version {
 		showVersion()
 		return
 	}
+
+	env_helper.LoadEnvFile(*hostEnvironment)
 	envars := env_helper.NewDotEnvSource(env_helper.WithDotEnvFileName(*hostEnvironment))
+
 	fmt.Printf("EnVars file name: %s\n", envars.DotFileName)
 	envars.ParseEnvVariables()
 
+	if *testfuncs {
+		login_pw := envars.GetVarMapValue("DEV_APP_TEST_PW")
+		hashed_pw, err := hashing.HashPassword(login_pw)
+		if err != nil {
+			slog.Info("Error hashing password.")
+		}
+		test.TestCreateUserQuery(*username, hashed_pw)
+	}
+
 	db := initializeDbConn(envars)
-	api_server.StartWebApiServer(envars, db, srvport)
 
 	defer func() {
 		if err := infra_db.CloseDbConnection(); err != nil {
-			slog.Error("Failed to close the database connection: %v", err)
+			slog.Error("Failed to close the database connection: ", "Error", err)
 		}
 	}()
+
+	api_server.StartWebApiServer(envars, db, srvport)
 
 }

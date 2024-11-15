@@ -126,3 +126,14 @@ func getDotEnvVariable(key string, dotfilename string) string {
 
 	return os.Getenv(key)
 }
+
+func LoadEnvFile(env_file string) error {
+	// load .env file
+	err := godotenv.Load(env_file)
+
+	if err != nil {
+		slog.Error("Error loading .env file", slog.String("Error", err.Error()))
+	}
+
+	return err
+}
