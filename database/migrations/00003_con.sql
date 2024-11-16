@@ -1,7 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 -- +goose envsub on
-ALTER ROLE $DEV_DB_USER WITH PASSWORD '${DEV_DB_USER_PW}';
+SELECT 'DB MIG';
+-- ALTER ROLE $DEV_DB_USER WITH PASSWORD '${DEV_DB_USER_PW}';
 -- +goose envsub off
 -- +goose StatementEnd
 

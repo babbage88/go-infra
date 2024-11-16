@@ -23,6 +23,20 @@ SELECT
 FROM public.users
 WHERE id = $1;
 
+-- name: GetUserByName :one
+SELECT
+	id,
+	username,
+	"password",
+	email,
+	"role",
+	created_at,
+	last_modified,
+	"enabled",
+	is_deleted
+FROM public.users
+WHERE username = $1;
+
 -- name: GetUserIdByName :one
 SELECT
 	id
@@ -98,4 +112,21 @@ INSERT INTO public.user_hosted_db (
 VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 RETURNING *;
 
+-- name: InsertAuthToken :one
+INSERT INTO auth_tokens (user_id, token, expiration)
+VALUES ($1, $2, $3)
+RETURNING id;
 
+-- name: GetAuthTokenFromDb :one
+SELECT
+		id, user_id, token, expiration, created_at, last_modified
+ FROM
+  	public.auth_tokens WHERE id = $1;
+
+-- name: DeleteAuthTokenById :exec
+DELETE FROM auth_tokens
+WHERE id = $1;
+
+-- name: DeleteExpiredAuthTokens :exec
+DELETE FROM auth_tokens
+WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC';

@@ -53,6 +53,26 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deleteAuthTokenById = `-- name: DeleteAuthTokenById :exec
+DELETE FROM auth_tokens
+WHERE id = $1
+`
+
+func (q *Queries) DeleteAuthTokenById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteAuthTokenById, id)
+	return err
+}
+
+const deleteExpiredAuthTokens = `-- name: DeleteExpiredAuthTokens :exec
+DELETE FROM auth_tokens
+WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+`
+
+func (q *Queries) DeleteExpiredAuthTokens(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredAuthTokens)
+	return err
+}
+
 const deleteUserById = `-- name: DeleteUserById :exec
 DELETE FROM users
 WHERE id = $1
@@ -92,6 +112,27 @@ func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams
 	return i, err
 }
 
+const getAuthTokenFromDb = `-- name: GetAuthTokenFromDb :one
+SELECT
+		id, user_id, token, expiration, created_at, last_modified
+ FROM
+  	public.auth_tokens WHERE id = $1
+`
+
+func (q *Queries) GetAuthTokenFromDb(ctx context.Context, id int32) (AuthToken, error) {
+	row := q.db.QueryRow(ctx, getAuthTokenFromDb, id)
+	var i AuthToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.Expiration,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT
 	id,
@@ -124,6 +165,38 @@ func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
 	return i, err
 }
 
+const getUserByName = `-- name: GetUserByName :one
+SELECT
+	id,
+	username,
+	"password",
+	email,
+	"role",
+	created_at,
+	last_modified,
+	"enabled",
+	is_deleted
+FROM public.users
+WHERE username = $1
+`
+
+func (q *Queries) GetUserByName(ctx context.Context, username pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByName, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
 const getUserIdByName = `-- name: GetUserIdByName :one
 SELECT
 	id
@@ -133,6 +206,25 @@ where username = $1
 
 func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (int32, error) {
 	row := q.db.QueryRow(ctx, getUserIdByName, username)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertAuthToken = `-- name: InsertAuthToken :one
+INSERT INTO auth_tokens (user_id, token, expiration)
+VALUES ($1, $2, $3)
+RETURNING id
+`
+
+type InsertAuthTokenParams struct {
+	UserID     pgtype.Int4
+	Token      pgtype.Text
+	Expiration pgtype.Timestamp
+}
+
+func (q *Queries) InsertAuthToken(ctx context.Context, arg InsertAuthTokenParams) (int32, error) {
+	row := q.db.QueryRow(ctx, insertAuthToken, arg.UserID, arg.Token, arg.Expiration)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
