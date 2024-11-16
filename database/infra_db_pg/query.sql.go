@@ -468,3 +468,28 @@ func (q *Queries) UpdateUserRoleById(ctx context.Context, arg UpdateUserRoleById
 	)
 	return i, err
 }
+
+const verifyUserPassword = `-- name: VerifyUserPassword :one
+SELECT 
+  id,
+  username
+FROM public.users
+WHERE username = $1 AND "password" = $2
+`
+
+type VerifyUserPasswordParams struct {
+	Username pgtype.Text
+	Password pgtype.Text
+}
+
+type VerifyUserPasswordRow struct {
+	ID       int32
+	Username pgtype.Text
+}
+
+func (q *Queries) VerifyUserPassword(ctx context.Context, arg VerifyUserPasswordParams) (VerifyUserPasswordRow, error) {
+	row := q.db.QueryRow(ctx, verifyUserPassword, arg.Username, arg.Password)
+	var i VerifyUserPasswordRow
+	err := row.Scan(&i.ID, &i.Username)
+	return i, err
+}
