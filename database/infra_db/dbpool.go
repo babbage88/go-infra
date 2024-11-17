@@ -32,17 +32,17 @@ func pgxPoolConfig() *pgxpool.Config {
 	dbConfig.HealthCheckPeriod = defaultHealthCheckPeriod
 	dbConfig.ConnConfig.ConnectTimeout = defaultConnectTimeout
 	dbConfig.BeforeAcquire = func(ctx context.Context, c *pgx.Conn) bool {
-		slog.Info("Acquiring connection pool to database!")
+		slog.Info("Before Pg Connection Aquired!")
 		return true
 	}
 
 	dbConfig.AfterRelease = func(c *pgx.Conn) bool {
-		slog.Info("Released Connection pool to database!")
+		slog.Info("Conection Pool handle released!")
 		return true
 	}
 
 	dbConfig.BeforeClose = func(c *pgx.Conn) {
-		log.Println("Closed the connection pool to the database!")
+		log.Println("Before Close Conneciion Pool!")
 	}
 
 	return dbConfig
@@ -67,7 +67,7 @@ func PgPoolInit() *pgxpool.Pool {
 		slog.Error("Could not ping database")
 	}
 
-	slog.Info("Connected to the database!!", "Database", os.Getenv("DATABASE_URL"))
+	slog.Info("Connected to the database!!", "Database", os.Getenv("DB_NAME"))
 
 	return connPool
 }

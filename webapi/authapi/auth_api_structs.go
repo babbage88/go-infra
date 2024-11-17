@@ -51,28 +51,27 @@ func (request *UserLoginRequest) HashUserPassword() {
 			request.Password = pw
 			request.IsHashed = true
 		}
+		request.Password = pw
 	}
 }
 
 func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse {
-	if !request.IsHashed {
-		request.HashUserPassword()
-	}
 	var response UserLoginResponse
 	var result LoginResult
 	username := pgtype.Text{String: request.UserName, Valid: true}
 
 	queries := infra_db_pg.New(connPool)
 	qry, err := queries.GetUserLogin(context.Background(), username)
+	result.PasswordValid = hashing.VerifyPassword(request.Password, qry.Password.String)
+
 	if err != nil {
 		slog.Error("Error querying database for user", slog.String("UserName", request.UserName))
 	}
 
-	if request.Password != qry.Password.String {
+	if !result.PasswordValid {
 		slog.Error("Supplied password does not match the password stored in database", slog.String("User", request.UserName))
 		result.Success = false
 		result.Error = errors.New("Password does not match.")
-		result.PasswordValid = false
 		result.UserEnabled = qry.Enabled
 		response.Result = result
 		return response
@@ -86,10 +85,9 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 		response.Result = result
 		return response
 	}
-
+	slog.Info("Login was Successful")
 	result.Success = true
 	result.Error = nil
-	result.PasswordValid = true
 	result.UserNameMatches = true
 
 	response.Result = result
