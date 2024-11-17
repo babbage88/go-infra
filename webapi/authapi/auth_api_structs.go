@@ -33,8 +33,8 @@ type UserLoginRequest struct {
 }
 
 type UserLoginResponse struct {
-	Result   LoginResult        `json:"result"`
-	UserInfo *db_access.UserDao `json:"UserDao"`
+	Result   LoginResult       `json:"result"`
+	UserInfo db_access.UserDao `json:"UserDao"`
 }
 
 type LoginActions interface {
@@ -77,7 +77,7 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 		return response
 	}
 
-	if qry.Enabled == false {
+	if !qry.Enabled {
 		slog.Error("User is disabled", slog.String("User", request.UserName))
 		result.Success = false
 		result.UserEnabled = qry.Enabled
