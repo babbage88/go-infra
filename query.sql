@@ -37,13 +37,10 @@ SELECT
 FROM public.users
 WHERE username = $1;
 
--- name: VerifyUserPassword :one
-SELECT 
-  id,
-  username
-FROM public.users
-WHERE username = $1 AND "password" = $2;
-  
+-- name: GetUserLogin :one
+SELECT id, username, "password" , email, "enabled", "role" FROM public.users
+WHERE username = $1
+LIMIT 1;
 
 -- name: GetUserIdByName :one
 SELECT

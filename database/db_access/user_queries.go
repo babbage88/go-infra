@@ -1,15 +1,17 @@
-package dbaccess
+package db_access
 
 import (
 	"context"
 	"log/slog"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	//"github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreateUserQuery(connPool *pgxpool.Pool, username string, hashed_pw string, email string, role string) (infra_db_pg.User, error) {
+func CreateUserQuery(connPool *pgxpool.Pool, username string, hashed_pw string, email string, role string) (UserDao, error) {
+	var newuser UserDao
 	// Set up parameters for the new user
 	params := infra_db_pg.CreateUserParams{
 		Username: pgtype.Text{String: username, Valid: true},
@@ -19,35 +21,14 @@ func CreateUserQuery(connPool *pgxpool.Pool, username string, hashed_pw string, 
 	}
 
 	queries := infra_db_pg.New(connPool)
-	newUser, err := queries.CreateUser(context.Background(), params)
-	return newUser, err
+	qry, err := queries.CreateUser(context.Background(), params)
+	newuser.ParseUserFromDb(qry)
+	return newuser, err
 }
 
-type DbParser interface {
-	//ParseUserFromDb(dbuser infra_db_pg.User) (UserDao, error)
-	ParseUserFromDb(dbuser infra_db_pg.User)
-	ParseAuthTokenFromDb(token infra_db_pg.AuthToken)
-}
-
-func (u *UserDao) ParseUserFromDb(dbuser infra_db_pg.User) {
-	u.Id = dbuser.ID
-	u.UserName = dbuser.Username.String
-	u.Password = dbuser.Password.String
-	u.Email = dbuser.Email.String
-	u.Role = dbuser.Role.String
-	u.CreatedAt = dbuser.CreatedAt.Time
-	u.LastModified = dbuser.LastModified.Time
-	u.Enabled = dbuser.Enabled
-	u.IsDeleted = dbuser.IsDeleted
-}
-
-func (t *AuthTokenDao) ParseAuthTokenFromDb(token infra_db_pg.AuthToken) {
-	t.Id = token.ID
-	t.Token = token.Token.String
-	t.UserID = token.UserID.Int32
-	t.CreatedAt = token.CreatedAt.Time
-	t.Expiration = token.Expiration.Time
-	t.LastModified = token.LastModified.Time
+type UserCRUDActions interface {
+	GetUserDaoByUsername(connPool *pgxpool.Pool, username string) (UserDao, error)
+	GetUserDaoById(connPool *pgxpool.Pool, id int32) (UserDao, error)
 }
 
 func GetUserDaoByUsername(connPool *pgxpool.Pool, username string) (*UserDao, error) {
@@ -64,6 +45,7 @@ func GetUserDaoByUsername(connPool *pgxpool.Pool, username string) (*UserDao, er
 
 func GetUserDaoById(connPool *pgxpool.Pool, id int32) (*UserDao, error) {
 	var user UserDao
+
 	queries := infra_db_pg.New(connPool)
 	dbuser, err := queries.GetUserById(context.Background(), id)
 	if err != nil {
@@ -72,10 +54,4 @@ func GetUserDaoById(connPool *pgxpool.Pool, id int32) (*UserDao, error) {
 	}
 	user.ParseUserFromDb(dbuser)
 	return &user, nil
-}
-
-type UserActions interface {
-	VerifyUserPassword(connPool *pgxpool.Pool) bool
-	GetUserDaoByUsername(connPool *pgxpool.Pool, username string) (UserDao, error)
-	GetUserDaoById(connPool *pgxpool.Pool, id int32) (UserDao, error)
 }

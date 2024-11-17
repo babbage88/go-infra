@@ -211,6 +211,35 @@ func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (in
 	return id, err
 }
 
+const getUserLogin = `-- name: GetUserLogin :one
+SELECT id, username, "password" , email, "enabled", "role" FROM public.users
+WHERE username = $1
+LIMIT 1
+`
+
+type GetUserLoginRow struct {
+	ID       int32
+	Username pgtype.Text
+	Password pgtype.Text
+	Email    pgtype.Text
+	Enabled  bool
+	Role     pgtype.Text
+}
+
+func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUserLoginRow, error) {
+	row := q.db.QueryRow(ctx, getUserLogin, username)
+	var i GetUserLoginRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Enabled,
+		&i.Role,
+	)
+	return i, err
+}
+
 const insertAuthToken = `-- name: InsertAuthToken :one
 INSERT INTO auth_tokens (user_id, token, expiration)
 VALUES ($1, $2, $3)
@@ -466,30 +495,5 @@ func (q *Queries) UpdateUserRoleById(ctx context.Context, arg UpdateUserRoleById
 		&i.Enabled,
 		&i.IsDeleted,
 	)
-	return i, err
-}
-
-const verifyUserPassword = `-- name: VerifyUserPassword :one
-SELECT 
-  id,
-  username
-FROM public.users
-WHERE username = $1 AND "password" = $2
-`
-
-type VerifyUserPasswordParams struct {
-	Username pgtype.Text
-	Password pgtype.Text
-}
-
-type VerifyUserPasswordRow struct {
-	ID       int32
-	Username pgtype.Text
-}
-
-func (q *Queries) VerifyUserPassword(ctx context.Context, arg VerifyUserPasswordParams) (VerifyUserPasswordRow, error) {
-	row := q.db.QueryRow(ctx, verifyUserPassword, arg.Username, arg.Password)
-	var i VerifyUserPasswordRow
-	err := row.Scan(&i.ID, &i.Username)
 	return i, err
 }

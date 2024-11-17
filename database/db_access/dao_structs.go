@@ -1,4 +1,4 @@
-package dbaccess
+package db_access
 
 import (
 	"net/netip"
@@ -8,7 +8,6 @@ import (
 type UserDao struct {
 	Id           int32     `json:"id"`
 	UserName     string    `json:"username"`
-	Password     string    `json:"password"`
 	Email        string    `json:"email"`
 	Role         string    `json:"role"`
 	CreatedAt    time.Time `json:"created_at"`

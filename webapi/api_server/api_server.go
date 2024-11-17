@@ -5,11 +5,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/babbage88/go-infra/utils/env_helper"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
-	"github.com/babbage88/go-infra/webapi/authapi"
+	authapi "github.com/babbage88/go-infra/webapi/authapi"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Package classification goinfra.
