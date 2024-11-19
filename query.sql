@@ -117,10 +117,9 @@ INSERT INTO public.user_hosted_db (
 VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 RETURNING *;
 
--- name: InsertAuthToken :one
+-- name: InsertAuthToken :exec
 INSERT INTO auth_tokens (user_id, token, expiration)
-VALUES ($1, $2, $3)
-RETURNING id;
+VALUES ($1, $2, $3);
 
 -- name: GetAuthTokenFromDb :one
 SELECT
