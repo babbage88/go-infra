@@ -2,18 +2,12 @@ package authapi
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
 
-	"github.com/babbage88/go-infra/auth/hashing"
-	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
-	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
-	infra_db "github.com/babbage88/go-infra/database/infra_db"
-	db_models "github.com/babbage88/go-infra/database/models"
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/golang-jwt/jwt/v5"
@@ -45,32 +39,6 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
-}
-
-func CreateDnsHttpHandlerWrapper(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
-		var records []cloudflaredns.DnsRecordReq
-		slog.Info("Sending DB Request", slog.String("Query", "test"))
-		records, _ = infra_db.GetAllDnsRecords(db)
-
-		// Serialize response to JSON
-		jsonResponse, err := json.Marshal(records)
-		if err != nil {
-			http.Error(w, "Failed to marshal JSON response", http.StatusInternalServerError)
-			return
-		}
-
-		// Set response headers and write JSON response
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonResponse)
-	}
 }
 
 func parseCertbotOutput(output []string) ParsedCertbotOutput {
@@ -161,7 +129,7 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 
 // swagger:parameters ifOfLoginEndpoint
 
-func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			enableCors(&w)
@@ -174,18 +142,12 @@ func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWr
 		// Username and Pasword in request body as json.
 		// in:body
 
-		var u db_models.User
-		json.NewDecoder(r.Body).Decode(&u)
-		fmt.Printf("The user request value %v", u)
+		var loginReq *UserLoginRequest
+		json.NewDecoder(r.Body).Decode(&loginReq)
+		LoginResult := loginReq.Login(ua_service.DbConn)
 
-		dbuser, err := infra_db.GetUserByUsername(db, u.Username)
-		if err != nil {
-			slog.Error("Error getting user from database", slog.String("Error", err.Error()))
-		}
-		verify_pw := hashing.VerifyPassword(u.Password, dbuser.Password)
-
-		if verify_pw {
-			token, err := jwt_auth.CreateTokenanAddToDb(envars, db, dbuser.Id, u.Role, u.Email)
+		if LoginResult.Result.Success {
+			token, err := ua_service.CreateNewToken(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
@@ -196,7 +158,7 @@ func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWr
 			return
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprint(w, "Invalid credentials")
+			fmt.Fprint(w, "Invalid credentials", LoginResult.Result.Error)
 		}
 	}
 }

@@ -240,10 +240,9 @@ func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUs
 	return i, err
 }
 
-const insertAuthToken = `-- name: InsertAuthToken :one
+const insertAuthToken = `-- name: InsertAuthToken :exec
 INSERT INTO auth_tokens (user_id, token, expiration)
 VALUES ($1, $2, $3)
-RETURNING id
 `
 
 type InsertAuthTokenParams struct {
@@ -252,11 +251,9 @@ type InsertAuthTokenParams struct {
 	Expiration pgtype.Timestamp
 }
 
-func (q *Queries) InsertAuthToken(ctx context.Context, arg InsertAuthTokenParams) (int32, error) {
-	row := q.db.QueryRow(ctx, insertAuthToken, arg.UserID, arg.Token, arg.Expiration)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) InsertAuthToken(ctx context.Context, arg InsertAuthTokenParams) error {
+	_, err := q.db.Exec(ctx, insertAuthToken, arg.UserID, arg.Token, arg.Expiration)
+	return err
 }
 
 const insertHostServer = `-- name: InsertHostServer :one
@@ -440,11 +437,10 @@ func (q *Queries) UpdateUserEmailById(ctx context.Context, arg UpdateUserEmailBy
 	return i, err
 }
 
-const updateUserPasswordById = `-- name: UpdateUserPasswordById :one
+const updateUserPasswordById = `-- name: UpdateUserPasswordById :exec
 UPDATE users
   set password = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
 `
 
 type UpdateUserPasswordByIdParams struct {
@@ -452,21 +448,9 @@ type UpdateUserPasswordByIdParams struct {
 	Password pgtype.Text
 }
 
-func (q *Queries) UpdateUserPasswordById(ctx context.Context, arg UpdateUserPasswordByIdParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserPasswordById, arg.ID, arg.Password)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Password,
-		&i.Email,
-		&i.Role,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Enabled,
-		&i.IsDeleted,
-	)
-	return i, err
+func (q *Queries) UpdateUserPasswordById(ctx context.Context, arg UpdateUserPasswordByIdParams) error {
+	_, err := q.db.Exec(ctx, updateUserPasswordById, arg.ID, arg.Password)
+	return err
 }
 
 const updateUserRoleById = `-- name: UpdateUserRoleById :one

@@ -48,11 +48,10 @@ SELECT
 FROM public.users
 where username = $1;
 
--- name: UpdateUserPasswordById :one
+-- name: UpdateUserPasswordById :exec
 UPDATE users
   set password = $2
-WHERE id = $1
-RETURNING *;
+WHERE id = $1;
 
 -- name: UpdateUserEmailById :one
 UPDATE users

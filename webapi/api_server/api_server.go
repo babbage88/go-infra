@@ -1,11 +1,10 @@
 package api_server
 
 import (
-	"database/sql"
 	"log/slog"
 	"net/http"
 
-	"github.com/babbage88/go-infra/utils/env_helper"
+	"github.com/babbage88/go-infra/database/db_access"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -35,14 +34,13 @@ import (
 //
 // swagger:meta
 
-func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) error {
+func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *db_access.UserCRUDService, srvadr *string) error {
+	envars := authService.Envars
 	mux := http.NewServeMux()
-	mux.HandleFunc("/getalldns", authapi.AuthMiddleware(envars, authapi.CreateDnsHttpHandlerWrapper(db)))
 	mux.HandleFunc("/requestcert", authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars)))
-	mux.HandleFunc("/login", authapi.LoginHandler(envars, db))
+	mux.HandleFunc("/login", authapi.LoginHandler(authService))
 	mux.HandleFunc("/healthCheck", authapi.HealthCheckHandler)
 	mux.Handle("/metrics", promhttp.Handler())
-
 	config := customlogger.NewCustomLogger()
 	clog := customlogger.SetupLogger(config)
 
