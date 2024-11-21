@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/babbage88/go-infra/database/db_access"
+	"github.com/babbage88/go-infra/database/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -34,7 +34,7 @@ import (
 //
 // swagger:meta
 
-func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *db_access.UserCRUDService, srvadr *string) error {
+func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, srvadr *string) error {
 	envars := authService.Envars
 	mux := http.NewServeMux()
 	mux.HandleFunc("/requestcert", authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars)))

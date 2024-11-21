@@ -1,7 +1,7 @@
 package authapi
 
 import (
-	"github.com/babbage88/go-infra/database/db_access"
+	"github.com/babbage88/go-infra/database/services"
 )
 
 type ParsedCertbotOutput struct {
@@ -25,6 +25,6 @@ type UserLoginRequest struct {
 }
 
 type UserLoginResponse struct {
-	Result   LoginResult       `json:"result"`
-	UserInfo db_access.UserDao `json:"UserDao"`
+	Result   LoginResult      `json:"result"`
+	UserInfo services.UserDao `json:"UserDao"`
 }

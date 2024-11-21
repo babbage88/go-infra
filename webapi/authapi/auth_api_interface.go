@@ -7,8 +7,8 @@ import (
 
 	"github.com/babbage88/go-infra/auth/hashing"
 	"github.com/babbage88/go-infra/auth/jwt_auth"
-	"github.com/babbage88/go-infra/database/db_access"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/database/services"
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,7 +23,7 @@ type UserAuth interface {
 	VerifyUserPassword(connPool *pgxpool.Pool) bool
 	HashUserPassword()
 	NewLoginRequest(username string, password string, isHashed bool) *UserLoginResponse
-	CreateNewToken(userid string, role string, email string) (db_access.AuthTokenDao, error)
+	CreateNewToken(userid string, role string, email string) (services.AuthTokenDao, error)
 }
 
 func (request *UserLoginRequest) HashUserPassword() {
@@ -86,16 +86,17 @@ func (ua *UserAuthService) NewLoginRequest(username string, password string, isH
 	return &response
 }
 
-func (ua *UserAuthService) CreateNewToken(userid int32, role string, email string) (db_access.AuthTokenDao, error) {
+func (ua *UserAuthService) CreateNewToken(userid int32, role string, email string) (services.AuthTokenDao, error) {
 	token, err := jwt_auth.CreateToken(ua.Envars, userid, role, email)
 
-	params := infra_db_pg.InsertAuthTokenParams{
-		UserID:     pgtype.Int4{Int32: token.UserID, Valid: true},
-		Token:      pgtype.Text{String: token.Token, Valid: true},
-		Expiration: pgtype.Timestamp{Time: token.Expiration, Valid: true}}
+	//params := infra_db_pg.InsertAuthTokenParams{
+	//	UserID:     pgtype.Int4{Int32: token.UserID, Valid: true},
+	//	Token:      pgtype.Text{String: token.Token, Valid: true},
+	//	Expiration: pgtype.Timestamp{Time: token.Expiration, Valid: true},
+	//}
 
-	queries := infra_db_pg.New(ua.DbConn)
-	queries.InsertAuthToken(context.Background(), params)
+	// queries := infra_db_pg.New(ua.DbConn)
+	// queries.InsertAuthToken(context.Background(), params)
 
 	return token, err
 }

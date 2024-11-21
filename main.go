@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/babbage88/go-infra/database/db_access"
+	"github.com/babbage88/go-infra/database/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
 	_ "github.com/pdrum/swagger-automation/docs"
@@ -27,7 +27,7 @@ func main() {
 
 	envars := initEnvironment(*envFilePath)
 	connPool := initPgConnPool()
-	userService := &db_access.UserCRUDService{DbConn: connPool, Envars: envars}
+	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
 	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
 
 	if *testfuncs {

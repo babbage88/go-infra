@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	db_access "github.com/babbage88/go-infra/database/db_access"
+	db_access "github.com/babbage88/go-infra/database/services"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 )
