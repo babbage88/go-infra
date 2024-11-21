@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/babbage88/go-infra/database/services"
+	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

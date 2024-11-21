@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/babbage88/go-infra/database/services"
+	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
 	_ "github.com/pdrum/swagger-automation/docs"

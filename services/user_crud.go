@@ -1,4 +1,4 @@
-package db_access
+package services
 
 import (
 	"context"
@@ -24,7 +24,6 @@ type UserCRUD interface {
 	UpdateUserPasswordById(id int32, password string)
 	UpdateUserEmailById(id int32, email string)
 	InsertAuthToken(token AuthTokenDao)
-	//CreateAndInsertAuthToken(user UserDao) (AuthTokenDao, error)
 }
 
 func (us *UserCRUDService) NewUser(username string, password string, email string, role string) (UserDao, error) {

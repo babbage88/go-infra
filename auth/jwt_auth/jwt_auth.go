@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	db_access "github.com/babbage88/go-infra/database/services"
+	"github.com/babbage88/go-infra/services"
 	env_helper "github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -46,9 +46,9 @@ func createTokenString(envars *env_helper.EnvVars, sub string, userInfo interfac
 	return val, exp, nil
 }
 
-func createToken(envars *env_helper.EnvVars, userid int32, role string, email string) (db_access.AuthTokenDao, error) {
+func createToken(envars *env_helper.EnvVars, userid int32, role string, email string) (services.AuthTokenDao, error) {
 
-	var retval db_access.AuthTokenDao
+	var retval services.AuthTokenDao
 	userInfo := map[string]interface{}{
 		"role":  role,
 		"email": email,
@@ -60,7 +60,7 @@ func createToken(envars *env_helper.EnvVars, userid int32, role string, email st
 		return retval, err
 	}
 
-	retval = db_access.AuthTokenDao{
+	retval = services.AuthTokenDao{
 		UserID:     userid,
 		Expiration: expire_time,
 		Token:      tokenString,
@@ -69,11 +69,11 @@ func createToken(envars *env_helper.EnvVars, userid int32, role string, email st
 	return retval, nil
 }
 
-func CreateToken(envars *env_helper.EnvVars, userid int32, role string, email string) (db_access.AuthTokenDao, error) {
+func CreateToken(envars *env_helper.EnvVars, userid int32, role string, email string) (services.AuthTokenDao, error) {
 	return createToken(envars, userid, role, email)
 }
 
-func CreateTokenanAddToDb(envars *env_helper.EnvVars, db *sql.DB, userid int32, role string, email string) (db_access.AuthTokenDao, error) {
+func CreateTokenanAddToDb(envars *env_helper.EnvVars, db *sql.DB, userid int32, role string, email string) (services.AuthTokenDao, error) {
 	token, err := createToken(envars, userid, role, email)
 	if err != nil {
 		slog.Error("Error creating signed token", slog.String("Error", err.Error()))

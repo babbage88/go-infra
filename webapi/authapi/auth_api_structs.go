@@ -1,7 +1,10 @@
 package authapi
 
 import (
-	"github.com/babbage88/go-infra/database/services"
+	"time"
+
+	"github.com/babbage88/go-infra/services"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type ParsedCertbotOutput struct {
@@ -27,4 +30,18 @@ type UserLoginRequest struct {
 type UserLoginResponse struct {
 	Result   LoginResult      `json:"result"`
 	UserInfo services.UserDao `json:"UserDao"`
+}
+
+type InfraJWTClaim struct {
+	*jwt.RegisteredClaims
+	UserInfo interface{}
+}
+
+type AuthToken struct {
+	Id           int32     `json:"id"`
+	UserID       int32     `json:"user_id"`
+	Token        string    `json:"token"`
+	Expiration   time.Time `json:"expiration"`
+	CreatedAt    time.Time `json:"created_at"`
+	LastModified time.Time `json:"last_modified"`
 }
