@@ -98,10 +98,10 @@ func (ua *UserAuthService) CreateNewToken(userid int32, role string, email strin
 	return token, err
 }
 
-func (ua *UserAuthService) CreateSignedTokenString(sub string, userInfo interface{}) (string, time.Time, error) {
+func (ua *UserAuthService) CreateSignedTokenString(sub string, role string, userInfo interface{}) (string, time.Time, error) {
 	expire_minutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
 	jwt_algo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
-	jwtKey := ua.Envars.GetVarMapValue("JWT_KEY")
+	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
 
 	if err != nil {
 		slog.Error("Error Parsing int64 from .env EXPIRATION_MINUTES, setting value to 60.", slog.String("Error", err.Error()))
@@ -112,8 +112,10 @@ func (ua *UserAuthService) CreateSignedTokenString(sub string, userInfo interfac
 	token.Claims = &InfraJWTClaim{
 		&jwt.RegisteredClaims{
 			// Set the userid and expiration as the standard claim.
+			Issuer:    "goinfra",
 			ExpiresAt: jwt.NewNumericDate(exp),
 			Subject:   sub,
+			Audience:  jwt.ClaimStrings{role},
 		},
 		// UserInfo passed from caller as map[string]string
 		userInfo,
@@ -134,7 +136,7 @@ func (ua *UserAuthService) CreateAuthToken(userid int32, role string, email stri
 		"email": email,
 	}
 
-	tokenString, expire_time, err := ua.CreateSignedTokenString(fmt.Sprint(userid), userInfo)
+	tokenString, expire_time, err := ua.CreateSignedTokenString(fmt.Sprint(userid), role, userInfo)
 	if err != nil {
 		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
 		return retval, err
@@ -150,7 +152,7 @@ func (ua *UserAuthService) CreateAuthToken(userid int32, role string, email stri
 }
 
 func (ua *UserAuthService) VerifyToken(tokenString string) error {
-	jwtKey := ua.Envars.GetVarMapValue("JWT_KEY")
+	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})

@@ -3,7 +3,9 @@ package authapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -204,4 +206,43 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 
 		slog.Info("Token has been verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
 	}
+}
+
+func setCookieHandler(w http.ResponseWriter, r *http.Request, token string) {
+	// Initialize a new cookie containing the string "Hello world!" and some
+	// non-default attributes.
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	// Use the http.SetCookie() function to send the cookie to the client.
+	// Behind the scenes this adds a `Set-Cookie` header to the response
+	// containing the necessary cookie data.
+	http.SetCookie(w, &cookie)
+
+	// Write a HTTP response as normal.
+	w.Write([]byte("cookie set!"))
+}
+
+func getCookieHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, "cookie not found", http.StatusBadRequest)
+		default:
+			log.Println(err)
+			http.Error(w, "server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Echo out the cookie value in the response body.
+	w.Write([]byte(cookie.Value))
 }
