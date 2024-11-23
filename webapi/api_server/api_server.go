@@ -7,6 +7,7 @@ import (
 	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
+	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -39,6 +40,7 @@ func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *se
 	mux := http.NewServeMux()
 	mux.HandleFunc("/requestcert", authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars)))
 	mux.HandleFunc("/login", authapi.LoginHandler(authService))
+	mux.HandleFunc("/create/user", userapi.CreateUser(userCRUDService))
 	mux.HandleFunc("/healthCheck", authapi.HealthCheckHandler)
 	mux.Handle("/metrics", promhttp.Handler())
 	config := customlogger.NewCustomLogger()
