@@ -116,7 +116,6 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 			w.Write(jsonResponse)
 			slog.Info("Response sent successfully")
-
 		}
 	}
 }
