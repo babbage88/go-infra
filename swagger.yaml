@@ -1,3 +1,5 @@
+consumes:
+    - application/json
 definitions:
     LoginResult:
         properties:
@@ -45,31 +47,60 @@ definitions:
                 x-go-name: UserName
         type: object
         x-go-package: github.com/babbage88/go-infra/services
-info: {}
+    UserLoginRequest:
+        properties:
+            password:
+                type: string
+                x-go-name: Password
+            username:
+                type: string
+                x-go-name: UserName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/authapi
+host: localhost:8993
+info:
+    contact:
+        email: test@trahan.dev
+        name: Justin Trahan
+    description: |-
+        the purpose of this application is to provide an application
+        that is using plain go code to define an API
+
+        This should demonstrate all the possible comment annotations
+        that are available to turn go code into a fully compliant swagger 2.0 spec
+    license:
+        name: MIT
+        url: http://opensource.org/licenses/MIT
+    termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
+    title: go-infra API.
+    version: v1.0.6
 paths:
     /login:
         post:
             operationId: idOfloginEndpoint
             parameters:
                 - in: body
-                  name: userName
+                  name: body
                   schema:
-                    type: string
-                  x-go-name: UserName
-                - in: body
-                  name: password
-                  schema:
-                    type: string
-                  x-go-name: Password
+                    $ref: '#/definitions/UserLoginRequest'
+                  x-go-name: Body
             responses:
                 "200":
                     $ref: '#/responses/UserLoginResponse'
             summary: Login a user and return token.
             tags:
                 - login-tag
+produces:
+    - application/json
 responses:
     UserLoginResponse:
         description: Respose will return login result and the user info.
+        headers:
+            UserDao: {}
+            result: {}
         schema:
             $ref: '#/definitions/UserDao'
+schemes:
+    - http
+    - https
 swagger: "2.0"

@@ -11,30 +11,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// Package classification goinfra.
-//
-// Go-Infra API forInfrastruction Automation.
-//
-//     Schemes: http
-//     BasePath: /
-//     Version: 1.0.5
-//     Host: infra.test.trahan.dev
-//
-//     Consumes:
-//     - application/json
-//
-//     Produces:
-//     - application/json
-//
-//     Security:
-//     - basic
-//
-//    SecurityDefinitions:
-//    basic:
-//      type: basic
-//
-// swagger:meta
-
 func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, srvadr *string) error {
 	envars := authService.Envars
 	mux := http.NewServeMux()
