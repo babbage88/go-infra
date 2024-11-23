@@ -26,8 +26,10 @@ type LoginResult struct {
 type UserLoginRequest struct {
 	// in:body
 	UserName string `json:"userName"`
+	// in:body
 	Password string `json:"password"`
-	IsHashed bool   `json:"isHashed"`
+	// in:body
+	IsHashed bool `json:"isHashed"`
 }
 
 // swagger:route POST /login login-tag idOfloginEndpoint
@@ -40,7 +42,8 @@ type UserLoginRequest struct {
 type UserLoginResponse struct {
 	// This text will appear as description of your response body.
 	// in:body
-	Result   LoginResult      `json:"result"`
+	Result LoginResult `json:"result"`
+	// in:body
 	UserInfo services.UserDao `json:"UserDao"`
 }
 
