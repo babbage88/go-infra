@@ -9,7 +9,7 @@ import (
 )
 
 func TestUserLogin(connPool *pgxpool.Pool, username string, password string) authapi.UserLoginResponse {
-	loginReq := authapi.UserLoginRequest{UserName: username, Password: password, IsHashed: false}
+	loginReq := authapi.UserLoginRequest{UserName: username, Password: password}
 	response := loginReq.Login(connPool)
 	if response.Result.Error != nil {
 		slog.Error("Error during Login attempt")

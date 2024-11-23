@@ -33,15 +33,12 @@ type UserAuth interface {
 }
 
 func (request *UserLoginRequest) HashUserPassword() {
-	if !request.IsHashed {
-		pw, err := hashing.HashPassword(request.Password)
-		if err != nil {
-			slog.Error("Error hashing password for user", slog.String("UserName", request.UserName))
-			request.Password = pw
-			request.IsHashed = true
-		}
+	pw, err := hashing.HashPassword(request.Password)
+	if err != nil {
+		slog.Error("Error hashing password for user", slog.String("UserName", request.UserName))
 		request.Password = pw
 	}
+	request.Password = pw
 }
 
 func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse {
@@ -85,8 +82,8 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 	return response
 }
 
-func (ua *UserAuthService) NewLoginRequest(username string, password string, isHashed bool) *UserLoginResponse {
-	userloginReq := &UserLoginRequest{UserName: username, Password: password, IsHashed: isHashed}
+func (ua *UserAuthService) NewLoginRequest(username string, password string) *UserLoginResponse {
+	userloginReq := &UserLoginRequest{UserName: username, Password: password}
 	response := userloginReq.Login(ua.DbConn)
 
 	return &response

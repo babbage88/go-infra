@@ -23,13 +23,12 @@ type LoginResult struct {
 
 // Login Request takes  in Username and Password.
 // swagger:parameters idOfloginEndpoint
+// in:body
 type UserLoginRequest struct {
 	// in:body
 	UserName string `json:"userName"`
 	// in:body
 	Password string `json:"password"`
-	// in:body
-	IsHashed bool `json:"isHashed"`
 }
 
 // swagger:route POST /login login-tag idOfloginEndpoint

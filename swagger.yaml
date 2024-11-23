@@ -61,11 +61,6 @@ paths:
                   schema:
                     type: string
                   x-go-name: Password
-                - in: body
-                  name: isHashed
-                  schema:
-                    type: boolean
-                  x-go-name: IsHashed
             responses:
                 "200":
                     $ref: '#/responses/UserLoginResponse'

@@ -31,7 +31,7 @@ func main() {
 	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
 
 	if *testfuncs {
-		request := &authapi.UserLoginRequest{UserName: *username, Password: *pw, IsHashed: false}
+		request := &authapi.UserLoginRequest{UserName: *username, Password: *pw}
 		loginTestResponse := request.Login(authService.DbConn)
 		if loginTestResponse.Result.Success {
 			slog.Info("Login Successful")
