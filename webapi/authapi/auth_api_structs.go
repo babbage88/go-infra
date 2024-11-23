@@ -33,15 +33,6 @@ type UserLoginRequest struct {
 	Password string `json:"password"`
 }
 
-// swagger:route POST /login login-tag idOfloginEndpoint
-// Login a user and return token.
-// responses:
-//   200: UserLoginResponse
-
-// Respose will return login result and the user info.
-// swagger:response UserLoginResponse
-// This text will appear as description of your response body.
-// in:body
 type UserLoginResponse struct {
 	Result   LoginResult      `json:"result"`
 	UserInfo services.UserDao `json:"UserDao"`
@@ -51,6 +42,16 @@ type InfraJWTClaim struct {
 	*jwt.RegisteredClaims
 	UserInfo interface{}
 }
+
+// swagger:route POST /login login-tag idOfloginEndpoint
+// Login a user and return token.
+// responses:
+//   200: AuthToken
+
+// Respose will return login result and the user info.
+// swagger:response UserLoginResponse
+// This text will appear as description of your response body.
+// in:body
 
 type AuthToken struct {
 	Id           int32     `json:"id"`
