@@ -1,12 +1,143 @@
-info: {}
+basePath: /
+consumes:
+    - application/json
+definitions:
+    FooBarRequest:
+        properties:
+            bar:
+                items:
+                    format: int64
+                    type: integer
+                type: array
+                x-go-name: Bar
+            foo:
+                type: string
+                x-go-name: Foo
+        title: FooBarRequest represents body of FooBar request.
+        type: object
+        x-go-package: github.com/pdrum/swagger-automation/api
+    FooBarResponse:
+        properties:
+            baz:
+                properties:
+                    prop:
+                        type: string
+                        x-go-name: Prop
+                type: object
+                x-go-name: Baz
+        title: FooBarResponse represents body of FooBar response.
+        type: object
+        x-go-package: github.com/pdrum/swagger-automation/api
+    LoginResult:
+        properties:
+            enabled:
+                type: boolean
+                x-go-name: UserEnabled
+            error:
+                type: string
+                x-go-name: Error
+            password_valid:
+                type: boolean
+                x-go-name: PasswordValid
+            success:
+                type: boolean
+                x-go-name: Success
+            username_matches:
+                type: boolean
+                x-go-name: UserNameMatches
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/authapi
+    UserDao:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            email:
+                type: string
+                x-go-name: Email
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: int32
+                type: integer
+                x-go-name: Id
+            is_deleted:
+                type: boolean
+                x-go-name: IsDeleted
+            last_modified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            role:
+                type: string
+                x-go-name: Role
+            username:
+                type: string
+                x-go-name: UserName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services
+host: some-url.com
+info:
+    description: Documentation of our awesome API.
+    title: awesome.
+    version: 1.0.0
 paths:
+    /foobar:
+        post:
+            operationId: idOfFoobarEndpoint
+            parameters:
+                - description: This text will appear as description of your request body.
+                  in: body
+                  name: Body
+                  schema:
+                    $ref: '#/definitions/FooBarRequest'
+            responses:
+                "200":
+                    $ref: '#/responses/foobarResponse'
+            summary: Foobar does some amazing stuff.
+            tags:
+                - foobar-tag
     /login:
         post:
             operationId: idOfloginEndpoint
+            parameters:
+                - in: body
+                  name: userName
+                  schema:
+                    type: string
+                  x-go-name: UserName
+                - in: query
+                  name: password
+                  type: string
+                  x-go-name: Password
+                - in: query
+                  name: isHashed
+                  type: boolean
+                  x-go-name: IsHashed
             responses:
                 "200":
-                    $ref: '#/responses/dbmodels.AuthToken'
-            summary: Login user, verify hased pw and return JWT to user.
+                    $ref: '#/responses/UserLoginResponse'
+            summary: Login a user and return token.
             tags:
                 - login-tag
+produces:
+    - application/json
+responses:
+    UserLoginResponse:
+        description: Respose will return login result and the user info.
+        headers:
+            UserDao: {}
+        schema:
+            $ref: '#/definitions/UserDao'
+    foobarResponse:
+        description: This text will appear as description of your response body.
+        schema:
+            $ref: '#/definitions/FooBarResponse'
+schemes:
+    - http
+securityDefinitions:
+    basic:
+        type: basic
 swagger: "2.0"

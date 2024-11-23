@@ -21,7 +21,7 @@ type LoginResult struct {
 	UserEnabled     bool  `json:"enabled"`
 }
 
-// This text will appear as description of your response body.
+// Login Request takes  in Username and Password.
 // swagger:parameters idOfloginEndpoint
 type UserLoginRequest struct {
 	// in:body
@@ -35,7 +35,7 @@ type UserLoginRequest struct {
 // responses:
 //   200: UserLoginResponse
 
-// This text will appear as description of your response body.
+// Respose will return login result and the user info.
 // swagger:response UserLoginResponse
 type UserLoginResponse struct {
 	// This text will appear as description of your response body.
