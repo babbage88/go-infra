@@ -40,7 +40,7 @@ func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *se
 	mux := http.NewServeMux()
 	mux.HandleFunc("/requestcert", authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars)))
 	mux.HandleFunc("/login", authapi.LoginHandler(authService))
-	mux.HandleFunc("/create/user", userapi.CreateUser(userCRUDService))
+	mux.HandleFunc("/create/user", authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService)))
 	mux.HandleFunc("/healthCheck", authapi.HealthCheckHandler)
 	mux.Handle("/metrics", promhttp.Handler())
 	config := customlogger.NewCustomLogger()
