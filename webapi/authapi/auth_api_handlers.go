@@ -120,16 +120,6 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	}
 }
 
-// swagger:route POST /login login-tag idOfloginEndpoint
-// Login user, verify hased pw and return JWT to user.
-// responses:
-//   200: dbmodels.AuthToken
-
-// Takes username and password from user, verifies that it matches the hased counterpart in DB, generates jwt returns to user.
-// swagger:response dbmodels.AuthToken
-
-// swagger:parameters ifOfLoginEndpoint
-
 func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
