@@ -21,13 +21,25 @@ type LoginResult struct {
 	UserEnabled     bool  `json:"enabled"`
 }
 
+// This text will appear as description of your response body.
+// swagger:parameters idOfloginEndpoint
 type UserLoginRequest struct {
+	// in:body
 	UserName string `json:"userName"`
 	Password string `json:"password"`
 	IsHashed bool   `json:"isHashed"`
 }
 
+// swagger:route POST /login login-tag idOfloginEndpoint
+// Login a user and return token.
+// responses:
+//   200: UserLoginResponse
+
+// This text will appear as description of your response body.
+// swagger:response UserLoginResponse
 type UserLoginResponse struct {
+	// This text will appear as description of your response body.
+	// in:body
 	Result   LoginResult      `json:"result"`
 	UserInfo services.UserDao `json:"UserDao"`
 }
