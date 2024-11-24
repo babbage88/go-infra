@@ -6,7 +6,7 @@
 //
 //		Schemes: http, https
 //		Host: 10.0.0.64:8993
-//		Version: v1.0.6
+//		Version: v1.0.7
 //		License: N/A
 //		Contact: Justin Trahan<test@trahan.dev>
 //

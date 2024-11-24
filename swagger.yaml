@@ -36,7 +36,7 @@ info:
         name: N/A
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
-    version: v1.0.6
+    version: v1.0.7
 paths:
     /create/user:
         post:
