@@ -20,6 +20,11 @@ import (
 func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cors.HandlerCorsAndOptions(w, r)
+		if r.Method == "OPTIONS" {
+			slog.Info("Received OPTIONS request")
+			cors.EnableCors(&w)
+		}
+		cors.EnableCors(&w)
 
 		if r.Method != http.MethodPost {
 			slog.Error("Invalid request method", slog.String("Method", r.Method))
