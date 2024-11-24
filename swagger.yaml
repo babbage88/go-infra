@@ -1,5 +1,5 @@
 consumes:
-    - application/json
+  - application/json
 definitions:
     CreateNewUserRequest:
         properties:
@@ -42,36 +42,36 @@ paths:
         post:
             operationId: idOfcreateUserEndpoint
             parameters:
-                - in: body
-                  name: body
-                  schema:
+              - in: body
+                name: body
+                schema:
                     $ref: '#/definitions/CreateNewUserRequest'
-                  x-go-name: Body
+                x-go-name: Body
             responses:
                 "200":
                     $ref: '#/responses/UserDao'
             security:
-                - bearer: []
+              - bearer: []
             summary: Create a new user.
             tags:
-                - createuser
+              - createuser
     /login:
         post:
             operationId: idOfloginEndpoint
             parameters:
-                - in: body
-                  name: body
-                  schema:
+              - in: body
+                name: body
+                schema:
                     $ref: '#/definitions/UserLoginRequest'
-                  x-go-name: Body
+                x-go-name: Body
             responses:
                 "200":
                     $ref: '#/responses/AuthToken'
             summary: Login a user and return token.
             tags:
-                - login
+              - login
 produces:
-    - application/json
+  - application/json
 responses:
     AuthToken:
         description: Respose will return login result and the user info.
@@ -110,10 +110,10 @@ responses:
             username:
                 type: string
 schemes:
-    - http
-    - https
+  - http
+  - https
 security:
-    - bearer: []
+  - bearer: []
 securityDefinitions:
     bearer:
         in: header
