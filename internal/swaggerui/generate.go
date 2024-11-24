@@ -121,19 +121,41 @@ func main() {
 	//`url: "./swagger_spec"`,
 	//-1,
 	//)
-	newInit := regexp.MustCompile(`url:\s+"[^"]*"`).ReplaceAllLiteral(initFile, []byte(`url: "./swagger_spec"`))
-	newInit = regexp.MustCompile(`,?\s+SwaggerUIStandalonePreset.*\n`).ReplaceAllLiteral(newInit, []byte("\n"))
-	newInit = regexp.MustCompile(`(?s),\s+plugins: \[.*],\n`).ReplaceAllLiteral(newInit, []byte("\n"))
-	newInit = regexp.MustCompile(`\n\s*layout:.*\n`).ReplaceAllLiteral(newInit, []byte("\n"))
-	//fmt.Println(string(newInit))
-	newinitFile, err := os.Create(filepath.Join("embed", "swagger-initializer.js"))
+	// Modify the swagger-initializer.js file
+	if err != nil {
+		log.Fatalf("error opening swagger-initializer.js for templating: %v", err)
+	}
+
+	// Replace the `url` value
+	modifiedInit := regexp.MustCompile(`url:\s*"[^"]*"`).
+		ReplaceAllLiteral(initFile, []byte(`url: "./swagger_spec"`))
+
+	// Ensure required plugins are included
+	if !regexp.MustCompile(`SwaggerUIStandalonePreset`).Match(modifiedInit) {
+		modifiedInit = regexp.MustCompile(`presets:\s*\[.*?\]`).
+			ReplaceAllLiteral(modifiedInit, []byte(`presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset]`))
+	}
+
+	if !regexp.MustCompile(`SwaggerUIBundle.plugins.DownloadUrl`).Match(modifiedInit) {
+		modifiedInit = regexp.MustCompile(`plugins:\s*\[.*?\]`).
+			ReplaceAllLiteral(modifiedInit, []byte(`plugins: [SwaggerUIBundle.plugins.DownloadUrl]`))
+	}
+
+	// Ensure the layout is set to StandaloneLayout
+	modifiedInit = regexp.MustCompile(`layout:\s*"[^"]*"`).
+		ReplaceAllLiteral(modifiedInit, []byte(`layout: "StandaloneLayout"`))
+
+	// Write the modified file back
+	newInitFile, err := os.Create(filepath.Join("embed", "swagger-initializer.js"))
 	if err != nil {
 		log.Fatalf("error re-creating swagger-initializer.js file: %v", err)
 	}
-	defer newinitFile.Close()
-	if _, err := newinitFile.Write(newInit); err != nil {
+	defer newInitFile.Close()
+
+	if _, err := newInitFile.Write(modifiedInit); err != nil {
 		log.Fatalf("unable to write to swagger-initializer.js: %v", err)
 	}
+
 	newcv, err := os.Create("current_version.txt")
 	if err != nil {
 		log.Fatalf("can't update current_version.txt: %v", err)
