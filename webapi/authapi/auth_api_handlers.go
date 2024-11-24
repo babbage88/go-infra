@@ -12,6 +12,7 @@ import (
 
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/webutils/cert_renew"
+	"github.com/babbage88/go-infra/webutils/cors"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -28,18 +29,8 @@ func WithAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Authorization ,origin, content-type, accept, x-requested-with")
-	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-}
-
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		enableCors(&w)
-		return
-	}
-	enableCors(&w)
+	cors.HandlerCorsAndOptions(w, r)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 }
@@ -66,11 +57,7 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 
 func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
-		if r.Method == "OPTIONS" {
-			slog.Info("Received OPTIONS request")
-			return
-		}
+		cors.HandlerCorsAndOptions(w, r)
 
 		if r.Method != http.MethodPost {
 			slog.Error("Invalid request method", slog.String("Method", r.Method))
@@ -128,12 +115,7 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 
 func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
+		cors.HandlerCorsAndOptions(w, r)
 
 		w.Header().Set("Content-Type", "application/json")
 		// Username and Pasword in request body as json.
@@ -161,12 +143,7 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 
 func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
+		cors.HandlerCorsAndOptions(w, r)
 
 		w.Header().Set("Content-Type", "application/json")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -202,7 +179,7 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 	}
 }
 
-func setCookieHandler(w http.ResponseWriter, r *http.Request, token string) {
+func setCookieHandler(w http.ResponseWriter, token string) {
 	// Initialize a new cookie containing the string "Hello world!" and some
 	// non-default attributes.
 	cookie := http.Cookie{
