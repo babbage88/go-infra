@@ -29,6 +29,7 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -38,6 +39,9 @@ import (
 	"github.com/babbage88/go-infra/webapi/authapi"
 	_ "github.com/pdrum/swagger-automation/docs"
 )
+
+//go:embed swagger.yaml
+var swaggerSpec []byte
 
 func main() {
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
@@ -69,5 +73,5 @@ func main() {
 		return
 	}
 
-	api_server.StartWebApiServer(authService, userService, srvport)
+	api_server.StartWebApiServer(authService, userService, swaggerSpec, srvport)
 }

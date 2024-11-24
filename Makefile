@@ -4,5 +4,8 @@ check-swagger:
 swagger: check-swagger
 	swagger generate spec -o ./swagger.yaml --scan-models && swagger generate spec > swagger.json
 
+embed-swagger:
+	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json
+
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443
