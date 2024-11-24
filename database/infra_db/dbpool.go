@@ -53,12 +53,12 @@ func PgPoolInit() *pgxpool.Pool {
 	// Create database connection
 	connPool, err := pgxpool.NewWithConfig(context.Background(), pgxPoolConfig())
 	if err != nil {
-		slog.Error("Error while creating connection to the database!!", "Error", err)
+		slog.Error("Error while creating connection to the database!", "Error", err)
 	}
 
 	connection, err := connPool.Acquire(context.Background())
 	if err != nil {
-		slog.Error("Error while acquiring connection from the database pool!!", "Error", err)
+		slog.Error("Error while acquiring connection from the database pool!", "Error", err)
 	}
 	defer connection.Release()
 
@@ -67,7 +67,7 @@ func PgPoolInit() *pgxpool.Pool {
 		slog.Error("Could not ping database")
 	}
 
-	slog.Info("Connected to the database!!", "Database", os.Getenv("DB_NAME"))
+	slog.Info("Connected to the database!", "Database", os.Getenv("DB_NAME"))
 
 	return connPool
 }
