@@ -9,16 +9,17 @@ import (
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
+	"github.com/babbage88/go-infra/webutils/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
 	envars := authService.Envars
 	mux := http.NewServeMux()
-	mux.HandleFunc("/requestcert", authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars)))
-	mux.HandleFunc("/login", authapi.LoginHandler(authService))
-	mux.HandleFunc("/create/user", authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService)))
-	mux.HandleFunc("/healthCheck", authapi.HealthCheckHandler)
+	mux.Handle("/requestcert", cors.CORSMiddleware(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
+	mux.Handle("/login", cors.CORSMiddleware(http.HandlerFunc(authapi.LoginHandler(authService))))
+	mux.Handle("/create/user", cors.CORSMiddleware(authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService))))
+	mux.Handle("/healthCheck", cors.CORSMiddleware(http.HandlerFunc(authapi.HealthCheckHandler)))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	// Add Swagger UI handler

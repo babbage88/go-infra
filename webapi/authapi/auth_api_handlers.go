@@ -128,13 +128,6 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 
 func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
-
 		w.Header().Set("Content-Type", "application/json")
 		// Username and Pasword in request body as json.
 		// in:body
