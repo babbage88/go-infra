@@ -9,6 +9,14 @@ import (
 	"github.com/babbage88/go-infra/webutils/cors"
 )
 
+// swagger:route POST /create/user createuser idOfcreateUserEndpoint
+// Create a new user.
+//
+// security:
+// - bearer:
+// responses:
+//   200: UserDao
+
 func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cors.HandlerCorsAndOptions(w, r)

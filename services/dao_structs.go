@@ -5,7 +5,11 @@ import (
 	"time"
 )
 
+// Respose will return login result and the user info.
+// swagger:response UserDao
+// This text will appear as description of your response body.
 type UserDao struct {
+	// in:body
 	Id           int32     `json:"id"`
 	UserName     string    `json:"username"`
 	Email        string    `json:"email"`

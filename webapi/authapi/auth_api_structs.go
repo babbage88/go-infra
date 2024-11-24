@@ -43,17 +43,11 @@ type InfraJWTClaim struct {
 	UserInfo interface{}
 }
 
-// swagger:route POST /login login-tag idOfloginEndpoint
-// Login a user and return token.
-// responses:
-//   200: AuthToken
-
 // Respose will return login result and the user info.
-// swagger:response UserLoginResponse
+// swagger:response AuthToken
 // This text will appear as description of your response body.
-// in:body
-
 type AuthToken struct {
+	// in:body
 	Id           int32     `json:"id"`
 	UserID       int32     `json:"user_id"`
 	Token        string    `json:"token"`

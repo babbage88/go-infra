@@ -4,17 +4,26 @@
 //
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
-//	Schemes: http, https
-//	Host: localhost:8993
-//	Version: v1.0.6
-//	License: N/A
-//	Contact: Justin Trahan<test@trahan.dev>
+//		Schemes: http, https
+//		Host: 10.0.0.64:8993
+//		Version: v1.0.6
+//		License: N/A
+//		Contact: Justin Trahan<test@trahan.dev>
 //
-//	Consumes:
-//	- application/json
+//		Consumes:
+//		- application/json
 //
-//	Produces:
-//	- application/json
+//		Produces:
+//		- application/json
+//
+//	    Security:
+//	    - bearer:
+//
+//	    SecurityDefinitions:
+//	      bearer:
+//	         type: apiKey
+//	         name: Authorization
+//	         in: header
 //
 // swagger:meta
 package main

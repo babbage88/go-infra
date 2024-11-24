@@ -120,6 +120,11 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	}
 }
 
+// swagger:route POST /login login idOfloginEndpoint
+// Login a user and return token.
+// responses:
+//   200: AuthToken
+
 func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
@@ -132,7 +137,6 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 		w.Header().Set("Content-Type", "application/json")
 		// Username and Pasword in request body as json.
 		// in:body
-
 		var loginReq *UserLoginRequest
 		json.NewDecoder(r.Body).Decode(&loginReq)
 		LoginResult := loginReq.Login(ua_service.DbConn)
