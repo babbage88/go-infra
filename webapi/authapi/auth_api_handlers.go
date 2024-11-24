@@ -13,6 +13,7 @@ import (
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/babbage88/go-infra/webutils/cors"
+	"github.com/babbage88/go-infra/webutils/httputils"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -58,12 +59,7 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cors.HandlerCorsAndOptions(w, r)
-
-		if r.Method != http.MethodPost {
-			slog.Error("Invalid request method", slog.String("Method", r.Method))
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
+		httputils.VerifyRequestPost(w, r)
 
 		slog.Info("Received POST request for Cert Renewal")
 
@@ -116,6 +112,7 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cors.HandlerCorsAndOptions(w, r)
+		httputils.VerifyRequestPost(w, r)
 
 		w.Header().Set("Content-Type", "application/json")
 		// Username and Pasword in request body as json.
