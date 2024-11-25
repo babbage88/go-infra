@@ -40,7 +40,7 @@ func (ua *UserAuthService) VerifyUser(userid int32) bool {
 	return qry.Enabled
 }
 
-func (t *AuthToken) RefreshAuthTokens(dbConn *pgxpool.Pool) error {
+func (t *AuthToken) RefreshAccessTokens(dbConn *pgxpool.Pool) error {
 	queries := infra_db_pg.New(dbConn)
 	qry, err := queries.GetUserById(context.Background(), t.UserID)
 	if err != nil {

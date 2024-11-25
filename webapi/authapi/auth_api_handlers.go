@@ -204,7 +204,7 @@ func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
 			if sub, ok := claims["sub"].(float64); ok {
 				uid := int32(sub)
 				newtokens := &AuthToken{UserID: uid, RefreshToken: req.RefreshToken}
-				err := newtokens.RefreshAuthTokens(ua.DbConn)
+				err := newtokens.RefreshAccessTokens(ua.DbConn)
 				if err != nil {
 					slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
 					w.WriteHeader(http.StatusUnauthorized)
