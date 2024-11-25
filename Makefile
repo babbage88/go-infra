@@ -1,3 +1,5 @@
+DOCKER_HUB:=jtrahan88/goinfra:
+
 check-swagger:
 	which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
 
@@ -24,3 +26,10 @@ embed-swagger:
 
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443
+
+buildandpush: dev-swagger
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB)$(tag) . --push
+
+deploydev:
+	kubectl apply -f deployment/kubernetes/go-infra.yaml
+	kubectl rollout restart deployment go-infra
