@@ -53,3 +53,11 @@ type AuthToken struct {
 	RefreshToken string    `json:"refreshToken"`
 	Expiration   time.Time `json:"expiration"`
 }
+
+type TokenRefreshReqWrapper struct {
+	Body TokenRefreshReq `json:"body"`
+}
+
+type TokenRefreshReq struct {
+	RefreshToken string `json:"refreshToken"`
+}

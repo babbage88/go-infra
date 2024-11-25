@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/babbage88/go-infra/utils/env_helper"
@@ -118,7 +119,7 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 		LoginResult := loginReq.Login(ua_service.DbConn)
 
 		if LoginResult.Result.Success {
-			token, err := ua_service.CreateAuthToken(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
+			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
@@ -168,6 +169,52 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 		}
 
 		slog.Info("Token has been verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
+	}
+}
+
+func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, error) {
+	retVal := &TokenRefreshReq{}
+	authHeader := r.Header.Get("Authorization")
+	parts := strings.Split(authHeader, "Bearer ")
+	if len(parts) != 2 {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Malformed Token"))
+		return retVal, fmt.Errorf("malformed token")
+	}
+	retVal.RefreshToken = parts[1]
+	return retVal, nil
+}
+
+func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		jwtKey := os.Getenv("JWT_KEY")
+		req, err := parseAuthHeader(w, r)
+		if err != nil {
+			slog.Error("Error parsing Bearer token from Authorization Header", slog.String("Error", err.Error()))
+		}
+		token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(jwtKey), nil
+		})
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if sub, ok := claims["sub"].(float64); ok {
+				uid := int32(sub)
+				newtokens := &AuthToken{UserID: uid, RefreshToken: req.RefreshToken}
+				err := newtokens.RefreshAuthTokens(ua.DbConn)
+				if err != nil {
+					slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
+					w.WriteHeader(http.StatusUnauthorized)
+					w.Write([]byte("Unauthorized, please login."))
+				}
+				jsonResponse, _ := json.Marshal(newtokens)
+				w.WriteHeader(http.StatusOK)
+				w.Write(jsonResponse)
+			}
+		}
 	}
 }
 

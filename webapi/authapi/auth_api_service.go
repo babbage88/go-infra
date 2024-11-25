@@ -9,9 +9,7 @@ import (
 	"time"
 
 	"github.com/babbage88/go-infra/auth/hashing"
-	"github.com/babbage88/go-infra/auth/jwt_auth"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
-	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -24,13 +22,51 @@ type UserAuthService struct {
 }
 
 type UserAuth interface {
-	VerifyUserPassword(connPool *pgxpool.Pool) bool
+	VerifyUser(userid int32) bool
+	RefreshAuthTokens(dbConn *pgxpool.Pool) error
 	HashUserPassword()
 	NewLoginRequest(username string, password string, isHashed bool) *UserLoginResponse
-	CreateNewToken(userid string, role string, email string) (services.AuthTokenDao, error)
 	CreateAuthToken(userid int32, role string, email string) (AuthToken, error)
 	CreateSignedTokenString(sub string, userInfo interface{}) (string, time.Time, error)
 	VerifyToken(tokenString string) error
+}
+
+func (ua *UserAuthService) VerifyUser(userid int32) bool {
+	queries := infra_db_pg.New(ua.DbConn)
+	qry, err := queries.GetUserById(context.Background(), userid)
+	if err != nil {
+		slog.Error("Error querying database for user", slog.String("Error", err.Error()), slog.String("UserName", fmt.Sprint(userid)))
+	}
+	return qry.Enabled
+}
+
+func (t *AuthToken) RefreshAuthTokens(dbConn *pgxpool.Pool) error {
+	queries := infra_db_pg.New(dbConn)
+	qry, err := queries.GetUserById(context.Background(), t.UserID)
+	if err != nil {
+		slog.Error("Error querying database for user", slog.String("Error", err.Error()), slog.String("UserName", fmt.Sprint(t.UserID)))
+	}
+	if !qry.Enabled {
+		slog.Warn("User is not enabled", slog.String("UserID", fmt.Sprint(t.UserID)))
+		return fmt.Errorf("User is not enabled")
+	}
+	userInfo := map[string]interface{}{
+		"role":  qry.Role,
+		"email": qry.Email,
+	}
+	jwt_algo := os.Getenv("JWT_ALGORITHM")
+	signingMethod := jwt.GetSigningMethod(jwt_algo)
+
+	claims, err := NewInfraJWTClaims(t.UserID, userInfo)
+	newAccessToken, err := NewAccessToken(claims, &signingMethod)
+	if err != nil {
+		slog.Error("Error creating new auth token.", slog.String("Error", err.Error()))
+		return err
+	}
+
+	t.Token = newAccessToken
+
+	return nil
 }
 
 func (request *UserLoginRequest) HashUserPassword() {
@@ -90,18 +126,15 @@ func (ua *UserAuthService) NewLoginRequest(username string, password string) *Us
 	return &response
 }
 
-func (ua *UserAuthService) CreateNewToken(userid int32, role string, email string) (services.AuthTokenDao, error) {
-	token, err := jwt_auth.CreateToken(ua.Envars, userid, role, email)
-
-	return token, err
-}
-
 func (t *AuthToken) CreateRefreshToken() {
 	jwtKey := os.Getenv("JWT_KEY")
+	//refreshEnvValue, err := type_helper.ParseInt64(os.Getenv("REFRESH_EXPIRATION_HOURS"))
+	refreshExpiration := time.Now().Add(time.Hour * 48).Unix()
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
+
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
 	rtClaims["sub"] = t.UserID
-	rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	rtClaims["exp"] = refreshExpiration
 
 	rt, err := refreshToken.SignedString([]byte(jwtKey))
 	if err != nil {
@@ -111,7 +144,7 @@ func (t *AuthToken) CreateRefreshToken() {
 	t.RefreshToken = rt
 }
 
-func (ua *UserAuthService) CreateSignedTokenString(sub string, role string, userInfo interface{}) (string, time.Time, error) {
+func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, role string, userInfo interface{}) (string, time.Time, error) {
 	expire_minutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
 	jwt_algo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
 	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
@@ -141,7 +174,7 @@ func (ua *UserAuthService) CreateSignedTokenString(sub string, role string, user
 	return val, exp, nil
 }
 
-func (ua *UserAuthService) CreateAuthToken(userid int32, role string, email string) (AuthToken, error) {
+func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, role string, email string) (AuthToken, error) {
 
 	var retval AuthToken
 	userInfo := map[string]interface{}{
@@ -149,7 +182,7 @@ func (ua *UserAuthService) CreateAuthToken(userid int32, role string, email stri
 		"email": email,
 	}
 
-	tokenString, expire_time, err := ua.CreateSignedTokenString(fmt.Sprint(userid), role, userInfo)
+	tokenString, expire_time, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), role, userInfo)
 	if err != nil {
 		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
 		return retval, err
