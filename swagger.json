@@ -6,7 +6,6 @@
     "application/json"
   ],
   "schemes": [
-    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -22,7 +21,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "10.0.0.64:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/user": {
       "post": {
@@ -76,9 +75,59 @@
           }
         }
       }
+    },
+    "/renew": {
+      "post": {
+        "description": "Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge",
+        "produces": [
+          "application/json",
+          "application/zip"
+        ],
+        "tags": [
+          "renew"
+        ],
+        "operationId": "idOfrenewEndpoint",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CertDnsRenewReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CertificateData"
+          }
+        }
+      }
     }
   },
   "definitions": {
+    "CertDnsRenewReq": {
+      "type": "object",
+      "properties": {
+        "domainName": {
+          "type": "string",
+          "x-go-name": "DomainName"
+        },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "provider": {
+          "type": "string",
+          "x-go-name": "Provider"
+        },
+        "zipFiles": {
+          "type": "boolean",
+          "x-go-name": "ZipFiles"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
+    },
     "CreateNewUserRequest": {
       "type": "object",
       "properties": {
@@ -138,6 +187,29 @@
         "user_id": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "CertificateData": {
+      "description": "Renew will return CertificateData result and the user info.",
+      "headers": {
+        "ZipDir": {
+          "type": "string"
+        },
+        "cert_pem": {
+          "type": "string"
+        },
+        "chain_pem": {
+          "type": "string"
+        },
+        "fullchain_and_key": {
+          "type": "string"
+        },
+        "fullchain_pem": {
+          "type": "string"
+        },
+        "priv_key": {
+          "type": "string"
         }
       }
     },

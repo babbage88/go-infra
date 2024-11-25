@@ -22,17 +22,25 @@ var keySuffix string = "-----END PRIVATE KEY-----"
 
 var certbotConfigDir string = ".certbot/config"
 
-//authFile := env_helper.NewDotEnvSource(env_helper.WithVarName("JWT_KEY")).GetEnvVarValue()
+// Login Request takes  in Username and Password.
+// swagger:parameters idOfrenewEndpoint
+type CertDnsRenewReqWrapper struct {
+	// in:body
+	Body CertDnsRenewReq `json:"body"`
+}
 
 type CertDnsRenewReq struct {
-	AuthFile   string `json:"authFile"`
 	DomainName string `json:"domainName"`
 	Provider   string `json:"provider"`
 	Email      string `json:"email"`
 	ZipFiles   bool   `json:"zipFiles"`
 }
 
+// Renew will return CertificateData result and the user info.
+// swagger:response CertificateData
+// This text will appear as description of your response body.
 type CertificateData struct {
+	//in:body
 	DomainName      string `json:"domainName"`
 	CertPEM         string `json:"cert_pem"`
 	ChainPEM        string `json:"chain_pem"`

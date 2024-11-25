@@ -28,18 +28,7 @@ func WithAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Authorization ,origin, content-type, accept, x-requested-with")
-	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-}
-
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		enableCors(&w)
-		return
-	}
-	enableCors(&w)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 }
@@ -64,22 +53,17 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 	}
 }
 
+// swagger:route POST /renew renew idOfrenewEndpoint
+// Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
+// responses:
+//   200: CertificateData
+// produces:
+// - application/json
+// - application/zip
+
 func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
-		if r.Method == "OPTIONS" {
-			slog.Info("Received OPTIONS request")
-			return
-		}
-
-		if r.Method != http.MethodPost {
-			slog.Error("Invalid request method", slog.String("Method", r.Method))
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
 		slog.Info("Received POST request for Cert Renewal")
-
 		var req cert_renew.CertDnsRenewReq
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
@@ -96,7 +80,6 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 		slog.Info("Renewal command executed")
 
 		// Prepare the response
-
 		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainName))
 		// Serialize response to JSON
 		jsonResponse, err := json.Marshal(cert_info)
@@ -111,7 +94,6 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", req.DomainName))
 			http.ServeFile(w, r, cert_info.ZipDir)
 		} else {
-
 			// Set response headers and write JSON response
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -154,12 +136,6 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 
 func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
 
 		w.Header().Set("Content-Type", "application/json")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")

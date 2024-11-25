@@ -1,6 +1,22 @@
 consumes:
     - application/json
 definitions:
+    CertDnsRenewReq:
+        properties:
+            domainName:
+                type: string
+                x-go-name: DomainName
+            email:
+                type: string
+                x-go-name: Email
+            provider:
+                type: string
+                x-go-name: Provider
+            zipFiles:
+                type: boolean
+                x-go-name: ZipFiles
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
     CreateNewUserRequest:
         properties:
             newEmail:
@@ -27,7 +43,7 @@ definitions:
                 x-go-name: UserName
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/authapi
-host: 10.0.0.64:8993
+host: infra.trahan.dev
 info:
     contact:
         email: test@trahan.dev
@@ -70,6 +86,24 @@ paths:
             summary: Login a user and return token.
             tags:
                 - login
+    /renew:
+        post:
+            description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
+            operationId: idOfrenewEndpoint
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CertDnsRenewReq'
+                  x-go-name: Body
+            produces:
+                - application/json
+                - application/zip
+            responses:
+                "200":
+                    $ref: '#/responses/CertificateData'
+            tags:
+                - renew
 produces:
     - application/json
 responses:
@@ -90,6 +124,21 @@ responses:
             user_id:
                 format: int32
                 type: integer
+    CertificateData:
+        description: Renew will return CertificateData result and the user info.
+        headers:
+            ZipDir:
+                type: string
+            cert_pem:
+                type: string
+            chain_pem:
+                type: string
+            fullchain_and_key:
+                type: string
+            fullchain_pem:
+                type: string
+            priv_key:
+                type: string
     UserDao:
         description: Respose will return login result and the user info.
         headers:
@@ -110,7 +159,6 @@ responses:
             username:
                 type: string
 schemes:
-    - http
     - https
 security:
     - bearer: []

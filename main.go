@@ -4,8 +4,8 @@
 //
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
-//		Schemes: http, https
-//		Host: 10.0.0.64:8993
+//		Schemes: https
+//		Host: infra.trahan.dev
 //		Version: v1.0.7
 //		License: N/A
 //		Contact: Justin Trahan<test@trahan.dev>

@@ -16,7 +16,7 @@ import (
 func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
 	envars := authService.Envars
 	mux := http.NewServeMux()
-	mux.Handle("/requestcert", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
+	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
