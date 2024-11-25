@@ -16,6 +16,9 @@ local-swagger: check-swagger
 	swagger mixin spec/swagger.local.yaml local-swagger.yaml --output swagger.yaml --format=yaml
 	rm local-swagger.json && rm local-swagger.yaml
 
+run-local: local-swagger
+	go run .
+
 embed-swagger:
 	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json
 
