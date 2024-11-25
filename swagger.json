@@ -170,15 +170,7 @@
     "AuthToken": {
       "description": "Respose will return login result and the user info.",
       "headers": {
-        "created_at": {
-          "type": "string",
-          "format": "date-time"
-        },
         "expiration": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "last_modified": {
           "type": "string",
           "format": "date-time"
         },

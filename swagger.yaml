@@ -114,13 +114,7 @@ responses:
     AuthToken:
         description: Respose will return login result and the user info.
         headers:
-            created_at:
-                format: date-time
-                type: string
             expiration:
-                format: date-time
-                type: string
-            last_modified:
                 format: date-time
                 type: string
             token:
