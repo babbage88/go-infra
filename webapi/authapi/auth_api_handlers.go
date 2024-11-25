@@ -185,6 +185,11 @@ func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, 
 	return retVal, nil
 }
 
+// swagger:route POST /token/refresh tokenRefresh idOftokenRefreshEndpoint
+// Refresh accessTokens andreturn to client.
+// responses:
+//
+//	200: AuthToken
 func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		jwtKey := os.Getenv("JWT_KEY")

@@ -67,6 +67,15 @@ paths:
                     $ref: '#/responses/CertificateData'
             tags:
                 - renew
+    /token/refresh:
+        post:
+            operationId: idOftokenRefreshEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/AuthToken'
+            summary: Refresh accessTokens andreturn to client.
+            tags:
+                - tokenRefresh
 definitions:
     CertDnsRenewReq:
         properties:

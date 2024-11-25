@@ -104,6 +104,20 @@
           }
         }
       }
+    },
+    "/token/refresh": {
+      "post": {
+        "tags": [
+          "tokenRefresh"
+        ],
+        "summary": "Refresh accessTokens andreturn to client.",
+        "operationId": "idOftokenRefreshEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AuthToken"
+          }
+        }
+      }
     }
   },
   "definitions": {
