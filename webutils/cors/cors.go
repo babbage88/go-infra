@@ -43,3 +43,111 @@ func CORSMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// handleOPTIONS handles CORS preflight OPTIONS requests.
+func handleOPTIONS(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.WriteHeader(http.StatusOK)
+}
+
+// CORSWithPOST is a middleware for handling CORS with POST requests.
+func CORSWithPOST(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Handle OPTIONS requests using the helper function
+		if r.Method == http.MethodOptions {
+			handleOPTIONS(w, r)
+			return
+		}
+
+		if r.Method != http.MethodPost {
+			slog.Error("Invalid request method", slog.String("Method", r.Method))
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Add CORS headers for non-OPTIONS requests
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		// Call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
+}
+
+// CORSWithPOST is a middleware for handling CORS with POST requests.
+func CORSWithGET(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Handle OPTIONS requests using the helper function
+		if r.Method == http.MethodOptions {
+			handleOPTIONS(w, r)
+			return
+		}
+
+		if r.Method != http.MethodGet {
+			slog.Error("Invalid request method", slog.String("Method", r.Method))
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Add CORS headers for non-OPTIONS requests
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		// Call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
+}
+
+// CORSWithPOST is a middleware for handling CORS with POST requests.
+func CORSWithDELETE(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Handle OPTIONS requests using the helper function
+		if r.Method == http.MethodOptions {
+			handleOPTIONS(w, r)
+			return
+		}
+
+		if r.Method != http.MethodDelete {
+			slog.Error("Invalid request method", slog.String("Method", r.Method))
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Add CORS headers for non-OPTIONS requests
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		// Call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
+}
+
+// CORSWithPOST is a middleware for handling CORS with POST requests.
+func CORSWithPUT(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Handle OPTIONS requests using the helper function
+		if r.Method == http.MethodOptions {
+			handleOPTIONS(w, r)
+			return
+		}
+
+		if r.Method != http.MethodPut {
+			slog.Error("Invalid request method", slog.String("Method", r.Method))
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Add CORS headers for non-OPTIONS requests
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		// Call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
+}
