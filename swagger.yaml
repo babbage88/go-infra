@@ -3,7 +3,9 @@ consumes:
 produces:
     - application/json
 schemes:
+    - http
     - https
+swagger: "2.0"
 info:
     contact:
         email: test@trahan.dev
@@ -13,7 +15,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
-host: infra.trahan.dev
+host: 10.0.0.64:8993
 paths:
     /create/user:
         post:
@@ -123,9 +125,6 @@ responses:
                 type: string
             token:
                 type: string
-            user_id:
-                format: int32
-                type: integer
     CertificateData:
         description: Renew will return CertificateData result and the user info.
         headers:

@@ -2,5 +2,6 @@
     "schemes": [
       "https"
     ],
-    "host": "infra.trahan.dev"
+    "host": "infra.trahan.dev",
+    "swagger": "2.0"
 }

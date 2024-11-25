@@ -48,7 +48,6 @@ type InfraJWTClaim struct {
 // This text will appear as description of your response body.
 type AuthToken struct {
 	// in:body
-	Id           int32     `json:"id"`
 	UserID       int32     `json:"user_id"`
 	Token        string    `json:"token"`
 	Expiration   time.Time `json:"expiration"`

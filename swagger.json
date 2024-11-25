@@ -6,8 +6,10 @@
     "application/json"
   ],
   "schemes": [
+    "http",
     "https"
   ],
+  "swagger": "2.0",
   "info": {
     "title": "go-infra API.",
     "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",
@@ -20,7 +22,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "infra.trahan.dev",
+  "host": "10.0.0.64:8993",
   "paths": {
     "/create/user": {
       "post": {
@@ -182,10 +184,6 @@
         },
         "token": {
           "type": "string"
-        },
-        "user_id": {
-          "type": "integer",
-          "format": "int32"
         }
       }
     },
