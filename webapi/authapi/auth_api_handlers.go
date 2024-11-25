@@ -1,29 +1,20 @@
-package webapi
+package authapi
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
-	"github.com/babbage88/go-infra/auth/hashing"
-	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
-	cloudflaredns "github.com/babbage88/go-infra/cloud_providers/cloudflare"
-	infra_db "github.com/babbage88/go-infra/database/infra_db"
-	db_models "github.com/babbage88/go-infra/database/models"
 	"github.com/babbage88/go-infra/utils/env_helper"
-	"github.com/babbage88/go-infra/webutils/certhandler"
+	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/golang-jwt/jwt/v5"
 )
-
-type ParsedCertbotOutput struct {
-	CertificateInfo string `json:"certificateInfo"`
-	Warnings        string `json:"warnings"`
-	DebugLog        string `json:"debugLog"`
-}
 
 const apiToken = "your-secret-api-token"
 
@@ -38,45 +29,9 @@ func WithAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
-}
-
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		enableCors(&w)
-		return
-	}
-	enableCors(&w)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
-}
-
-func CreateDnsHttpHandlerWrapper(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
-		var records []cloudflaredns.DnsRecordReq
-		slog.Info("Sending DB Request", slog.String("Query", "test"))
-		records, _ = infra_db.GetAllDnsRecords(db)
-
-		// Serialize response to JSON
-		jsonResponse, err := json.Marshal(records)
-		if err != nil {
-			http.Error(w, "Failed to marshal JSON response", http.StatusInternalServerError)
-			return
-		}
-
-		// Set response headers and write JSON response
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonResponse)
-	}
 }
 
 func parseCertbotOutput(output []string) ParsedCertbotOutput {
@@ -99,23 +54,18 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 	}
 }
 
-func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
+// swagger:route POST /renew renew idOfrenewEndpoint
+// Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
+// responses:
+//   200: CertificateData
+// produces:
+// - application/json
+// - application/zip
+
+func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
-		if r.Method == "OPTIONS" {
-			slog.Info("Received OPTIONS request")
-			return
-		}
-
-		if r.Method != http.MethodPost {
-			slog.Error("Invalid request method", slog.String("Method", r.Method))
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
 		slog.Info("Received POST request for Cert Renewal")
-
-		var req certhandler.CertDnsRenewReq
+		var req cert_renew.CertDnsRenewReq
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
@@ -131,7 +81,6 @@ func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
 		slog.Info("Renewal command executed")
 
 		// Prepare the response
-
 		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainName))
 		// Serialize response to JSON
 		jsonResponse, err := json.Marshal(cert_info)
@@ -146,40 +95,31 @@ func RenewCertHandler(envars *env_helper.EnvVars) http.HandlerFunc {
 			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", req.DomainName))
 			http.ServeFile(w, r, cert_info.ZipDir)
 		} else {
-
 			// Set response headers and write JSON response
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			w.Write(jsonResponse)
 			slog.Info("Response sent successfully")
-
 		}
 	}
 }
 
-func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
+// swagger:route POST /login login idOfloginEndpoint
+// Login a user and return token.
+// responses:
+//   200: AuthToken
+
+func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
-
 		w.Header().Set("Content-Type", "application/json")
+		// Username and Pasword in request body as json.
+		// in:body
+		var loginReq *UserLoginRequest
+		json.NewDecoder(r.Body).Decode(&loginReq)
+		LoginResult := loginReq.Login(ua_service.DbConn)
 
-		var u db_models.User
-		json.NewDecoder(r.Body).Decode(&u)
-		fmt.Printf("The user request value %v", u)
-
-		dbuser, err := infra_db.GetUserByUsername(db, u.Username)
-		if err != nil {
-			slog.Error("Error getting user from database", slog.String("Error", err.Error()))
-		}
-		verify_pw := hashing.VerifyPassword(u.Password, dbuser.Password)
-
-		if verify_pw {
-			token, err := jwt_auth.CreateTokenanAddToDb(envars, db, dbuser.Id, u.Role, u.Email)
+		if LoginResult.Result.Success {
+			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
@@ -190,19 +130,13 @@ func LoginHandler(envars *env_helper.EnvVars, db *sql.DB) func(w http.ResponseWr
 			return
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprint(w, "Invalid credentials")
+			fmt.Fprint(w, "Invalid credentials", LoginResult.Result.Error)
 		}
 	}
 }
 
 func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			enableCors(&w)
-			return
-		}
-
-		enableCors(&w)
 
 		w.Header().Set("Content-Type", "application/json")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -236,4 +170,94 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 
 		slog.Info("Token has been verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
 	}
+}
+
+func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, error) {
+	retVal := &TokenRefreshReq{}
+	authHeader := r.Header.Get("Authorization")
+	parts := strings.Split(authHeader, "Bearer ")
+	if len(parts) != 2 {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Malformed Token"))
+		return retVal, fmt.Errorf("malformed token")
+	}
+	retVal.RefreshToken = parts[1]
+	return retVal, nil
+}
+
+// swagger:route POST /token/refresh tokenRefresh idOftokenRefreshEndpoint
+// Refresh accessTokens andreturn to client.
+// responses:
+//
+//	200: AuthToken
+func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		jwtKey := os.Getenv("JWT_KEY")
+		req, err := parseAuthHeader(w, r)
+		if err != nil {
+			slog.Error("Error parsing Bearer token from Authorization Header", slog.String("Error", err.Error()))
+		}
+		token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(jwtKey), nil
+		})
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if sub, ok := claims["sub"].(float64); ok {
+				uid := int32(sub)
+				newtokens := &AuthToken{UserID: uid, RefreshToken: req.RefreshToken}
+				err := newtokens.RefreshAccessTokens(ua.DbConn)
+				if err != nil {
+					slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
+					w.WriteHeader(http.StatusUnauthorized)
+					w.Write([]byte("Unauthorized, please login."))
+				}
+				jsonResponse, _ := json.Marshal(newtokens)
+				w.WriteHeader(http.StatusOK)
+				w.Write(jsonResponse)
+			}
+		}
+	}
+}
+
+func setCookieHandler(w http.ResponseWriter, r *http.Request, token string) {
+	// Initialize a new cookie containing the string "Hello world!" and some
+	// non-default attributes.
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	// Use the http.SetCookie() function to send the cookie to the client.
+	// Behind the scenes this adds a `Set-Cookie` header to the response
+	// containing the necessary cookie data.
+	http.SetCookie(w, &cookie)
+
+	// Write a HTTP response as normal.
+	w.Write([]byte("cookie set!"))
+}
+
+func getCookieHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, "cookie not found", http.StatusBadRequest)
+		default:
+			log.Println(err)
+			http.Error(w, "server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Echo out the cookie value in the response body.
+	w.Write([]byte(cookie.Value))
 }

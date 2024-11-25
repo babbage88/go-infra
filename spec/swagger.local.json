@@ -1,0 +1,8 @@
+{
+    "schemes": [
+      "http",
+      "https"
+    ],
+    "host": "10.0.0.64:8993",
+    "swagger": "2.0"
+}

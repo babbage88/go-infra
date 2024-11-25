@@ -1,24 +1,30 @@
 package api_server
 
 import (
-	"database/sql"
 	"log/slog"
 	"net/http"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"github.com/babbage88/go-infra/utils/env_helper"
+	"github.com/babbage88/go-infra/internal/swaggerui"
+	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
-	webapi "github.com/babbage88/go-infra/webapi/api_handlers"
+	authapi "github.com/babbage88/go-infra/webapi/authapi"
+	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
+	"github.com/babbage88/go-infra/webutils/cors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartWebApiServer(envars *env_helper.EnvVars, db *sql.DB, srvadr *string) error {
+func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
+	envars := authService.Envars
 	mux := http.NewServeMux()
-	mux.HandleFunc("/getalldns", webapi.AuthMiddleware(envars, webapi.CreateDnsHttpHandlerWrapper(db)))
-	mux.HandleFunc("/requestcert", webapi.AuthMiddleware(envars, webapi.RenewCertHandler(envars)))
-	mux.HandleFunc("/login", webapi.LoginHandler(envars, db))
-	mux.HandleFunc("/healthCheck", webapi.HealthCheckHandler)
+	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
+	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
+	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
+	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService))))
+	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
 	mux.Handle("/metrics", promhttp.Handler())
+
+	// Add Swagger UI handler
+	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui", swaggerui.ServeSwaggerUI(swaggerSpec)))
 
 	config := customlogger.NewCustomLogger()
 	clog := customlogger.SetupLogger(config)

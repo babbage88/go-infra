@@ -1,100 +1,75 @@
+// Package main go-infra API.
+//
+// Terms Of Service:
+//
+// there are no TOS at this moment, use at your own risk we take no responsibility
+//
+//		Version: v1.0.7
+//		License: N/A
+//		Contact: Justin Trahan<test@trahan.dev>
+//
+//		Consumes:
+//		- application/json
+//
+//		Produces:
+//		- application/json
+//
+//	    Security:
+//	    - bearer:
+//
+//	    SecurityDefinitions:
+//	      bearer:
+//	         type: apiKey
+//	         name: Authorization
+//	         in: header
+//
+// swagger:meta
 package main
 
 import (
-	"database/sql"
+	_ "embed"
 	"flag"
 	"fmt"
 	"log/slog"
 
-	"github.com/babbage88/go-infra/auth/hashing"
-	jwt_auth "github.com/babbage88/go-infra/auth/tokens"
-	infra_db "github.com/babbage88/go-infra/database/infra_db"
-	db_models "github.com/babbage88/go-infra/database/models"
-	env_helper "github.com/babbage88/go-infra/utils/env_helper"
-	"github.com/babbage88/go-infra/utils/test"
+	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
+	"github.com/babbage88/go-infra/webapi/authapi"
+	_ "github.com/pdrum/swagger-automation/docs"
 )
 
-func createTestUserInstance(username string, password string, email string, role string) db_models.User {
-	hashedpw, err := hashing.HashPassword(password)
-	if err != nil {
-		slog.Error("Error hashing password", slog.String("Error", err.Error()))
-	}
-
-	testuser := db_models.User{
-		Username: username,
-		Password: hashedpw,
-		Email:    email,
-		Role:     role,
-	}
-
-	return testuser
-}
-
-func initializeDbConn(envars *env_helper.EnvVars) *sql.DB {
-	db_pw := envars.GetVarMapValue("DB_PW")
-	db_user := envars.GetVarMapValue("DB_USER")
-	db_host := envars.GetVarMapValue("DB_HOST")
-	db_port, err := envars.ParseEnvVarInt32("DB_PORT")
-	if err != nil {
-		fmt.Errorf("Error Parsing DB_PORT from .env file", err)
-	}
-	dbConn := infra_db.NewDatabaseConnection(infra_db.WithDbHost(db_host), infra_db.WithDbPassword(db_pw), infra_db.WithDbUser(db_user), infra_db.WithDbPort(db_port))
-
-	db, _ := infra_db.InitializeDbConnection(dbConn)
-
-	return db
-}
-
-func testUserDb(envars *env_helper.EnvVars, db *sql.DB) {
-	testuser, _ := test.CreateTestUserInstance("jt", "testpw", "jt@trahan.dev", "admin")
-	test.CreateUserDb(db, &testuser)
-
-	user, _ := test.GetDbUserByUsername(db, testuser.Username)
-
-	verify_pw := hashing.VerifyPassword("testpw", user.Password)
-
-	if verify_pw {
-		slog.Info("Password is verified for User: %s", slog.String("UserName", user.Username))
-		slog.Info("Generating AuthToken for UserId", slog.String("UserId", fmt.Sprint(user.Id)))
-
-		token, err := jwt_auth.CreateTokenanAddToDb(envars, db, user.Id, user.Role, user.Email)
-		if err != nil {
-			slog.Error("Error Generating JWT AuthToken", slog.String("Error", err.Error()))
-		}
-
-		fmt.Println(token.Token)
-		jwt_auth.VerifyToken(token.Token)
-	}
-
-	if !verify_pw {
-		fmt.Printf("Could not Verify Passworf for User: %s \n", user.Username)
-	}
-
-}
+//go:embed swagger.yaml
+var swaggerSpec []byte
 
 func main() {
-
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	hostEnvironment := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
+	envFilePath := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
+	username := flag.String("username", "jtrahan", "Username to create")
+	pw := flag.String("pw", "", "")
 	version := flag.Bool("version", false, "Show the current version.")
+	testfuncs := flag.Bool("test", false, "run test module")
 	flag.Parse()
 
 	if *version {
 		showVersion()
 		return
 	}
-	envars := env_helper.NewDotEnvSource(env_helper.WithDotEnvFileName(*hostEnvironment))
-	fmt.Printf("EnVars file name: %s\n", envars.DotFileName)
-	envars.ParseEnvVariables()
 
-	db := initializeDbConn(envars)
-	api_server.StartWebApiServer(envars, db, srvport)
+	envars := initEnvironment(*envFilePath)
+	connPool := initPgConnPool()
+	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
+	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
 
-	defer func() {
-		if err := infra_db.CloseDbConnection(); err != nil {
-			slog.Error("Failed to close the database connection: %v", err)
+	if *testfuncs {
+		request := &authapi.UserLoginRequest{UserName: *username, Password: *pw}
+		loginTestResponse := request.Login(authService.DbConn)
+		if loginTestResponse.Result.Success {
+			slog.Info("Login Successful")
 		}
-	}()
+		userService.NewUser(*username, *pw, fmt.Sprint(*username, "@trahan.dev"), "Admin")
+		userService.UpdateUserPasswordById(1, *pw)
+		return
+	}
 
+	api_server.StartWebApiServer(authService, userService, swaggerSpec, srvport)
 }
