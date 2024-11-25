@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/babbage88/go-infra/auth/hashing"
@@ -95,6 +96,21 @@ func (ua *UserAuthService) CreateNewToken(userid int32, role string, email strin
 	return token, err
 }
 
+func (t *AuthToken) CreateRefreshToken() {
+	jwtKey := os.Getenv("JWT_KEY")
+	refreshToken := jwt.New(jwt.SigningMethodHS256)
+	rtClaims := refreshToken.Claims.(jwt.MapClaims)
+	rtClaims["sub"] = t.UserID
+	rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	rt, err := refreshToken.SignedString([]byte(jwtKey))
+	if err != nil {
+		slog.Error("Error signing refresh token", slog.String("Error", err.Error()))
+	}
+
+	t.RefreshToken = rt
+}
+
 func (ua *UserAuthService) CreateSignedTokenString(sub string, role string, userInfo interface{}) (string, time.Time, error) {
 	expire_minutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
 	jwt_algo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
@@ -144,6 +160,8 @@ func (ua *UserAuthService) CreateAuthToken(userid int32, role string, email stri
 		Expiration: expire_time,
 		Token:      tokenString,
 	}
+
+	retval.CreateRefreshToken()
 
 	return retval, nil
 }

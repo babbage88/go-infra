@@ -117,6 +117,8 @@ responses:
             expiration:
                 format: date-time
                 type: string
+            refreshToken:
+                type: string
             token:
                 type: string
     CertificateData:
