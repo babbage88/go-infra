@@ -8,7 +8,6 @@
   "schemes": [
     "https"
   ],
-  "swagger": "2.0",
   "info": {
     "title": "go-infra API.",
     "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",

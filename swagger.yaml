@@ -1,49 +1,9 @@
 consumes:
     - application/json
-definitions:
-    CertDnsRenewReq:
-        properties:
-            domainName:
-                type: string
-                x-go-name: DomainName
-            email:
-                type: string
-                x-go-name: Email
-            provider:
-                type: string
-                x-go-name: Provider
-            zipFiles:
-                type: boolean
-                x-go-name: ZipFiles
-        type: object
-        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
-    CreateNewUserRequest:
-        properties:
-            newEmail:
-                type: string
-                x-go-name: NewUserEmail
-            newPassword:
-                type: string
-                x-go-name: NewUserPassword
-            newUserRole:
-                type: string
-                x-go-name: NewUserRole
-            newUsername:
-                type: string
-                x-go-name: NewUsername
-        type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
-    UserLoginRequest:
-        properties:
-            password:
-                type: string
-                x-go-name: Password
-            username:
-                type: string
-                x-go-name: UserName
-        type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/authapi
-host: infra.trahan.dev
+produces:
+    - application/json
+schemes:
+    - https
 info:
     contact:
         email: test@trahan.dev
@@ -53,6 +13,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
+host: infra.trahan.dev
 paths:
     /create/user:
         post:
@@ -104,8 +65,49 @@ paths:
                     $ref: '#/responses/CertificateData'
             tags:
                 - renew
-produces:
-    - application/json
+definitions:
+    CertDnsRenewReq:
+        properties:
+            domainName:
+                type: string
+                x-go-name: DomainName
+            email:
+                type: string
+                x-go-name: Email
+            provider:
+                type: string
+                x-go-name: Provider
+            zipFiles:
+                type: boolean
+                x-go-name: ZipFiles
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
+    CreateNewUserRequest:
+        properties:
+            newEmail:
+                type: string
+                x-go-name: NewUserEmail
+            newPassword:
+                type: string
+                x-go-name: NewUserPassword
+            newUserRole:
+                type: string
+                x-go-name: NewUserRole
+            newUsername:
+                type: string
+                x-go-name: NewUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UserLoginRequest:
+        properties:
+            password:
+                type: string
+                x-go-name: Password
+            username:
+                type: string
+                x-go-name: UserName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/authapi
 responses:
     AuthToken:
         description: Respose will return login result and the user info.
@@ -158,13 +160,10 @@ responses:
                 type: string
             username:
                 type: string
-schemes:
-    - https
-security:
-    - bearer: []
 securityDefinitions:
     bearer:
         in: header
         name: Authorization
         type: apiKey
-swagger: "2.0"
+security:
+    - bearer: []
