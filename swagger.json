@@ -11,7 +11,8 @@
   ],
   "swagger": "2.0",
   "info": {
-    "title": "go-infra API.",
+    "description": "Documentation of our awesome API.",
+    "title": "awesome.",
     "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",
     "contact": {
       "name": "Justin Trahan",
@@ -20,9 +21,10 @@
     "license": {
       "name": "N/A"
     },
-    "version": "v1.0.7"
+    "version": "1.0.0"
   },
   "host": "10.0.0.64:8993",
+  "basePath": "/",
   "paths": {
     "/create/user": {
       "post": {
@@ -49,6 +51,30 @@
         "responses": {
           "200": {
             "$ref": "#/responses/UserDao"
+          }
+        }
+      }
+    },
+    "/foobar": {
+      "post": {
+        "tags": [
+          "foobar-tag"
+        ],
+        "summary": "Foobar does some amazing stuff.",
+        "operationId": "idOfFoobarEndpoint",
+        "parameters": [
+          {
+            "description": "This text will appear as description of your request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/FooBarRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/foobarResponse"
           }
         }
       }
@@ -165,6 +191,42 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
+    "FooBarRequest": {
+      "type": "object",
+      "title": "FooBarRequest represents body of FooBar request.",
+      "properties": {
+        "bar": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "x-go-name": "Bar"
+        },
+        "foo": {
+          "type": "string",
+          "x-go-name": "Foo"
+        }
+      },
+      "x-go-package": "github.com/pdrum/swagger-automation/api"
+    },
+    "FooBarResponse": {
+      "type": "object",
+      "title": "FooBarResponse represents body of FooBar response.",
+      "properties": {
+        "baz": {
+          "type": "object",
+          "properties": {
+            "prop": {
+              "type": "string",
+              "x-go-name": "Prop"
+            }
+          },
+          "x-go-name": "Baz"
+        }
+      },
+      "x-go-package": "github.com/pdrum/swagger-automation/api"
+    },
     "UserLoginRequest": {
       "type": "object",
       "properties": {
@@ -246,18 +308,17 @@
           "type": "string"
         }
       }
+    },
+    "foobarResponse": {
+      "description": "This text will appear as description of your response body.",
+      "schema": {
+        "$ref": "#/definitions/FooBarResponse"
+      }
     }
   },
   "securityDefinitions": {
-    "bearer": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
+    "basic": {
+      "type": "basic"
     }
-  },
-  "security": [
-    {
-      "bearer": []
-    }
-  ]
+  }
 }

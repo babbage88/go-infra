@@ -7,15 +7,27 @@ import (
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
+	"github.com/babbage88/go-infra/views"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
 	"github.com/babbage88/go-infra/webutils/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+func Homepage(w http.ResponseWriter, r *http.Request) {
+	test1 := &views.PgDatabase{Id: "1", UserId: "1", Description: "DevDB1"}
+	test2 := &views.PgDatabase{Id: "2", UserId: "1", Description: "DevDB2"}
+	slcpg := make([]*views.PgDatabase, 2)
+	slcpg[0] = test1
+	slcpg[1] = test2
+	views.Index(slcpg)
+}
+
 func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
+
 	envars := authService.Envars
 	mux := http.NewServeMux()
+	mux.HandleFunc("/", Homepage)
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))

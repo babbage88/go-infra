@@ -5,12 +5,13 @@ import (
     "github.com/babbage88/go-infra/views/components"
 )
 
-type Todo struct {
+type PgDatabase struct {
     Id          string
+    UserId      string
     Description string
 }
 
-templ Index(todos []*Todo) {
+templ Index(PgDatabases []*PgDatabase) {
     <!DOCTYPE html>
     <html lang="en">
         @components.Header()
@@ -35,7 +36,7 @@ templ Index(todos []*Todo) {
                             cols="30"
                             rows="2"
                             class="w-full border rounded-lg mb-2 p-4"
-                            placeholder="Input todo details"
+                            placeholder="Input PgDatabase details"
                             required
                         ></textarea>
                         <button
@@ -45,13 +46,13 @@ templ Index(todos []*Todo) {
                         </button>
                     </form>
                     <section class="border-t border-t-zinc-200 mt-6 px-2 py-4 w-96">
-                        // LOOP THROUGH THE TODOS
-                        <ul id="todo-list">
-                            for _, todo := range todos {
-                                <li class="ml-4 ml-4 border p-2 rounded-lg mb-2" id={ fmt.Sprintf("%s", todo.Id) }>
-                                    <p class="font-medium text-sm">Todo item { todo.Id }</p>
+                        // LOOP THROUGH THE PgDatabaseS
+                        <ul id="PgDatabase-list">
+                            for _, PgDatabase := range PgDatabases {
+                                <li class="ml-4 ml-4 border p-2 rounded-lg mb-2" id={ fmt.Sprintf("%s", PgDatabase.Id) }>
+                                    <p class="font-medium text-sm">PgDatabase item { PgDatabase.Id }</p>
                                     <p class="text-sm text-zinc-500 mb-2">
-                                        { todo.Description }
+                                        { PgDatabase.Description }
                                     </p>
                                     <div class="flex gap-4 items-center mt-2">
                                         <a
@@ -61,9 +62,9 @@ templ Index(todos []*Todo) {
                                             <p class="text-sm">Edit</p>
                                         </a>
                                         <button
-                                            hx-delete={ fmt.Sprintf("/%s", todo.Id) }
+                                            hx-delete={ fmt.Sprintf("/%s", PgDatabase.Id) }
                                             hx-swap="delete"
-                                            hx-target={ fmt.Sprintf("#%s", todo.Id) }
+                                            hx-target={ fmt.Sprintf("#%s", PgDatabase.Id) }
                                             class="flex items-center border py-1 px-2 rounded-lg hover:bg-red-300"
                                         >
                                             <p class="text-sm">Delete</p>

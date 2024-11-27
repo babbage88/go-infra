@@ -8,13 +8,13 @@ require (
 )
 
 require (
+	github.com/a-h/templ v0.2.793
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/prometheus/client_golang v1.19.1
 	golang.org/x/crypto v0.27.0
 )
 
 require (
-	github.com/a-h/templ v0.2.793 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/gommon v0.2.9 // indirect

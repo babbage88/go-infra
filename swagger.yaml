@@ -10,12 +10,14 @@ info:
     contact:
         email: test@trahan.dev
         name: Justin Trahan
+    description: Documentation of our awesome API.
     license:
         name: N/A
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
-    title: go-infra API.
-    version: v1.0.7
+    title: awesome.
+    version: 1.0.0
 host: 10.0.0.64:8993
+basePath: /
 paths:
     /create/user:
         post:
@@ -34,6 +36,21 @@ paths:
             summary: Create a new user.
             tags:
                 - createuser
+    /foobar:
+        post:
+            operationId: idOfFoobarEndpoint
+            parameters:
+                - description: This text will appear as description of your request body.
+                  in: body
+                  name: Body
+                  schema:
+                    $ref: '#/definitions/FooBarRequest'
+            responses:
+                "200":
+                    $ref: '#/responses/foobarResponse'
+            summary: Foobar does some amazing stuff.
+            tags:
+                - foobar-tag
     /login:
         post:
             operationId: idOfloginEndpoint
@@ -109,6 +126,32 @@ definitions:
                 x-go-name: NewUsername
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    FooBarRequest:
+        properties:
+            bar:
+                items:
+                    format: int64
+                    type: integer
+                type: array
+                x-go-name: Bar
+            foo:
+                type: string
+                x-go-name: Foo
+        title: FooBarRequest represents body of FooBar request.
+        type: object
+        x-go-package: github.com/pdrum/swagger-automation/api
+    FooBarResponse:
+        properties:
+            baz:
+                properties:
+                    prop:
+                        type: string
+                        x-go-name: Prop
+                type: object
+                x-go-name: Baz
+        title: FooBarResponse represents body of FooBar response.
+        type: object
+        x-go-package: github.com/pdrum/swagger-automation/api
     UserLoginRequest:
         properties:
             password:
@@ -164,10 +207,10 @@ responses:
                 type: string
             username:
                 type: string
+    foobarResponse:
+        description: This text will appear as description of your response body.
+        schema:
+            $ref: '#/definitions/FooBarResponse'
 securityDefinitions:
-    bearer:
-        in: header
-        name: Authorization
-        type: apiKey
-security:
-    - bearer: []
+    basic:
+        type: basic
