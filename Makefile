@@ -27,7 +27,10 @@ embed-swagger:
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443
 
-buildandpush: dev-swagger
+buildandpushdev: dev-swagger
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB)$(tag) . --push
+
+buildandpushlocal: local-swagger
 	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB)$(tag) . --push
 
 deploydev:

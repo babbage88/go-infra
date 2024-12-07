@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
@@ -27,12 +28,20 @@ func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *se
 
 	envars := authService.Envars
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", Homepage)
+	test1 := &views.PgDatabase{Id: "1", UserId: "1", Description: "DevDB1"}
+	test2 := &views.PgDatabase{Id: "2", UserId: "1", Description: "DevDB2"}
+	slcpg := make([]*views.PgDatabase, 2)
+	slcpg[0] = test1
+	slcpg[1] = test2
+	mux.Handle("/", templ.Handler(views.Index(slcpg)))
+	mux.Handle("/userlogin", templ.Handler(views.LoginForm()))
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
+	mux.Handle("/logincookie", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginCookie(authService))))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
+	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(envars, http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	// Add Swagger UI handler

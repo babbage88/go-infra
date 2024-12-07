@@ -35,7 +35,6 @@ import (
 	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
-	_ "github.com/pdrum/swagger-automation/docs"
 )
 
 //go:embed swagger.yaml
@@ -54,6 +53,7 @@ func main() {
 		showVersion()
 		return
 	}
+	slog.Info("Starting server on port", slog.String("Port", *srvport))
 
 	envars := initEnvironment(*envFilePath)
 	connPool := initPgConnPool()

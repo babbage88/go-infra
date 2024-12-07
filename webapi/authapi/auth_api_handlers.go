@@ -118,20 +118,20 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 		json.NewDecoder(r.Body).Decode(&loginReq)
 		LoginResult := loginReq.Login(ua_service.DbConn)
 
-		if LoginResult.Result.Success {
-			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				slog.Error("Error verifying password", slog.String("Error", err.Error()))
-			}
-			jsonResponse, _ := json.Marshal(token)
-			w.WriteHeader(http.StatusOK)
-			w.Write(jsonResponse)
-			return
-		} else {
+		if !LoginResult.Result.Success {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprint(w, "Invalid credentials", LoginResult.Result.Error)
+			return
 		}
+		token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			slog.Error("Error verifying password", slog.String("Error", err.Error()))
+		}
+		jsonResponse, _ := json.Marshal(token)
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+		return
 	}
 }
 
@@ -236,9 +236,6 @@ func setCookieHandler(w http.ResponseWriter, r *http.Request, token string) {
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	// Use the http.SetCookie() function to send the cookie to the client.
-	// Behind the scenes this adds a `Set-Cookie` header to the response
-	// containing the necessary cookie data.
 	http.SetCookie(w, &cookie)
 
 	// Write a HTTP response as normal.
