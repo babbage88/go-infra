@@ -108,3 +108,29 @@ func (us *UserCRUDService) InsertAuthToken(t *AuthTokenDao) error {
 	}
 	return err
 }
+
+func (us *UserCRUDService) GetAllActiveUsersDao() ([]UserDao, error) {
+	// Fetch the rows from the database
+	queries := infra_db_pg.New(us.DbConn)
+	rows, err := queries.GetAllActiveUsers(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	// Map rows to UserDao
+	userDaos := make([]UserDao, len(rows))
+	for i, row := range rows {
+		userDaos[i] = UserDao{
+			Id:           row.ID,
+			UserName:     row.Username.String,
+			Email:        row.Email.String,
+			Role:         row.Role.String,
+			CreatedAt:    row.CreatedAt.Time,
+			LastModified: row.LastModified.Time,
+			Enabled:      row.Enabled,
+			IsDeleted:    false,
+		}
+	}
+
+	return userDaos, nil
+}

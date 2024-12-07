@@ -112,6 +112,56 @@ func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams
 	return i, err
 }
 
+const getAllActiveUsers = `-- name: GetAllActiveUsers :many
+SELECT 	id,
+	username,
+	email,
+	"role",
+	created_at,
+	last_modified,
+	"enabled"
+FROM users
+where "enabled" is TRUE
+`
+
+type GetAllActiveUsersRow struct {
+	ID           int32
+	Username     pgtype.Text
+	Email        pgtype.Text
+	Role         pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	Enabled      bool
+}
+
+func (q *Queries) GetAllActiveUsers(ctx context.Context) ([]GetAllActiveUsersRow, error) {
+	rows, err := q.db.Query(ctx, getAllActiveUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllActiveUsersRow
+	for rows.Next() {
+		var i GetAllActiveUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.Role,
+			&i.CreatedAt,
+			&i.LastModified,
+			&i.Enabled,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAuthTokenFromDb = `-- name: GetAuthTokenFromDb :one
 SELECT
 		id, user_id, token, expiration, created_at, last_modified
