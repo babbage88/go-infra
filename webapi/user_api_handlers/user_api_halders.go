@@ -68,8 +68,21 @@ func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 func GetAllUsers(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		users, err := uc_service.GetAllActiveUsersDao()
+		if err != nil {
+			slog.Error("Error getting users from database", slog.String("Error", err.Error()))
+			http.Error(w, "Error createing new user "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonResponse, err := json.Marshal(users)
+		if err != nil {
+			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
+			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
 	}
 }
