@@ -21,6 +21,7 @@ func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *se
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
+	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(envars, http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	// Add Swagger UI handler

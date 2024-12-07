@@ -56,3 +56,20 @@ func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 		w.Write(jsonResponse)
 	}
 }
+
+// swagger:route POST /users getallusers idOfgetAllUsersEndpoint
+// Returns all active users.
+//
+// security:
+// - bearer:
+// responses:
+//   200: GetAllUsersResponse
+
+func GetAllUsers(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+	}
+}

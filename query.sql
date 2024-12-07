@@ -133,3 +133,14 @@ WHERE id = $1;
 -- name: DeleteExpiredAuthTokens :exec
 DELETE FROM auth_tokens
 WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC';
+
+-- name: GetAllActiveUsers :many
+SELECT 	id,
+	username,
+	email,
+	"role",
+	created_at,
+	last_modified,
+	"enabled"
+FROM users
+where "enabled" is TRUE 
