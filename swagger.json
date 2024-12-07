@@ -118,6 +118,25 @@
           }
         }
       }
+    },
+    "/users": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "getallusers"
+        ],
+        "summary": "Returns all active users.",
+        "operationId": "idOfgetAllUsersEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllUsersResponse"
+          }
+        }
+      }
     }
   },
   "definitions": {

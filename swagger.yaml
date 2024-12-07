@@ -76,6 +76,17 @@ paths:
             summary: Refresh accessTokens andreturn to client.
             tags:
                 - tokenRefresh
+    /users:
+        post:
+            operationId: idOfgetAllUsersEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllUsersResponse'
+            security:
+                - bearer: []
+            summary: Returns all active users.
+            tags:
+                - getallusers
 definitions:
     CertDnsRenewReq:
         properties:
