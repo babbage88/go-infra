@@ -143,4 +143,4 @@ SELECT 	id,
 	last_modified,
 	"enabled"
 FROM users
-where "enabled" is TRUE 
+where "enabled" is TRUE;
