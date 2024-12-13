@@ -1,0 +1,7 @@
+{
+    "schemes": [
+      "https"
+    ],
+    "host": "infra.test.trahan.dev",
+    "swagger": "2.0"
+}

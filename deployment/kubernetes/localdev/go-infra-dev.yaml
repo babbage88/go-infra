@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-infra
+  template:
+    metadata:
+      labels:
+        app: go-infra
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - trah-dev-01.trahan.dev
+      containers:
+      - name: go-infra
+        #image: git.trahan.dev/jtrahan/goinfra:v1.0.3
+        image: docker.io/jtrahan88/goinfra-test:v1.0.8
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        command: [ "/app/server" ]
+        args: [ "--srvadr=:80" ]
+        volumeMounts:
+        - name: cf-token-ini
+          mountPath: "/run/secrets/cf_token.ini"
+          subPath: cf_token.ini
+        - name: k3s-env
+          mountPath: "/app/.env"
+          subPath: k3s.env
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+      volumes:
+      - name: cf-token-ini
+        secret:
+          secretName: cf-token-ini
+      - name: k3s-env
+        secret:
+          secretName: k3s-env
+      imagePullSecrets:
+      - name: regcred

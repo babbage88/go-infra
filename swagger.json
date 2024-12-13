@@ -6,7 +6,6 @@
     "application/json"
   ],
   "schemes": [
-    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -22,7 +21,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "10.0.0.64:8993",
+  "host": "infra.test.trahan.dev",
   "paths": {
     "/create/user": {
       "post": {
@@ -241,7 +240,7 @@
     "UserDao": {
       "description": "Respose will return login result and the user info.",
       "headers": {
-        "created_at": {
+        "createdAt": {
           "type": "string",
           "format": "date-time"
         },
@@ -251,10 +250,10 @@
         "enabled": {
           "type": "boolean"
         },
-        "is_deleted": {
+        "isDeleted": {
           "type": "boolean"
         },
-        "last_modified": {
+        "lastModified": {
           "type": "string",
           "format": "date-time"
         },

@@ -14,10 +14,10 @@ type UserDao struct {
 	UserName     string    `json:"username"`
 	Email        string    `json:"email"`
 	Role         string    `json:"role"`
-	CreatedAt    time.Time `json:"created_at"`
-	LastModified time.Time `json:"last_modified"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastModified time.Time `json:"lastModified"`
 	Enabled      bool      `json:"enabled"`
-	IsDeleted    bool      `json:"is_deleted"`
+	IsDeleted    bool      `json:"isDeleted"`
 }
 
 type AuthTokenDao struct {

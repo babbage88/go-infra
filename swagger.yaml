@@ -3,7 +3,6 @@ consumes:
 produces:
     - application/json
 schemes:
-    - http
     - https
 swagger: "2.0"
 info:
@@ -15,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
-host: 10.0.0.64:8993
+host: infra.test.trahan.dev
 paths:
     /create/user:
         post:
@@ -159,16 +158,16 @@ responses:
     UserDao:
         description: Respose will return login result and the user info.
         headers:
-            created_at:
+            createdAt:
                 format: date-time
                 type: string
             email:
                 type: string
             enabled:
                 type: boolean
-            is_deleted:
+            isDeleted:
                 type: boolean
-            last_modified:
+            lastModified:
                 format: date-time
                 type: string
             role:
