@@ -144,3 +144,36 @@ SELECT 	id,
 	"enabled"
 FROM users
 where "enabled" is TRUE;
+
+-- name: GetAllUserPermissions :many
+SELECT
+  "Permission",
+  "Username",
+  "UserId",
+  "PermissionId",
+  "Role",
+  "LastModified"
+FROM public.user_permissions_view
+ORDER BY "UserId" ASC;
+
+-- name: GetUserPermissionsById :many
+SELECT
+  "Permission",
+  "Username",
+  "UserId",
+  "PermissionId",
+  "Role",
+  "LastModified"
+FROM public.user_permissions_view
+WHERE "UserId" = $1;
+
+-- name: VerifyUserPermissionById :one
+SELECT
+  "Permission",
+  "Username",
+  "UserId",
+  "PermissionId",
+  "Role",
+  "LastModified"
+FROM public.user_permissions_view
+WHERE "UserId" = $1 and "Permission" = $2;
