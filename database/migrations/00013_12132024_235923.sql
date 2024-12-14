@@ -1,13 +1,12 @@
--- +goose Up
--- +goose StatementBegin
+-- +goose up
+-- +goose statementbegin
 DO $$
 DECLARE
     devuser_id INTEGER;
 BEGIN
     -- Find the user ID for the username "devuser"
--- +goose envsub on
-    SELECT id INTO devuser_id FROM public.users WHERE username = '$DEV_APP_USER';
--- +goose envsub off
+    SELECT id INTO devuser_id FROM public.users WHERE username = 'devuser';
+
 
     -- Ensure the user exists
     IF devuser_id IS NOT NULL THEN
@@ -16,22 +15,21 @@ BEGIN
         VALUES (devuser_id, 999)
         ON CONFLICT DO NOTHING;
     ELSE
--- +goose envsub on
-        RAISE NOTICE 'User "$DEV_APP_USER" not found. No mapping created.';
--- +goose envsub off
+
+        RAISE NOTICE 'No DEV_APP_USER found. Ensure correct env var is set. No mapping created.';
+
     END IF;
 END $$;
--- +goose StatementEnd
+-- +goose statementend
 
--- +goose Down
--- +goose StatementBegin
+-- +goose down
+-- +goose statementbegin
 DO $$
 BEGIN
     -- Remove the user_role_mapping for the user "devuser" and Admin role (role_id = 999)
     DELETE FROM public.user_role_mapping
--- +goose envsub on
-    WHERE user_id = (SELECT id FROM public.users WHERE username = '$DEV_APP_USER')
--- +goose envsub off
+
+    WHERE user_id = (SELECT id FROM public.users WHERE username = 'devuser')
       AND role_id = 999;
 END $$;
--- +goose StatementEnd
+-- +goose statementend
