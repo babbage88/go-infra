@@ -3,6 +3,7 @@ consumes:
 produces:
     - application/json
 schemes:
+    - http
     - https
 swagger: "2.0"
 info:
@@ -14,7 +15,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
-host: infra.test.trahan.dev
+host: 10.0.0.64:8993
 paths:
     /create/user:
         post:

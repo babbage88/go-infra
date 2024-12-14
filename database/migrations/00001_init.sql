@@ -189,7 +189,7 @@ ALTER TABLE ONLY public.users
 
 -- +goose StatementEnd
 
--- +goose statementbegin
+-- +goose StatementBegin
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -202,9 +202,9 @@ BEGIN
             ADD CONSTRAINT auth_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
     END IF;
 END $$;
--- +goose statementend
+-- +goose StatementEnd
 
--- +goose statementbegin
+-- +goose StatementBegin
 
 DO $$
 BEGIN
@@ -217,7 +217,7 @@ BEGIN
 -- +goose envsub off
     END IF;
 END $$;
--- +goose statementend
+-- +goose StatementEnd
 
 -- +goose StatementBegin
 -- +goose envsub on

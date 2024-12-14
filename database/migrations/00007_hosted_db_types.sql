@@ -22,7 +22,7 @@ ALTER TABLE ONLY public.hosted_db_platforms ALTER COLUMN id SET DEFAULT nextval(
 ALTER TABLE ONLY public.hosted_db_platforms ADD CONSTRAINT hosted_db_platforms_pkey PRIMARY KEY (id);
 -- +goose StatementEnd
 
--- +goose statementbegin
+-- +goose StatementBegin
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -35,14 +35,14 @@ BEGIN
             ADD CONSTRAINT user_hosted_db_platforms_id_fkey FOREIGN KEY (db_platform_id) REFERENCES public.hosted_db_platforms(id);
     END IF;
 END $$;
--- +goose statementend
+-- +goose StatementEnd
 
--- +goose statementBegin
+-- +goose StatementBegin
 INSERT INTO public.hosted_db_platforms(id, platform_name, default_listen_port) VALUES
 (1, 'postgresql', 5432),
 (2, 'sqlite', NULL),
 (3, 'mysql', 3306)
--- +goose statementEnd
+-- +goose StatementEnd
 
 
 -- +goose Down

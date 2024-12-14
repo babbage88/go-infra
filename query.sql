@@ -135,45 +135,78 @@ DELETE FROM auth_tokens
 WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC';
 
 -- name: GetAllActiveUsers :many
-SELECT 	id,
-	username,
-	email,
-	"role",
-	created_at,
-	last_modified,
-	"enabled"
-FROM users
-where "enabled" is TRUE;
-
--- name: GetAllUserPermissions :many
 SELECT
-  "Permission",
-  "Username",
-  "UserId",
-  "PermissionId",
-  "Role",
-  "LastModified"
-FROM public.user_permissions_view
-ORDER BY "UserId" ASC;
+    u.id AS "id",
+    u.username AS "username",
+    u.password AS "password",
+    u.email AS "email",
+    ur.role_name AS "role", -- Join the role_name from user_roles
+    u.created_at AS "created_at",
+    u.last_modified AS "last_modified",
+    u.enabled AS "enabled",
+    u.is_deleted AS "is_deleted"
+FROM "users" u
+LEFT JOIN "user_role_mapping" urm ON u.id = urm.user_id
+LEFT JOIN "user_roles" ur ON urm.role_id = ur.id;
 
--- name: GetUserPermissionsById :many
-SELECT
-  "Permission",
-  "Username",
-  "UserId",
-  "PermissionId",
-  "Role",
-  "LastModified"
-FROM public.user_permissions_view
-WHERE "UserId" = $1;
+---- name: GetAllUserPermissions :many
+--SELECT DISTINCT
+--  ap.id as "PermissionId",
+--  ap.permission_name as "Permission",
+--  u.username as "Username",
+--  u.id as "UserId",
+--  ur.role_name as "Role",
+--  urm.last_modified as "LastModified"
+--FROM
+--    public.user_role_mapping urm
+--LEFT JOIN
+--    user_roles ur on ur.id = urm.role_id
+--LEFT JOIN
+--    users u on u.id = urm.user_id
+--LEFT JOIN
+--    role_permission_mapping rpm on rpm.role_id = urm.role_id
+--LEFT JOIN
+--    app_permissions ap on ap.id = rpm.permission_id
+--ORDER BY u.id ASC;
+--
+---- name: GetUserPermissionsById :many
+--SELECT DISTINCT
+--  ap.id as "PermissionId",
+--  ap.permission_name as "Permission",
+--  u.username as "Username",
+--  u.id as "UserId",
+--  ur.role_name as "Role",
+--  urm.last_modified as "LastModified"
+--FROM
+--    public.user_role_mapping urm
+--LEFT JOIN
+--    user_roles ur on ur.id = urm.role_id
+--LEFT JOIN
+--    users u on u.id = urm.user_id
+--LEFT JOIN
+--    role_permission_mapping rpm on rpm.role_id = urm.role_id
+--LEFT JOIN
+--    app_permissions ap on ap.id = rpm.permission_id
+--WHERE u.id = $1;
+--
+---- -- name: VerifyUserPermissionById :one
+--SELECT DISTINCT
+--  u.id as "UserId",
+--  u.username as "Username",
+--  ap.id as "PermissionId",
+--  ap.permission_name as "Permission",
+--  ur.role_name as "Role",
+--  urm.last_modified as "LastModified"
+--FROM
+--    public.user_role_mapping urm
+--LEFT JOIN
+--    user_roles ur on ur.id = urm.role_id
+--LEFT JOIN
+--    users u on u.id = urm.user_id
+--LEFT JOIN
+--    role_permission_mapping rpm on rpm.role_id = urm.role_id
+--LEFT JOIN
+--    app_permissions ap on ap.id = rpm.permission_id
+--WHERE u.id = $1 and ap.permission_name = $2;
 
--- name: VerifyUserPermissionById :one
-SELECT
-  "Permission",
-  "Username",
-  "UserId",
-  "PermissionId",
-  "Role",
-  "LastModified"
-FROM public.user_permissions_view
-WHERE "UserId" = $1 and "Permission" = $2;
+

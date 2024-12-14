@@ -6,6 +6,7 @@
     "application/json"
   ],
   "schemes": [
+    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -21,7 +22,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "infra.test.trahan.dev",
+  "host": "10.0.0.64:8993",
   "paths": {
     "/create/user": {
       "post": {

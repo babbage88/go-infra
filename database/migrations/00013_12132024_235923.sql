@@ -1,5 +1,5 @@
--- +goose up
--- +goose statementbegin
+-- +goose Up
+-- +goose StatementBegin
 DO $$
 DECLARE
     devuser_id INTEGER;
@@ -20,10 +20,10 @@ BEGIN
 
     END IF;
 END $$;
--- +goose statementend
+-- +goose StatementEnd
 
--- +goose down
--- +goose statementbegin
+-- +goose Down
+-- +goose StatementBegin
 DO $$
 BEGIN
     -- Remove the user_role_mapping for the user "devuser" and Admin role (role_id = 999)
@@ -32,4 +32,4 @@ BEGIN
     WHERE user_id = (SELECT id FROM public.users WHERE username = 'devuser')
       AND role_id = 999;
 END $$;
--- +goose statementend
+-- +goose StatementEnd

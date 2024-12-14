@@ -10,6 +10,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AppPermission struct {
+	ID                    int32
+	PermissionName        string
+	PermissionDescription pgtype.Text
+}
+
 type AuthToken struct {
 	ID           int32
 	UserID       pgtype.Int4
@@ -56,6 +62,15 @@ type HostedDbPlatform struct {
 	DefaultListenPort pgtype.Int4
 }
 
+type RolePermissionMapping struct {
+	ID           int32
+	RoleID       int32
+	PermissionID int32
+	Enabled      bool
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
 type User struct {
 	ID           int32
 	Username     pgtype.Text
@@ -100,6 +115,24 @@ type UserHostedK8 struct {
 	PrivateIpAddress     *netip.Addr
 	CreatedAt            pgtype.Timestamptz
 	LastModified         pgtype.Timestamptz
+}
+
+type UserRole struct {
+	ID              int32
+	RoleName        string
+	RoleDescription pgtype.Text
+	Expiration      pgtype.Timestamp
+	CreatedAt       pgtype.Timestamptz
+	LastModified    pgtype.Timestamptz
+}
+
+type UserRoleMapping struct {
+	ID           int32
+	UserID       int32
+	RoleID       int32
+	Enabled      bool
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
 }
 
 type UsersAudit struct {
