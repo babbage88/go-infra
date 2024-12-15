@@ -174,7 +174,7 @@ type UsersWithRole struct {
 	Username     pgtype.Text
 	Password     pgtype.Text
 	Email        pgtype.Text
-	Role         pgtype.Text
+	Role         string
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	Enabled      bool

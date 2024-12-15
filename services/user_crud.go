@@ -124,7 +124,7 @@ func (us *UserCRUDService) GetAllActiveUsersDao() ([]UserDao, error) {
 			Id:           row.ID,
 			UserName:     row.Username.String,
 			Email:        row.Email.String,
-			Role:         row.Role.String,
+			Role:         row.Role,
 			CreatedAt:    row.CreatedAt.Time,
 			LastModified: row.LastModified.Time,
 			Enabled:      row.Enabled,

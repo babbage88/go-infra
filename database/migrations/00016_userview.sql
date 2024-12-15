@@ -7,15 +7,15 @@ SELECT
     u.username AS "username",
     u.password AS "password",
     u.email AS "email",
-    ur.role_name AS "role", -- Join the role_name from user_roles
+    COALESCE(ur.role_name, 'None') AS "role",
     u.created_at AS "created_at",
     u.last_modified AS "last_modified",
     u.enabled AS "enabled",
     u.is_deleted AS "is_deleted"
 FROM public.users u
-LEFT JOIN public.user_role_mapping urm ON u.id = urm.user_id  AND urm.enabled = TRUE
+LEFT JOIN public.user_role_mapping urm ON u.id = urm.user_id AND urm.enabled = TRUE
 LEFT JOIN public.user_roles ur ON urm.role_id = ur.id
-WHERE u.enabled = TRUE ;
+WHERE u.enabled = TRUE;
 -- +goose StatementEnd
 
 -- +goose Down
