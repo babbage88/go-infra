@@ -112,6 +112,63 @@ func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams
 	return i, err
 }
 
+const disableUserRoleMappingById = `-- name: DisableUserRoleMappingById :one
+UPDATE
+  public.user_role_mapping
+SET
+  enabled = FALSE
+WHERE user_id = $1 AND role_id = $2
+RETURNING id, user_id, role_id, enabled, created_at, last_modified
+`
+
+type DisableUserRoleMappingByIdParams struct {
+	UserID int32
+	RoleID int32
+}
+
+func (q *Queries) DisableUserRoleMappingById(ctx context.Context, arg DisableUserRoleMappingByIdParams) (UserRoleMapping, error) {
+	row := q.db.QueryRow(ctx, disableUserRoleMappingById, arg.UserID, arg.RoleID)
+	var i UserRoleMapping
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.RoleID,
+		&i.Enabled,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const enableUserById = `-- name: EnableUserById :one
+UPDATE users
+  set "enabled" = $2
+WHERE id = $1
+RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+`
+
+type EnableUserByIdParams struct {
+	ID      int32
+	Enabled bool
+}
+
+func (q *Queries) EnableUserById(ctx context.Context, arg EnableUserByIdParams) (User, error) {
+	row := q.db.QueryRow(ctx, enableUserById, arg.ID, arg.Enabled)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
 const getAllActiveUsers = `-- name: GetAllActiveUsers :many
 SELECT
     "id",
@@ -562,35 +619,6 @@ type UpdateUserPasswordByIdParams struct {
 func (q *Queries) UpdateUserPasswordById(ctx context.Context, arg UpdateUserPasswordByIdParams) error {
 	_, err := q.db.Exec(ctx, updateUserPasswordById, arg.ID, arg.Password)
 	return err
-}
-
-const updateUserRoleById = `-- name: UpdateUserRoleById :one
-UPDATE users
-  set email = $2
-WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
-`
-
-type UpdateUserRoleByIdParams struct {
-	ID    int32
-	Email pgtype.Text
-}
-
-func (q *Queries) UpdateUserRoleById(ctx context.Context, arg UpdateUserRoleByIdParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserRoleById, arg.ID, arg.Email)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Password,
-		&i.Email,
-		&i.Role,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Enabled,
-		&i.IsDeleted,
-	)
-	return i, err
 }
 
 const verifyUserPermissionById = `-- name: VerifyUserPermissionById :one

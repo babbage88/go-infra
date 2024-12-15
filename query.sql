@@ -59,12 +59,6 @@ UPDATE users
 WHERE id = $1
 RETURNING *;
 
--- name: UpdateUserRoleById :one
-UPDATE users
-  set email = $2
-WHERE id = $1
-RETURNING *;
-
 -- name: DeleteUserById :exec
 DELETE FROM users
 WHERE id = $1;
@@ -76,6 +70,12 @@ WHERE id = $1
 RETURNING *;
 
 -- name: DisableUserById :one
+UPDATE users
+  set "enabled" = $2
+WHERE id = $1
+RETURNING *;
+
+-- name: EnableUserById :one
 UPDATE users
   set "enabled" = $2
 WHERE id = $1
@@ -193,5 +193,12 @@ DO UPDATE SET enabled = TRUE
 RETURNING *;
 
 -- name: DisableUserRoleMappingById :one
+UPDATE
+  public.user_role_mapping
+SET
+  enabled = FALSE
+WHERE user_id = $1 AND role_id = $2
+RETURNING *;
+
 
 
