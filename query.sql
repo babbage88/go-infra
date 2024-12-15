@@ -145,9 +145,10 @@ SELECT
     u.last_modified AS "last_modified",
     u.enabled AS "enabled",
     u.is_deleted AS "is_deleted"
-FROM "users" u
-LEFT JOIN "user_role_mapping" urm ON u.id = urm.user_id
-LEFT JOIN "user_roles" ur ON urm.role_id = ur.id;
+FROM public.users u
+LEFT JOIN public.user_role_mapping urm ON u.id = urm.user_id  AND urm.enabled = TRUE
+LEFT JOIN public.user_roles ur ON urm.role_id = ur.id
+WHERE u.enabled = TRUE ;
 
 ---- name: GetAllUserPermissions :many
 SELECT
@@ -174,14 +175,26 @@ FROM
 WHERE "UserId" = $1;
 --
 -- name: VerifyUserPermissionById :one
-SELECT
-  "UserId",
-  "Username",
-  "PermissionId",
-  "Permission",
-  "Role",
-  "LastModified"
-FROM
-    public.user_permissions_view upv
-WHERE "UserId" = $1 and "Permission" = $2;
+SELECT EXISTS (
+  SELECT
+    "UserId",
+    "Username",
+    "PermissionId",
+    "Permission",
+    "Role",
+    "LastModified"
+  FROM
+      public.user_permissions_view upv
+  WHERE "UserId" = $1 and "Permission" = $2
+);
+
+-- name: InsertOrUpdateUserRoleMappingById :one
+INSERT INTO public.user_role_mapping(user_id, role_id, enabled)
+VALUES ($1, $2, TRUE)
+ON CONFLICT (user_id, role_id)
+DO UPDATE SET enabled = TRUE
+RETURNING *;
+
+-- name: DisableUserRoleMappingById :one
+
 

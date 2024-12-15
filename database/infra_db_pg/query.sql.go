@@ -123,9 +123,10 @@ SELECT
     u.last_modified AS "last_modified",
     u.enabled AS "enabled",
     u.is_deleted AS "is_deleted"
-FROM "users" u
-LEFT JOIN "user_role_mapping" urm ON u.id = urm.user_id
-LEFT JOIN "user_roles" ur ON urm.role_id = ur.id
+FROM public.users u
+LEFT JOIN public.user_role_mapping urm ON u.id = urm.user_id  AND urm.enabled = TRUE
+LEFT JOIN public.user_roles ur ON urm.role_id = ur.id
+WHERE u.enabled = TRUE
 `
 
 type GetAllActiveUsersRow struct {
@@ -418,6 +419,33 @@ func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerPara
 	return i, err
 }
 
+const insertOrUpdateUserRoleMappingById = `-- name: InsertOrUpdateUserRoleMappingById :one
+INSERT INTO public.user_role_mapping(user_id, role_id, enabled)
+VALUES ($1, $2, TRUE)
+ON CONFLICT (user_id, role_id)
+DO UPDATE SET enabled = TRUE
+RETURNING id, user_id, role_id, enabled, created_at, last_modified
+`
+
+type InsertOrUpdateUserRoleMappingByIdParams struct {
+	UserID int32
+	RoleID int32
+}
+
+func (q *Queries) InsertOrUpdateUserRoleMappingById(ctx context.Context, arg InsertOrUpdateUserRoleMappingByIdParams) (UserRoleMapping, error) {
+	row := q.db.QueryRow(ctx, insertOrUpdateUserRoleMappingById, arg.UserID, arg.RoleID)
+	var i UserRoleMapping
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.RoleID,
+		&i.Enabled,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const insertUserHostedDb = `-- name: InsertUserHostedDb :one
 INSERT INTO public.user_hosted_db (
   price_tier_code_id,
@@ -581,16 +609,18 @@ func (q *Queries) UpdateUserRoleById(ctx context.Context, arg UpdateUserRoleById
 }
 
 const verifyUserPermissionById = `-- name: VerifyUserPermissionById :one
-SELECT
-  "UserId",
-  "Username",
-  "PermissionId",
-  "Permission",
-  "Role",
-  "LastModified"
-FROM
-    public.user_permissions_view upv
-WHERE "UserId" = $1 and "Permission" = $2
+SELECT EXISTS (
+  SELECT
+    "UserId",
+    "Username",
+    "PermissionId",
+    "Permission",
+    "Role",
+    "LastModified"
+  FROM
+      public.user_permissions_view upv
+  WHERE "UserId" = $1 and "Permission" = $2
+)
 `
 
 type VerifyUserPermissionByIdParams struct {
@@ -598,16 +628,9 @@ type VerifyUserPermissionByIdParams struct {
 	Permission pgtype.Text
 }
 
-func (q *Queries) VerifyUserPermissionById(ctx context.Context, arg VerifyUserPermissionByIdParams) (UserPermissionsView, error) {
+func (q *Queries) VerifyUserPermissionById(ctx context.Context, arg VerifyUserPermissionByIdParams) (bool, error) {
 	row := q.db.QueryRow(ctx, verifyUserPermissionById, arg.UserId, arg.Permission)
-	var i UserPermissionsView
-	err := row.Scan(
-		&i.UserId,
-		&i.Username,
-		&i.PermissionId,
-		&i.Permission,
-		&i.Role,
-		&i.LastModified,
-	)
-	return i, err
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

@@ -13,8 +13,9 @@ SELECT
     u.enabled AS "enabled",
     u.is_deleted AS "is_deleted"
 FROM public.users u
-LEFT JOIN public.user_role_mapping urm ON u.id = urm.user_id
-LEFT JOIN public.user_roles ur ON urm.role_id = ur.id;
+LEFT JOIN public.user_role_mapping urm ON u.id = urm.user_id  AND urm.enabled = TRUE
+LEFT JOIN public.user_roles ur ON urm.role_id = ur.id
+WHERE u.enabled = TRUE ;
 -- +goose StatementEnd
 
 -- +goose Down
