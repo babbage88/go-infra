@@ -71,6 +71,14 @@ type RolePermissionMapping struct {
 	LastModified pgtype.Timestamptz
 }
 
+type RolePermissionsView struct {
+	RoleId       int32
+	Role         string
+	PermissionId pgtype.Int4
+	MappingId    pgtype.Int4
+	Permission   pgtype.Text
+}
+
 type User struct {
 	ID           int32
 	Username     pgtype.Text
@@ -117,6 +125,15 @@ type UserHostedK8 struct {
 	LastModified         pgtype.Timestamptz
 }
 
+type UserPermissionsView struct {
+	UserId       pgtype.Int4
+	Username     pgtype.Text
+	PermissionId pgtype.Int4
+	Permission   pgtype.Text
+	Role         pgtype.Text
+	LastModified pgtype.Timestamptz
+}
+
 type UserRole struct {
 	ID              int32
 	RoleName        string
@@ -135,6 +152,14 @@ type UserRoleMapping struct {
 	LastModified pgtype.Timestamptz
 }
 
+type UserRolesView struct {
+	UserId       pgtype.Int4
+	Username     pgtype.Text
+	RoleId       pgtype.Int4
+	Role         pgtype.Text
+	LastModified pgtype.Timestamptz
+}
+
 type UsersAudit struct {
 	AuditID   int32
 	UserID    pgtype.Int4
@@ -142,4 +167,16 @@ type UsersAudit struct {
 	Email     pgtype.Text
 	DeletedAt pgtype.Timestamptz
 	DeletedBy pgtype.Text
+}
+
+type UsersWithRole struct {
+	ID           int32
+	Username     pgtype.Text
+	Password     pgtype.Text
+	Email        pgtype.Text
+	Role         pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	Enabled      bool
+	IsDeleted    bool
 }

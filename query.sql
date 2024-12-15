@@ -150,63 +150,38 @@ LEFT JOIN "user_role_mapping" urm ON u.id = urm.user_id
 LEFT JOIN "user_roles" ur ON urm.role_id = ur.id;
 
 ---- name: GetAllUserPermissions :many
---SELECT DISTINCT
---  ap.id as "PermissionId",
---  ap.permission_name as "Permission",
---  u.username as "Username",
---  u.id as "UserId",
---  ur.role_name as "Role",
---  urm.last_modified as "LastModified"
---FROM
---    public.user_role_mapping urm
---LEFT JOIN
---    user_roles ur on ur.id = urm.role_id
---LEFT JOIN
---    users u on u.id = urm.user_id
---LEFT JOIN
---    role_permission_mapping rpm on rpm.role_id = urm.role_id
---LEFT JOIN
---    app_permissions ap on ap.id = rpm.permission_id
---ORDER BY u.id ASC;
---
----- name: GetUserPermissionsById :many
---SELECT DISTINCT
---  ap.id as "PermissionId",
---  ap.permission_name as "Permission",
---  u.username as "Username",
---  u.id as "UserId",
---  ur.role_name as "Role",
---  urm.last_modified as "LastModified"
---FROM
---    public.user_role_mapping urm
---LEFT JOIN
---    user_roles ur on ur.id = urm.role_id
---LEFT JOIN
---    users u on u.id = urm.user_id
---LEFT JOIN
---    role_permission_mapping rpm on rpm.role_id = urm.role_id
---LEFT JOIN
---    app_permissions ap on ap.id = rpm.permission_id
---WHERE u.id = $1;
---
----- -- name: VerifyUserPermissionById :one
---SELECT DISTINCT
---  u.id as "UserId",
---  u.username as "Username",
---  ap.id as "PermissionId",
---  ap.permission_name as "Permission",
---  ur.role_name as "Role",
---  urm.last_modified as "LastModified"
---FROM
---    public.user_role_mapping urm
---LEFT JOIN
---    user_roles ur on ur.id = urm.role_id
---LEFT JOIN
---    users u on u.id = urm.user_id
---LEFT JOIN
---    role_permission_mapping rpm on rpm.role_id = urm.role_id
---LEFT JOIN
---    app_permissions ap on ap.id = rpm.permission_id
---WHERE u.id = $1 and ap.permission_name = $2;
+SELECT
+  "UserId",
+  "Username",
+  "PermissionId",
+  "Permission",
+  "Role",
+  "LastModified"
+FROM
+    public.user_permissions_view upv
+ORDER BY "UserId" ASC;
 
+-- name: GetUserPermissionsById :many
+SELECT
+  "UserId",
+  "Username",
+  "PermissionId",
+  "Permission",
+  "Role",
+  "LastModified"
+FROM
+    public.user_permissions_view upv
+WHERE "UserId" = $1;
+--
+-- name: VerifyUserPermissionById :one
+SELECT
+  "UserId",
+  "Username",
+  "PermissionId",
+  "Permission",
+  "Role",
+  "LastModified"
+FROM
+    public.user_permissions_view upv
+WHERE "UserId" = $1 and "Permission" = $2;
 

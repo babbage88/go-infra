@@ -298,6 +298,46 @@ func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUs
 	return i, err
 }
 
+const getUserPermissionsById = `-- name: GetUserPermissionsById :many
+SELECT
+  "UserId",
+  "Username",
+  "PermissionId",
+  "Permission",
+  "Role",
+  "LastModified"
+FROM
+    public.user_permissions_view upv
+WHERE "UserId" = $1
+`
+
+func (q *Queries) GetUserPermissionsById(ctx context.Context, userid pgtype.Int4) ([]UserPermissionsView, error) {
+	rows, err := q.db.Query(ctx, getUserPermissionsById, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserPermissionsView
+	for rows.Next() {
+		var i UserPermissionsView
+		if err := rows.Scan(
+			&i.UserId,
+			&i.Username,
+			&i.PermissionId,
+			&i.Permission,
+			&i.Role,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insertAuthToken = `-- name: InsertAuthToken :exec
 INSERT INTO auth_tokens (user_id, token, expiration)
 VALUES ($1, $2, $3)
@@ -536,6 +576,38 @@ func (q *Queries) UpdateUserRoleById(ctx context.Context, arg UpdateUserRoleById
 		&i.LastModified,
 		&i.Enabled,
 		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const verifyUserPermissionById = `-- name: VerifyUserPermissionById :one
+SELECT
+  "UserId",
+  "Username",
+  "PermissionId",
+  "Permission",
+  "Role",
+  "LastModified"
+FROM
+    public.user_permissions_view upv
+WHERE "UserId" = $1 and "Permission" = $2
+`
+
+type VerifyUserPermissionByIdParams struct {
+	UserId     pgtype.Int4
+	Permission pgtype.Text
+}
+
+func (q *Queries) VerifyUserPermissionById(ctx context.Context, arg VerifyUserPermissionByIdParams) (UserPermissionsView, error) {
+	row := q.db.QueryRow(ctx, verifyUserPermissionById, arg.UserId, arg.Permission)
+	var i UserPermissionsView
+	err := row.Scan(
+		&i.UserId,
+		&i.Username,
+		&i.PermissionId,
+		&i.Permission,
+		&i.Role,
+		&i.LastModified,
 	)
 	return i, err
 }
