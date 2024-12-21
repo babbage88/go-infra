@@ -129,3 +129,91 @@ func GetAllUsers(uc_service *services.UserCRUDService) func(w http.ResponseWrite
 		w.Write(jsonResponse)
 	}
 }
+
+// swagger:route POST /user/enable enableUser idOfEnableUser
+// Enable specified target User Id.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: EnableDisableUserResponse
+func EnableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request EnableUserRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		modifiedUserInfo := &services.UserDao{Id: request.TargetUserId}
+		response := EnableDisableUserResponse{
+			ModifiedUserInfo: modifiedUserInfo,
+			Error:            err,
+		}
+
+		response.ModifiedUserInfo, response.Error = uc_service.EnableUserById(request.ExecutionUserId, request.TargetUserId)
+		if response.Error != nil {
+			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /user/disable disableUser idOfDisableUser
+// Disable specified target User Id.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: EnableDisableUserResponse
+func DisableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request DisableUserRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		modifiedUserInfo := &services.UserDao{Id: request.TargetUserId}
+		response := EnableDisableUserResponse{
+			ModifiedUserInfo: modifiedUserInfo,
+			Error:            err,
+		}
+
+		response.ModifiedUserInfo, response.Error = uc_service.DisableUserById(request.ExecutionUserId, request.TargetUserId)
+		if response.Error != nil {
+			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}

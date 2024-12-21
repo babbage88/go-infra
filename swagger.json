@@ -148,6 +148,64 @@
         }
       }
     },
+    "/user/disable": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "disableUser"
+        ],
+        "summary": "Disable specified target User Id.",
+        "operationId": "idOfDisableUser",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/DisableUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/EnableDisableUserResponse"
+          }
+        }
+      }
+    },
+    "/user/enable": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "enableUser"
+        ],
+        "summary": "Enable specified target User Id.",
+        "operationId": "idOfEnableUser",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/EnableUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/EnableDisableUserResponse"
+          }
+        }
+      }
+    },
     "/users": {
       "post": {
         "security": [
@@ -209,6 +267,38 @@
         "newUsername": {
           "type": "string",
           "x-go-name": "NewUsername"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "DisableUserRequest": {
+      "type": "object",
+      "properties": {
+        "executionUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "ExecutionUserId"
+        },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "EnableUserRequest": {
+      "type": "object",
+      "properties": {
+        "executionUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "ExecutionUserId"
+        },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"

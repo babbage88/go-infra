@@ -27,6 +27,8 @@ type UserCRUD interface {
 	InsertAuthToken(token AuthTokenDao)
 	VerifyAlterUser(executionUserId int32) (bool, error)
 	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
+	EnableUserById(execUserId int32, targetUserId int32) (UserDao, error)
+	DisableUserById(execUserId int32, targetUserId int32) (UserDao, error)
 }
 
 func (us *UserCRUDService) UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error {
@@ -174,4 +176,34 @@ func (us *UserCRUDService) GetAllActiveUsersDao() ([]UserDao, error) {
 	}
 
 	return userDaos, nil
+}
+
+func (us *UserCRUDService) EnableUserById(execUserId int32, targetUserId int32) (*UserDao, error) {
+	user := &UserDao{Id: targetUserId}
+
+	params := infra_db_pg.EnableUserByIdParams{ID: targetUserId, Enabled: true}
+	queries := infra_db_pg.New(us.DbConn)
+	rows, err := queries.EnableUserById(context.Background(), params)
+	if err != nil {
+		user.ParseUserFromDb(rows)
+		slog.Error("error enabling user", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+		return user, err
+	}
+	user.ParseUserFromDb(rows)
+	return user, err
+}
+
+func (us *UserCRUDService) DisableUserById(execUserId int32, targetUserId int32) (*UserDao, error) {
+	user := &UserDao{Id: targetUserId}
+
+	params := infra_db_pg.DisableUserByIdParams{ID: targetUserId, Enabled: false}
+	queries := infra_db_pg.New(us.DbConn)
+	rows, err := queries.DisableUserById(context.Background(), params)
+	if err != nil {
+		user.ParseUserFromDb(rows)
+		slog.Error("error enabling user", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+		return user, err
+	}
+	user.ParseUserFromDb(rows)
+	return user, err
 }

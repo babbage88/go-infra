@@ -93,6 +93,40 @@ paths:
             summary: Update user password.
             tags:
                 - updateUserPw
+    /user/disable:
+        post:
+            operationId: idOfDisableUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/DisableUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            summary: Disable specified target User Id.
+            tags:
+                - disableUser
+    /user/enable:
+        post:
+            operationId: idOfEnableUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/EnableUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            summary: Enable specified target User Id.
+            tags:
+                - enableUser
     /users:
         post:
             operationId: idOfgetAllUsersEndpoint
@@ -135,6 +169,30 @@ definitions:
             newUsername:
                 type: string
                 x-go-name: NewUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    DisableUserRequest:
+        properties:
+            executionUserId:
+                format: int32
+                type: integer
+                x-go-name: ExecutionUserId
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    EnableUserRequest:
+        properties:
+            executionUserId:
+                format: int32
+                type: integer
+                x-go-name: ExecutionUserId
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UpdateUserPasswordRequest:

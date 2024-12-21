@@ -40,3 +40,32 @@ type UserPasswordUpdateResponse struct {
 	Error        error `json:"error"`
 	TargetUserId int32 `json:"targetUserId"`
 }
+
+// User Id of the executing and target users
+// swagger:parameters idOfEnableUser
+type EnableUserRequestWrapper struct {
+	//in:body
+	Body EnableUserRequest `json:"body"`
+}
+
+// User Id of the executing and target users
+// swagger:parameters idOfDisableUser
+type DisableUserRequestWrapper struct {
+	//in:body
+	Body DisableUserRequest `json:"body"`
+}
+
+type DisableUserRequest struct {
+	ExecutionUserId int32 `json:"executionUserId"`
+	TargetUserId    int32 `json:"targetUserId"`
+}
+
+type EnableUserRequest struct {
+	ExecutionUserId int32 `json:"executionUserId"`
+	TargetUserId    int32 `json:"targetUserId"`
+}
+
+type EnableDisableUserResponse struct {
+	ModifiedUserInfo *services.UserDao `json:"modifiedUserInfo"`
+	Error            error             `json:"error"`
+}
