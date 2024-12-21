@@ -80,10 +80,10 @@ func UpdateUserPassword(uc_service *services.UserCRUDService) func(w http.Respon
 		response := UserPasswordUpdateResponse{
 			TargetUserId: request.TargetUserId,
 		}
-		response.Error = uc_service.UpdateUserPasswordWithAuth(request.ExecutionUserId, request.TargetUserId, request.NewPassword)
+		response.Error = uc_service.UpdateUserPasswordById(request.ExecutionUserId, request.TargetUserId, request.NewPassword)
 		if response.Error != nil {
 			response.Success = false
-			http.Error(w, "Error updating user password "+err.Error(), http.StatusUnauthorized)
+			http.Error(w, "error updating user password "+err.Error(), http.StatusUnauthorized)
 			return
 		}
 		response.Success = true

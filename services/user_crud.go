@@ -22,10 +22,20 @@ type UserCRUD interface {
 	GetUserByName(username string) (UserDao, error)
 	GetUserById(id int32) (UserDao, error)
 	updateUserPasswordById(id int32, password string) error
+	UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error
 	UpdateUserEmailById(id int32, email string)
 	InsertAuthToken(token AuthTokenDao)
 	VerifyAlterUser(executionUserId int32) (bool, error)
 	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
+}
+
+func (us *UserCRUDService) UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error {
+	slog.Info("attempting updating user password", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+	err := us.updateUserPasswordById(targetUserId, newPassword)
+	if err != nil {
+		slog.Error("error when attempting to update password", slog.String("error", err.Error()))
+	}
+	return err
 }
 
 func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error {
