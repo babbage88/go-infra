@@ -83,7 +83,7 @@ func (us *UserCRUDService) GetUserByName(username string) (*UserDao, error) {
 		slog.Error("Eroor running query for username %s", username, err)
 		return user, err
 	}
-	user.ParseUserFromDb(dbuser)
+	user.ParseUserWithRoleFromDb(dbuser)
 	return user, nil
 }
 
@@ -107,7 +107,7 @@ func (us *UserCRUDService) GetUserById(id int32) (*UserDao, error) {
 		slog.Error("Error running query for username %d", slog.String("ID", fmt.Sprintf("%d", id)), slog.String("Error", fmt.Sprintf("%s", err)))
 		return user, err
 	}
-	user.ParseUserFromDb(dbuser)
+	user.ParseUserWithRoleFromDb(dbuser)
 	return user, nil
 }
 

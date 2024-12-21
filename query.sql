@@ -11,34 +11,34 @@ RETURNING *;
 
 -- name: GetUserById :one
 SELECT
-	id,
-	username,
-	"password",
-	email,
-	"role",
-	created_at,
-	last_modified,
-	"enabled",
-	is_deleted
-FROM public.users
-WHERE id = $1;
+    "id",
+    "username",
+    "password",
+    "email",
+    "role",
+    "created_at",
+    "last_modified",
+    "enabled",
+    "is_deleted"
+FROM public.users_with_roles uwr
+WHERE "id" = $1;
 
 -- name: GetUserByName :one
 SELECT
-	id,
-	username,
-	"password",
-	email,
-	"role",
-	created_at,
-	last_modified,
-	"enabled",
-	is_deleted
-FROM public.users
+    "id",
+    "username",
+    "password",
+    "email",
+    "role",
+    "created_at",
+    "last_modified",
+    "enabled",
+    "is_deleted"
+FROM public.users_with_roles uwr
 WHERE username = $1;
 
 -- name: GetUserLogin :one
-SELECT id, username, "password" , email, "enabled", "role" FROM public.users
+SELECT id, username, "password" , email, "enabled", "role" FROM public.users_with_roles uwr
 WHERE username = $1
 LIMIT 1;
 

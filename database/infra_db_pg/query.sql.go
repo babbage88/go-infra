@@ -236,22 +236,22 @@ func (q *Queries) GetAuthTokenFromDb(ctx context.Context, id int32) (AuthToken, 
 
 const getUserById = `-- name: GetUserById :one
 SELECT
-	id,
-	username,
-	"password",
-	email,
-	"role",
-	created_at,
-	last_modified,
-	"enabled",
-	is_deleted
-FROM public.users
-WHERE id = $1
+    "id",
+    "username",
+    "password",
+    "email",
+    "role",
+    "created_at",
+    "last_modified",
+    "enabled",
+    "is_deleted"
+FROM public.users_with_roles uwr
+WHERE "id" = $1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
+func (q *Queries) GetUserById(ctx context.Context, id int32) (UsersWithRole, error) {
 	row := q.db.QueryRow(ctx, getUserById, id)
-	var i User
+	var i UsersWithRole
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
@@ -268,22 +268,22 @@ func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
 
 const getUserByName = `-- name: GetUserByName :one
 SELECT
-	id,
-	username,
-	"password",
-	email,
-	"role",
-	created_at,
-	last_modified,
-	"enabled",
-	is_deleted
-FROM public.users
+    "id",
+    "username",
+    "password",
+    "email",
+    "role",
+    "created_at",
+    "last_modified",
+    "enabled",
+    "is_deleted"
+FROM public.users_with_roles uwr
 WHERE username = $1
 `
 
-func (q *Queries) GetUserByName(ctx context.Context, username pgtype.Text) (User, error) {
+func (q *Queries) GetUserByName(ctx context.Context, username pgtype.Text) (UsersWithRole, error) {
 	row := q.db.QueryRow(ctx, getUserByName, username)
-	var i User
+	var i UsersWithRole
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
@@ -313,7 +313,7 @@ func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (in
 }
 
 const getUserLogin = `-- name: GetUserLogin :one
-SELECT id, username, "password" , email, "enabled", "role" FROM public.users
+SELECT id, username, "password" , email, "enabled", "role" FROM public.users_with_roles uwr
 WHERE username = $1
 LIMIT 1
 `
@@ -324,7 +324,7 @@ type GetUserLoginRow struct {
 	Password pgtype.Text
 	Email    pgtype.Text
 	Enabled  bool
-	Role     pgtype.Text
+	Role     string
 }
 
 func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUserLoginRow, error) {
