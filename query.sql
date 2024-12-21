@@ -2,10 +2,9 @@
 INSERT INTO users (
     username,
     password,
-    email,
-    role
+    email
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3
 )
 RETURNING *;
 
@@ -16,6 +15,7 @@ SELECT
     "password",
     "email",
     "role",
+    "role_id",
     "created_at",
     "last_modified",
     "enabled",
@@ -30,6 +30,7 @@ SELECT
     "password",
     "email",
     "role",
+    "role_id",
     "created_at",
     "last_modified",
     "enabled",
@@ -38,7 +39,7 @@ FROM public.users_with_roles uwr
 WHERE username = $1;
 
 -- name: GetUserLogin :one
-SELECT id, username, "password" , email, "enabled", "role" FROM public.users_with_roles uwr
+SELECT id, username, "password" , email, "enabled", "role", "role_id" FROM public.users_with_roles uwr
 WHERE username = $1
 LIMIT 1;
 
@@ -141,6 +142,7 @@ SELECT
     "password",
      "email",
     "role",
+    "role_id",
     "created_at",
     "last_modified",
     "enabled",
@@ -199,6 +201,13 @@ SET
   enabled = FALSE
 WHERE user_id = $1 AND role_id = $2
 RETURNING *;
+
+-- name: GetRoleIdByName :one
+SELECT
+  "id" AS "RoleId"
+FROM
+  public. public.user_roles
+WHERE "role_name" = $1;
 
 
 

@@ -17,6 +17,7 @@ func (u *UserDao) ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow) {
 	u.Email = dbRow.Email.String
 	u.Enabled = dbRow.Enabled
 	u.Role = dbRow.Role
+	u.RoleId = dbRow.RoleID
 
 }
 
@@ -24,7 +25,6 @@ func (u *UserDao) ParseUserFromDb(dbuser infra_db_pg.User) {
 	u.Id = dbuser.ID
 	u.UserName = dbuser.Username.String
 	u.Email = dbuser.Email.String
-	u.Role = dbuser.Role.String
 	u.CreatedAt = dbuser.CreatedAt.Time
 	u.LastModified = dbuser.LastModified.Time
 	u.Enabled = dbuser.Enabled
@@ -36,6 +36,7 @@ func (u *UserDao) ParseUserWithRoleFromDb(dbuser infra_db_pg.UsersWithRole) {
 	u.UserName = dbuser.Username.String
 	u.Email = dbuser.Email.String
 	u.Role = dbuser.Role
+	u.RoleId = dbuser.RoleID
 	u.CreatedAt = dbuser.CreatedAt.Time
 	u.LastModified = dbuser.LastModified.Time
 	u.Enabled = dbuser.Enabled

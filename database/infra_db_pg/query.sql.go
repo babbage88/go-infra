@@ -16,35 +16,27 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username,
     password,
-    email,
-    role
+    email
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3
 )
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+RETURNING id, username, password, email, created_at, last_modified, enabled, is_deleted
 `
 
 type CreateUserParams struct {
 	Username pgtype.Text
 	Password pgtype.Text
 	Email    pgtype.Text
-	Role     pgtype.Text
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser,
-		arg.Username,
-		arg.Password,
-		arg.Email,
-		arg.Role,
-	)
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Password, arg.Email)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -87,7 +79,7 @@ const disableUserById = `-- name: DisableUserById :one
 UPDATE users
   set "enabled" = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+RETURNING id, username, password, email, created_at, last_modified, enabled, is_deleted
 `
 
 type DisableUserByIdParams struct {
@@ -103,7 +95,6 @@ func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -144,7 +135,7 @@ const enableUserById = `-- name: EnableUserById :one
 UPDATE users
   set "enabled" = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+RETURNING id, username, password, email, created_at, last_modified, enabled, is_deleted
 `
 
 type EnableUserByIdParams struct {
@@ -160,7 +151,6 @@ func (q *Queries) EnableUserById(ctx context.Context, arg EnableUserByIdParams) 
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -176,6 +166,7 @@ SELECT
     "password",
      "email",
     "role",
+    "role_id",
     "created_at",
     "last_modified",
     "enabled",
@@ -198,6 +189,7 @@ func (q *Queries) GetAllActiveUsers(ctx context.Context) ([]UsersWithRole, error
 			&i.Password,
 			&i.Email,
 			&i.Role,
+			&i.RoleID,
 			&i.CreatedAt,
 			&i.LastModified,
 			&i.Enabled,
@@ -234,6 +226,21 @@ func (q *Queries) GetAuthTokenFromDb(ctx context.Context, id int32) (AuthToken, 
 	return i, err
 }
 
+const getRoleIdByName = `-- name: GetRoleIdByName :one
+SELECT
+  "id" AS "RoleId"
+FROM
+  public. public.user_roles
+WHERE "role_name" = $1
+`
+
+func (q *Queries) GetRoleIdByName(ctx context.Context, roleName string) (int32, error) {
+	row := q.db.QueryRow(ctx, getRoleIdByName, roleName)
+	var RoleId int32
+	err := row.Scan(&RoleId)
+	return RoleId, err
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT
     "id",
@@ -241,6 +248,7 @@ SELECT
     "password",
     "email",
     "role",
+    "role_id",
     "created_at",
     "last_modified",
     "enabled",
@@ -258,6 +266,7 @@ func (q *Queries) GetUserById(ctx context.Context, id int32) (UsersWithRole, err
 		&i.Password,
 		&i.Email,
 		&i.Role,
+		&i.RoleID,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -273,6 +282,7 @@ SELECT
     "password",
     "email",
     "role",
+    "role_id",
     "created_at",
     "last_modified",
     "enabled",
@@ -290,6 +300,7 @@ func (q *Queries) GetUserByName(ctx context.Context, username pgtype.Text) (User
 		&i.Password,
 		&i.Email,
 		&i.Role,
+		&i.RoleID,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -313,7 +324,7 @@ func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (in
 }
 
 const getUserLogin = `-- name: GetUserLogin :one
-SELECT id, username, "password" , email, "enabled", "role" FROM public.users_with_roles uwr
+SELECT id, username, "password" , email, "enabled", "role", "role_id" FROM public.users_with_roles uwr
 WHERE username = $1
 LIMIT 1
 `
@@ -325,6 +336,7 @@ type GetUserLoginRow struct {
 	Email    pgtype.Text
 	Enabled  bool
 	Role     string
+	RoleID   int32
 }
 
 func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUserLoginRow, error) {
@@ -337,6 +349,7 @@ func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUs
 		&i.Email,
 		&i.Enabled,
 		&i.Role,
+		&i.RoleID,
 	)
 	return i, err
 }
@@ -551,7 +564,7 @@ const softDeleteUserById = `-- name: SoftDeleteUserById :one
 UPDATE users
   set is_deleted = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+RETURNING id, username, password, email, created_at, last_modified, enabled, is_deleted
 `
 
 type SoftDeleteUserByIdParams struct {
@@ -567,7 +580,6 @@ func (q *Queries) SoftDeleteUserById(ctx context.Context, arg SoftDeleteUserById
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -580,7 +592,7 @@ const updateUserEmailById = `-- name: UpdateUserEmailById :one
 UPDATE users
   set email = $2
 WHERE id = $1
-RETURNING id, username, password, email, role, created_at, last_modified, enabled, is_deleted
+RETURNING id, username, password, email, created_at, last_modified, enabled, is_deleted
 `
 
 type UpdateUserEmailByIdParams struct {
@@ -596,7 +608,6 @@ func (q *Queries) UpdateUserEmailById(ctx context.Context, arg UpdateUserEmailBy
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,

@@ -1,7 +1,6 @@
 package authapi
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -64,6 +63,9 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 
 		// Pass envars to the Renew method
 		cert_info, err := req.Renew(envars)
+		if err != nil {
+			slog.Error("error renewing cert", slog.String("error", err.Error()))
+		}
 
 		slog.Info("Renewal command executed")
 
@@ -106,7 +108,7 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 		LoginResult := loginReq.Login(ua_service.DbConn)
 
 		if LoginResult.Result.Success {
-			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.Role, LoginResult.UserInfo.Email)
+			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.RoleId, LoginResult.UserInfo.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
@@ -119,43 +121,6 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprint(w, "Invalid credentials", LoginResult.Result.Error)
 		}
-	}
-}
-
-func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		w.Header().Set("Content-Type", "application/json")
-		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if len(authHeader) != 2 {
-			fmt.Println("Malformed token")
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Malformed Token"))
-		} else {
-			jwtToken := authHeader[1]
-			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				// Retrieve the secret key from environment variables
-				SECRETKEY := envars.GetVarMapValue("JWT_KEY")
-				if SECRETKEY == "" {
-					return nil, fmt.Errorf("secret key not found")
-				}
-				return []byte(SECRETKEY), nil
-			})
-
-			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				ctx := context.WithValue(r.Context(), "props", claims)
-				next.ServeHTTP(w, r.WithContext(ctx))
-			} else {
-				slog.Error("Error validating token", slog.String("Error", err.Error()))
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Unauthorized"))
-			}
-		}
-
-		slog.Info("Token has been verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
 	}
 }
 
@@ -187,7 +152,7 @@ func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
 		token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return []byte(jwtKey), nil
 		})
@@ -210,7 +175,7 @@ func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
 	}
 }
 
-func setCookieHandler(w http.ResponseWriter, r *http.Request, token string) {
+func setCookieHandler(w http.ResponseWriter, token string) {
 	// Initialize a new cookie containing the string "Hello world!" and some
 	// non-default attributes.
 	cookie := http.Cookie{

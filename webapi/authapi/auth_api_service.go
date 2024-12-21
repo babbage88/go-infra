@@ -25,6 +25,7 @@ type UserAuth interface {
 	VerifyUser(userid int32) bool
 	RefreshAuthTokens(dbConn *pgxpool.Pool) error
 	HashUserPassword()
+	VerifyUserPermission(executionUserId int32, permissionsName string) (bool, error)
 	NewLoginRequest(username string, password string, isHashed bool) *UserLoginResponse
 	CreateAuthToken(userid int32, role string, email string) (AuthToken, error)
 	CreateSignedTokenString(sub string, userInfo interface{}) (string, time.Time, error)
@@ -38,6 +39,20 @@ func (ua *UserAuthService) VerifyUser(userid int32) bool {
 		slog.Error("Error querying database for user", slog.String("Error", err.Error()), slog.String("UserName", fmt.Sprint(userid)))
 	}
 	return qry.Enabled
+}
+func (us *UserAuthService) VerifyUserPermission(ueid int32, permissionName string) (bool, error) {
+	params := infra_db_pg.VerifyUserPermissionByIdParams{
+		UserId:     pgtype.Int4{Int32: ueid, Valid: true},
+		Permission: pgtype.Text{String: permissionName, Valid: true},
+	}
+	queries := infra_db_pg.New(us.DbConn)
+	qry, err := queries.VerifyUserPermissionById(context.Background(), params)
+	if err != nil {
+		slog.Error("error verifying user permissions", slog.String("error", err.Error()))
+		return false, err
+	}
+	return qry, err
+
 }
 
 func (t *AuthToken) RefreshAccessTokens(dbConn *pgxpool.Pool) error {
@@ -94,7 +109,7 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 	if !result.PasswordValid {
 		slog.Error("Supplied password does not match the password stored in database", slog.String("User", request.UserName))
 		result.Success = false
-		result.Error = errors.New("Password does not match.")
+		result.Error = errors.New("password does not match")
 		result.UserEnabled = qry.Enabled
 		response.Result = result
 		return response
@@ -104,7 +119,7 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 		slog.Error("User is disabled", slog.String("User", request.UserName))
 		result.Success = false
 		result.UserEnabled = qry.Enabled
-		result.Error = errors.New("User is diabled.")
+		result.Error = errors.New("user is diabled.")
 		response.Result = result
 		return response
 	}
@@ -144,7 +159,7 @@ func (t *AuthToken) CreateRefreshToken() {
 	t.RefreshToken = rt
 }
 
-func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, role string, userInfo interface{}) (string, time.Time, error) {
+func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, roleId int32, userInfo interface{}) (string, time.Time, error) {
 	expire_minutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
 	jwt_algo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
 	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
@@ -161,7 +176,7 @@ func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, role string, 
 			Issuer:    "goinfra",
 			ExpiresAt: jwt.NewNumericDate(exp),
 			Subject:   sub,
-			Audience:  jwt.ClaimStrings{role},
+			Audience:  jwt.ClaimStrings{fmt.Sprint(roleId)},
 		},
 		// UserInfo passed from caller as map[string]string
 		userInfo,
@@ -174,15 +189,15 @@ func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, role string, 
 	return val, exp, nil
 }
 
-func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, role string, email string) (AuthToken, error) {
+func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, roleId int32, email string) (AuthToken, error) {
 
 	var retval AuthToken
 	userInfo := map[string]interface{}{
-		"role":  role,
-		"email": email,
+		"roleId": fmt.Sprint(roleId),
+		"email":  email,
 	}
 
-	tokenString, expire_time, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), role, userInfo)
+	tokenString, expire_time, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), roleId, userInfo)
 	if err != nil {
 		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
 		return retval, err

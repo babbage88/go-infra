@@ -19,7 +19,7 @@ func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *se
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew(envars))))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
-	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.CreateUser(userCRUDService))))
+	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateUser", userapi.CreateUser(userCRUDService))))
 	mux.Handle("/update/userpass", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.UpdateUserPassword(userCRUDService))))
 	mux.Handle("/users", cors.CORSWithPOST(authapi.AuthMiddleware(envars, userapi.GetAllUsers(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))

@@ -84,7 +84,6 @@ type User struct {
 	Username     pgtype.Text
 	Password     pgtype.Text
 	Email        pgtype.Text
-	Role         pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	Enabled      bool
@@ -175,6 +174,7 @@ type UsersWithRole struct {
 	Password     pgtype.Text
 	Email        pgtype.Text
 	Role         string
+	RoleID       int32
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	Enabled      bool

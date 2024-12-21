@@ -38,8 +38,7 @@ func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 		newUser, err := uc_service.NewUser(
 			newUserReq.NewUsername,
 			newUserReq.NewUserPassword,
-			newUserReq.NewUserEmail,
-			newUserReq.NewUserRole)
+			newUserReq.NewUserEmail)
 		if err != nil {
 			slog.Error("Error creating new user", slog.String("Error", err.Error()))
 			http.Error(w, "Error createing new user "+err.Error(), http.StatusInternalServerError)

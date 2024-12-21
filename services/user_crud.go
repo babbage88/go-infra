@@ -18,7 +18,7 @@ type UserCRUDService struct {
 }
 
 type UserCRUD interface {
-	NewUser(username string, hashed_pw string, email string, role string) (UserDao, error)
+	NewUser(username string, hashed_pw string, email string) (UserDao, error)
 	GetUserByName(username string) (UserDao, error)
 	GetUserById(id int32) (UserDao, error)
 	updateUserPasswordById(id int32, password string) error
@@ -36,7 +36,7 @@ func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId int32, targetUs
 	}
 
 	if !isAdmin {
-		permErr := fmt.Errorf("Execution userId %d does not have the AlterUser permission", execUserId)
+		permErr := fmt.Errorf("execution userId %d does not have the AlterUser permission", execUserId)
 		return permErr
 	}
 	retVal := us.updateUserPasswordById(targetUserId, newPassword)
@@ -58,7 +58,7 @@ func (us *UserCRUDService) VerifyAlterUser(ueid int32) (bool, error) {
 
 }
 
-func (us *UserCRUDService) NewUser(username string, password string, email string, role string) (UserDao, error) {
+func (us *UserCRUDService) NewUser(username string, password string, email string) (UserDao, error) {
 	hashed_pw, _ := hashing.HashPassword(password)
 	var newuser UserDao
 	// Set up parameters for the new user
@@ -66,7 +66,6 @@ func (us *UserCRUDService) NewUser(username string, password string, email strin
 		Username: pgtype.Text{String: username, Valid: true},
 		Password: pgtype.Text{String: hashed_pw, Valid: true},
 		Email:    pgtype.Text{String: email, Valid: true},
-		Role:     pgtype.Text{String: role, Valid: true},
 	}
 
 	queries := infra_db_pg.New(us.DbConn)
@@ -80,7 +79,7 @@ func (us *UserCRUDService) GetUserByName(username string) (*UserDao, error) {
 	queries := infra_db_pg.New(us.DbConn)
 	dbuser, err := queries.GetUserByName(context.Background(), pgtype.Text{username, true})
 	if err != nil {
-		slog.Error("Eroor running query for username %s", username, err)
+		slog.Error("error running query for username %s", username, err)
 		return user, err
 	}
 	user.ParseUserWithRoleFromDb(dbuser)

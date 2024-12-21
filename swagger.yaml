@@ -205,6 +205,9 @@ responses:
                 type: string
             role:
                 type: string
+            role_id:
+                format: int32
+                type: integer
             username:
                 type: string
 securityDefinitions:
