@@ -21,9 +21,41 @@ type UserCRUD interface {
 	NewUser(username string, hashed_pw string, email string, role string) (UserDao, error)
 	GetUserByName(username string) (UserDao, error)
 	GetUserById(id int32) (UserDao, error)
-	UpdateUserPasswordById(id int32, password string)
+	updateUserPasswordById(id int32, password string) error
 	UpdateUserEmailById(id int32, email string)
 	InsertAuthToken(token AuthTokenDao)
+	VerifyAlterUser(executionUserId int32) (bool, error)
+	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
+}
+
+func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error {
+	isAdmin, err := us.VerifyAlterUser(execUserId)
+	if err != nil {
+		slog.Error("Error Verifying user permissions.", slog.String("ID", fmt.Sprint(execUserId)), slog.String("Error", err.Error()))
+		return err
+	}
+
+	if !isAdmin {
+		permErr := fmt.Errorf("Execution userId %d does not have the AlterUser permission", execUserId)
+		return permErr
+	}
+	retVal := us.updateUserPasswordById(targetUserId, newPassword)
+	return retVal
+}
+
+func (us *UserCRUDService) VerifyAlterUser(ueid int32) (bool, error) {
+	params := infra_db_pg.VerifyUserPermissionByIdParams{
+		UserId:     pgtype.Int4{Int32: ueid, Valid: true},
+		Permission: pgtype.Text{String: "AlterUser", Valid: true},
+	}
+	queries := infra_db_pg.New(us.DbConn)
+	qry, err := queries.VerifyUserPermissionById(context.Background(), params)
+	if err != nil {
+		slog.Error("Error verifying user permissions", slog.String("Error", err.Error()))
+		return false, err
+	}
+	return qry, err
+
 }
 
 func (us *UserCRUDService) NewUser(username string, password string, email string, role string) (UserDao, error) {
@@ -55,7 +87,7 @@ func (us *UserCRUDService) GetUserByName(username string) (*UserDao, error) {
 	return user, nil
 }
 
-func (us *UserCRUDService) UpdateUserPasswordById(id int32, password string) error {
+func (us *UserCRUDService) updateUserPasswordById(id int32, password string) error {
 	hashed_pw, _ := hashing.HashPassword(password)
 	params := &infra_db_pg.UpdateUserPasswordByIdParams{ID: id, Password: pgtype.Text{String: hashed_pw, Valid: true}}
 	queries := infra_db_pg.New(us.DbConn)

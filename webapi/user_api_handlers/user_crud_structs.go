@@ -21,3 +21,22 @@ type CreateNewUserRequest struct {
 type GetAllUsersResponse struct {
 	Users []services.UserDao `json:"users"`
 }
+
+// Allows and Admin user to update another user's password.
+// swagger:parameters idOfUpdateUserPw
+type UpdatePasswordRequestWrapper struct {
+	// in:body
+	Body UpdateUserPasswordRequest `json:"body"`
+}
+
+type UpdateUserPasswordRequest struct {
+	ExecutionUserId int32  `json:"executionUserId"`
+	TargetUserId    int32  `json:"targetUserId"`
+	NewPassword     string `json:"newPassword"`
+}
+
+type UserPasswordUpdateResponse struct {
+	Success      bool  `json:"success"`
+	Error        error `json:"error"`
+	TargetUserId int32 `json:"targetUserId"`
+}

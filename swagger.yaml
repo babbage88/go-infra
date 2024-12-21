@@ -76,6 +76,23 @@ paths:
             summary: Refresh accessTokens andreturn to client.
             tags:
                 - tokenRefresh
+    /update/userpass:
+        post:
+            operationId: idOfUpdateUserPw
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserPasswordRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UserPasswordUpdateResponse'
+            security:
+                - bearer: []
+            summary: Update user password.
+            tags:
+                - updateUserPw
     /users:
         post:
             operationId: idOfgetAllUsersEndpoint
@@ -118,6 +135,21 @@ definitions:
             newUsername:
                 type: string
                 x-go-name: NewUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UpdateUserPasswordRequest:
+        properties:
+            executionUserId:
+                format: int32
+                type: integer
+                x-go-name: ExecutionUserId
+            newPassword:
+                type: string
+                x-go-name: NewPassword
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UserLoginRequest:

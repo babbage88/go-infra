@@ -57,6 +57,50 @@ func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 	}
 }
 
+// swagger:route POST /update/userpass updateUserPw idOfUpdateUserPw
+// Update user password.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: UserPasswordUpdateResponse
+func UpdateUserPassword(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request UpdateUserPasswordRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		response := UserPasswordUpdateResponse{
+			TargetUserId: request.TargetUserId,
+		}
+		response.Error = uc_service.UpdateUserPasswordWithAuth(request.ExecutionUserId, request.TargetUserId, request.NewPassword)
+		if response.Error != nil {
+			response.Success = false
+			http.Error(w, "Error updating user password "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+		response.Success = true
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
 // swagger:route POST /users getallusers idOfgetAllUsersEndpoint
 // Returns all active users.
 //

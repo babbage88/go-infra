@@ -119,6 +119,35 @@
         }
       }
     },
+    "/update/userpass": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "updateUserPw"
+        ],
+        "summary": "Update user password.",
+        "operationId": "idOfUpdateUserPw",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserPasswordUpdateResponse"
+          }
+        }
+      }
+    },
     "/users": {
       "post": {
         "security": [
@@ -180,6 +209,26 @@
         "newUsername": {
           "type": "string",
           "x-go-name": "NewUsername"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "UpdateUserPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "executionUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "ExecutionUserId"
+        },
+        "newPassword": {
+          "type": "string",
+          "x-go-name": "NewPassword"
+        },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
