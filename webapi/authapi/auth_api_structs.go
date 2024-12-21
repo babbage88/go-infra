@@ -57,3 +57,8 @@ type AuthToken struct {
 type TokenRefreshReq struct {
 	RefreshToken string `json:"refreshToken"`
 }
+
+type UserPermission struct {
+	Id   int32  `json:"id"`
+	Name string `json:"name"`
+}
