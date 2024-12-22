@@ -23,6 +23,7 @@ type UserCRUD interface {
 	GetUserById(id int32) (UserDao, error)
 	updateUserPasswordById(id int32, password string) error
 	UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error
+	CreateOrUpdateUserRole(roleName string, roleDescr string)
 	UpdateUserEmailById(id int32, email string)
 	InsertAuthToken(token AuthTokenDao)
 	VerifyAlterUser(executionUserId int32) (bool, error)
@@ -209,7 +210,7 @@ func (us *UserCRUDService) DisableUserById(execUserId int32, targetUserId int32)
 	return user, err
 }
 
-func (us *UserCRUDService) UpdateUserRole(execUserId int32, targetUserId int32, roleId int32) error {
+func (us *UserCRUDService) UpdateUserRoleMapping(execUserId int32, targetUserId int32, roleId int32) error {
 	params := infra_db_pg.InsertOrUpdateUserRoleMappingByIdParams{UserID: targetUserId, RoleID: roleId}
 	queries := infra_db_pg.New(us.DbConn)
 	_, err := queries.InsertOrUpdateUserRoleMappingById(context.Background(), params)
@@ -218,4 +219,18 @@ func (us *UserCRUDService) UpdateUserRole(execUserId int32, targetUserId int32, 
 		return err
 	}
 	return err
+}
+
+func (us *UserCRUDService) CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error) {
+	retVal := &UserRoleDao{RoleName: roleName, RoleDescription: roleDescr}
+	params := infra_db_pg.InsertOrUpdateUserRoleParams{RoleName: roleName, RoleDescription: pgtype.Text{String: roleDescr, Valid: true}}
+	queries := infra_db_pg.New(us.DbConn)
+	row, err := queries.InsertOrUpdateUserRole(context.Background(), params)
+	if err != nil {
+		slog.Error("error creating or updateing role", slog.String("roleName", roleName), slog.String("error", err.Error()))
+		return retVal, err
+	}
+	retVal.ParseUserRoleFromDb(row)
+
+	return retVal, err
 }

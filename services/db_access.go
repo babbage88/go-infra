@@ -9,6 +9,7 @@ type DbParser interface {
 	ParseUserWithRoleFromDb(dbuser infra_db_pg.UsersWithRole)
 	ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow)
 	ParseAuthTokenFromDb(token infra_db_pg.AuthToken)
+	ParseUserRoleFromDb(dbRow infra_db_pg.UserRole)
 }
 
 func (u *UserDao) ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow) {
@@ -50,4 +51,14 @@ func (t *AuthTokenDao) ParseAuthTokenFromDb(token infra_db_pg.AuthToken) {
 	t.CreatedAt = token.CreatedAt.Time
 	t.Expiration = token.Expiration.Time
 	t.LastModified = token.LastModified.Time
+}
+
+func (ur *UserRoleDao) ParseUserRoleFromDb(dbRow infra_db_pg.UserRole) {
+	ur.Id = dbRow.ID
+	ur.RoleName = dbRow.RoleName
+	ur.RoleDescription = dbRow.RoleDescription.String
+	ur.Enabled = dbRow.Enabled
+	ur.IsDeleted = dbRow.IsDeleted
+	ur.CreatedAt = dbRow.CreatedAt.Time
+	ur.LastModified = dbRow.LastModified.Time
 }

@@ -137,9 +137,10 @@ type UserRole struct {
 	ID              int32
 	RoleName        string
 	RoleDescription pgtype.Text
-	Expiration      pgtype.Timestamp
 	CreatedAt       pgtype.Timestamptz
 	LastModified    pgtype.Timestamptz
+	Enabled         bool
+	IsDeleted       bool
 }
 
 type UserRoleMapping struct {

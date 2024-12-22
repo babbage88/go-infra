@@ -209,5 +209,39 @@ FROM
   public. public.user_roles
 WHERE "role_name" = $1;
 
+-- name: InsertOrUpdateUserRole :one
+INSERT INTO user_roles (id, role_name, role_description, created_at, last_modified, "enabled", "is_deleted")
+VALUES(nextval('user_roles_id_seq'::regclass), $1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE, false)
+ON CONFLICT (role_name)
+DO UPDATE SET
+	role_description = EXCLUDED.role_description,
+	last_modified = CURRENT_TIMESTAMP,
+	"enabled" = TRUE,
+	"is_deleted" = FALSE
+RETURNING *;
+
+-- name: EnableUserRoleById :one
+UPDATE user_roles SET "enabled" = TRUE
+WHERE id = $1
+RETURNING *;
+
+-- name: DisableUserRoleById :one
+UPDATE user_roles SET "enabled" = FALSE
+WHERE id = $1
+RETURNING *;
+
+-- name: SoftDeleteUserRoleById :one
+UPDATE user_roles
+SET
+"is_deleted" = TRUE,
+"enabled" = FALSE
+WHERE id = $1
+RETURNING *;
+
+-- name: HardDeleteUserRoleById :one
+DELETE FROM user_roles
+WHERE id = $1
+RETURNING *;
+
 
 

@@ -243,7 +243,7 @@ func UpdateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWr
 			Error: err,
 		}
 
-		response.Error = uc_service.UpdateUserRole(request.ExecutionUserId, request.TargetUserId, request.RoleId)
+		response.Error = uc_service.UpdateUserRoleMapping(request.ExecutionUserId, request.TargetUserId, request.RoleId)
 		if response.Error != nil {
 			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
 			return

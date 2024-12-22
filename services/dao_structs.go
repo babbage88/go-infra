@@ -67,3 +67,13 @@ type UserHostedDb struct {
 	CreatedAt            time.Time
 	LastModified         time.Time
 }
+
+type UserRoleDao struct {
+	Id              int32     `json:"id"`
+	RoleName        string    `json:"roleName"`
+	RoleDescription string    `json:"roleDesc"`
+	Enabled         bool      `json:"enabled"`
+	IsDeleted       bool      `json:"isDeleted"`
+	CreatedAt       time.Time `json:"createdAt"`
+	LastModified    time.Time `json:"lastModified"`
+}

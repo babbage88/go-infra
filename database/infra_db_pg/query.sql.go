@@ -103,6 +103,27 @@ func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams
 	return i, err
 }
 
+const disableUserRoleById = `-- name: DisableUserRoleById :one
+UPDATE user_roles SET "enabled" = FALSE
+WHERE id = $1
+RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
+`
+
+func (q *Queries) DisableUserRoleById(ctx context.Context, id int32) (UserRole, error) {
+	row := q.db.QueryRow(ctx, disableUserRoleById, id)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.RoleName,
+		&i.RoleDescription,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
 const disableUserRoleMappingById = `-- name: DisableUserRoleMappingById :one
 UPDATE
   public.user_role_mapping
@@ -151,6 +172,27 @@ func (q *Queries) EnableUserById(ctx context.Context, arg EnableUserByIdParams) 
 		&i.Username,
 		&i.Password,
 		&i.Email,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const enableUserRoleById = `-- name: EnableUserRoleById :one
+UPDATE user_roles SET "enabled" = TRUE
+WHERE id = $1
+RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
+`
+
+func (q *Queries) EnableUserRoleById(ctx context.Context, id int32) (UserRole, error) {
+	row := q.db.QueryRow(ctx, enableUserRoleById, id)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.RoleName,
+		&i.RoleDescription,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -394,6 +436,27 @@ func (q *Queries) GetUserPermissionsById(ctx context.Context, userid pgtype.Int4
 	return items, nil
 }
 
+const hardDeleteUserRoleById = `-- name: HardDeleteUserRoleById :one
+DELETE FROM user_roles
+WHERE id = $1
+RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
+`
+
+func (q *Queries) HardDeleteUserRoleById(ctx context.Context, id int32) (UserRole, error) {
+	row := q.db.QueryRow(ctx, hardDeleteUserRoleById, id)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.RoleName,
+		&i.RoleDescription,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
 const insertAuthToken = `-- name: InsertAuthToken :exec
 INSERT INTO auth_tokens (user_id, token, expiration)
 VALUES ($1, $2, $3)
@@ -470,6 +533,38 @@ func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerPara
 		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
+	)
+	return i, err
+}
+
+const insertOrUpdateUserRole = `-- name: InsertOrUpdateUserRole :one
+INSERT INTO user_roles (id, role_name, role_description, created_at, last_modified, "enabled", "is_deleted")
+VALUES(nextval('user_roles_id_seq'::regclass), $1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE, false)
+ON CONFLICT (role_name)
+DO UPDATE SET
+	role_description = EXCLUDED.role_description,
+	last_modified = CURRENT_TIMESTAMP,
+	"enabled" = TRUE,
+	"is_deleted" = FALSE
+RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
+`
+
+type InsertOrUpdateUserRoleParams struct {
+	RoleName        string
+	RoleDescription pgtype.Text
+}
+
+func (q *Queries) InsertOrUpdateUserRole(ctx context.Context, arg InsertOrUpdateUserRoleParams) (UserRole, error) {
+	row := q.db.QueryRow(ctx, insertOrUpdateUserRole, arg.RoleName, arg.RoleDescription)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.RoleName,
+		&i.RoleDescription,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
 	)
 	return i, err
 }
@@ -580,6 +675,30 @@ func (q *Queries) SoftDeleteUserById(ctx context.Context, arg SoftDeleteUserById
 		&i.Username,
 		&i.Password,
 		&i.Email,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.Enabled,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const softDeleteUserRoleById = `-- name: SoftDeleteUserRoleById :one
+UPDATE user_roles
+SET
+"is_deleted" = TRUE,
+"enabled" = FALSE
+WHERE id = $1
+RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
+`
+
+func (q *Queries) SoftDeleteUserRoleById(ctx context.Context, id int32) (UserRole, error) {
+	row := q.db.QueryRow(ctx, softDeleteUserRoleById, id)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.RoleName,
+		&i.RoleDescription,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
