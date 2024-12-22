@@ -247,6 +247,8 @@ func UpdateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWr
 		if response.Error != nil {
 			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
 			return
+		} else {
+			response.Success = true
 		}
 
 		jsonResponse, err := json.Marshal(response)
