@@ -104,7 +104,7 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/EnableDisableUserResponse'
+                    $ref: '#/responses/UpdateUserRoleResponse'
             security:
                 - bearer: []
             summary: Disable specified target User Id.
@@ -127,6 +127,23 @@ paths:
             summary: Enable specified target User Id.
             tags:
                 - enableUser
+    /user/role:
+        post:
+            description: Update User Role Mapping
+            operationId: idOfUpdateUserRole
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            tags:
+                - updateUserRole
     /users:
         post:
             operationId: idOfgetAllUsersEndpoint
@@ -204,6 +221,22 @@ definitions:
             newPassword:
                 type: string
                 x-go-name: NewPassword
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UpdateUserRoleRequest:
+        properties:
+            executionUserId:
+                format: int32
+                type: integer
+                x-go-name: ExecutionUserId
+            roleId:
+                format: int32
+                type: integer
+                x-go-name: RoleId
             targetUserId:
                 format: int32
                 type: integer

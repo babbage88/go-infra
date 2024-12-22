@@ -69,3 +69,21 @@ type EnableDisableUserResponse struct {
 	ModifiedUserInfo *services.UserDao `json:"modifiedUserInfo"`
 	Error            error             `json:"error"`
 }
+
+// User Id of the executing and target users
+// swagger:parameters idOfUpdateUserRole
+type UpdateUserRoleRequestWrapper struct {
+	//in:body
+	Body UpdateUserRoleRequest `json:"body"`
+}
+
+type UpdateUserRoleRequest struct {
+	ExecutionUserId int32 `json:"executionUserId"`
+	TargetUserId    int32 `json:"targetUserId"`
+	RoleId          int32 `json:"roleId"`
+}
+
+type UpdateUserRoleResponse struct {
+	Success bool  `json:"success"`
+	Error   error `json:"error"`
+}

@@ -172,7 +172,7 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/EnableDisableUserResponse"
+            "$ref": "#/responses/UpdateUserRoleResponse"
           }
         }
       }
@@ -196,6 +196,35 @@
             "in": "body",
             "schema": {
               "$ref": "#/definitions/EnableUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/EnableDisableUserResponse"
+          }
+        }
+      }
+    },
+    "/user/role": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "description": "Update User Role Mapping",
+        "tags": [
+          "updateUserRole"
+        ],
+        "operationId": "idOfUpdateUserRole",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRoleRequest"
             }
           }
         ],
@@ -314,6 +343,27 @@
         "newPassword": {
           "type": "string",
           "x-go-name": "NewPassword"
+        },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "UpdateUserRoleRequest": {
+      "type": "object",
+      "properties": {
+        "executionUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "ExecutionUserId"
+        },
+        "roleId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "RoleId"
         },
         "targetUserId": {
           "type": "integer",

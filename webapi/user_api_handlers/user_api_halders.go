@@ -181,7 +181,7 @@ func EnableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 // - bearer:
 // responses:
 //
-//	200: EnableDisableUserResponse
+//	200: UpdateUserRoleResponse
 func DisableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -203,6 +203,49 @@ func DisableUser(uc_service *services.UserCRUDService) func(w http.ResponseWrite
 		response.ModifiedUserInfo, response.Error = uc_service.DisableUserById(request.ExecutionUserId, request.TargetUserId)
 		if response.Error != nil {
 			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /user/role updateUserRole idOfUpdateUserRole
+// Update User Role Mapping
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: EnableDisableUserResponse
+func UpdateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request UpdateUserRoleRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		response := UpdateUserRoleResponse{
+			Error: err,
+		}
+
+		response.Error = uc_service.UpdateUserRole(request.ExecutionUserId, request.TargetUserId, request.RoleId)
+		if response.Error != nil {
+			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 

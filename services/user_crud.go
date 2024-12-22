@@ -29,6 +29,7 @@ type UserCRUD interface {
 	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
 	EnableUserById(execUserId int32, targetUserId int32) (UserDao, error)
 	DisableUserById(execUserId int32, targetUserId int32) (UserDao, error)
+	UpdateUserRole(execUserId int32, targetUserId int32, roleId int32) error
 }
 
 func (us *UserCRUDService) UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error {
@@ -206,4 +207,15 @@ func (us *UserCRUDService) DisableUserById(execUserId int32, targetUserId int32)
 	}
 	user.ParseUserFromDb(rows)
 	return user, err
+}
+
+func (us *UserCRUDService) UpdateUserRole(execUserId int32, targetUserId int32, roleId int32) error {
+	params := infra_db_pg.InsertOrUpdateUserRoleMappingByIdParams{UserID: targetUserId, RoleID: roleId}
+	queries := infra_db_pg.New(us.DbConn)
+	_, err := queries.InsertOrUpdateUserRoleMappingById(context.Background(), params)
+	if err != nil {
+		slog.Error("error modifying user group mappings", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+		return err
+	}
+	return err
 }
