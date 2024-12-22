@@ -66,7 +66,8 @@ WHERE id = $1;
 
 -- name: SoftDeleteUserById :one
 UPDATE users
-  set is_deleted = $2
+  set is_deleted = TRUE,
+  "enabled" = FALSE
 WHERE id = $1
 RETURNING *;
 
@@ -258,3 +259,11 @@ DO UPDATE SET
   created_at = CURRENT_TIMESTAMP,
   last_modified = CURRENT_TIMESTAMP
 RETURNING *;
+
+-- name: GetAllUserRoles :many
+SELECT "RoleId", "RoleName", "RoleDescription", "CreatedAt", "LastModified", "Enabled", "IsDeleted"
+FROM public.user_roles_active;
+
+-- name: GetAllAppPermissions :many
+SELECT id, permission_name, permission_description
+FROM public.app_permissions;

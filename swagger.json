@@ -135,6 +135,25 @@
         }
       }
     },
+    "/permissions": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "description": "Returns all App Permissions",
+        "tags": [
+          "getAllAppPermissions"
+        ],
+        "operationId": "idOfgetAllAppPermissionsEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllAppPermissionsResponse"
+          }
+        }
+      }
+    },
     "/renew": {
       "post": {
         "description": "Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge",
@@ -159,6 +178,25 @@
         "responses": {
           "200": {
             "$ref": "#/responses/CertificateData"
+          }
+        }
+      }
+    },
+    "/roles": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "getAllUserRoles"
+        ],
+        "summary": "Returns all active User Roles.",
+        "operationId": "idOfgetAllRolesEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllRolesResponse"
           }
         }
       }
@@ -231,6 +269,35 @@
         "responses": {
           "200": {
             "$ref": "#/responses/UserPasswordUpdateResponse"
+          }
+        }
+      }
+    },
+    "/user/delete": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SoftDeleteUserHandler"
+        ],
+        "summary": "Soft Delete User by id.",
+        "operationId": "idOfSoftDeleteUserById",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SoftDeleteUserByIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/SoftDeleteUserByIdResponse"
           }
         }
       }
@@ -455,6 +522,17 @@
           "format": "int32",
           "x-go-name": "ExecutionUserId"
         },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "SoftDeleteUserByIdRequest": {
+      "type": "object",
+      "properties": {
         "targetUserId": {
           "type": "integer",
           "format": "int32",

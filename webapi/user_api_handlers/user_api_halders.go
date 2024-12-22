@@ -16,7 +16,7 @@ import (
 // responses:
 //   200: UserDao
 
-func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			slog.Error("Invalid request method", slog.String("Method", r.Method))
@@ -64,7 +64,7 @@ func CreateUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 // responses:
 //
 //	200: UserPasswordUpdateResponse
-func UpdateUserPassword(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func UpdateUserPasswordHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -108,16 +108,76 @@ func UpdateUserPassword(uc_service *services.UserCRUDService) func(w http.Respon
 // responses:
 //   200: GetAllUsersResponse
 
-func GetAllUsers(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		users, err := uc_service.GetAllActiveUsersDao()
 		if err != nil {
 			slog.Error("Error getting users from database", slog.String("Error", err.Error()))
-			http.Error(w, "Error createing new user "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Error getting users from database "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		jsonResponse, err := json.Marshal(users)
+		if err != nil {
+			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
+			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /roles getAllUserRoles idOfgetAllRolesEndpoint
+// Returns all active User Roles.
+//
+// security:
+// - bearer:
+// responses:
+//   200: GetAllRolesResponse
+
+func GetAllRolesHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		roles, err := uc_service.GetAllActiveRoles()
+		if err != nil {
+			slog.Error("Error getting user roles from database", slog.String("Error", err.Error()))
+			http.Error(w, "Error getting user roles from database "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonResponse, err := json.Marshal(roles)
+		if err != nil {
+			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
+			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /permissions getAllAppPermissions idOfgetAllAppPermissionsEndpoint
+// Returns all App Permissions
+//
+// security:
+// - bearer:
+// responses:
+//   200: GetAllAppPermissionsResponse
+
+func GetAllAppPermissionsHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		appPermissions, err := uc_service.GetAllAppPermissions()
+		if err != nil {
+			slog.Error("Error retrieving app permissions from database", slog.String("Error", err.Error()))
+			http.Error(w, "Error retrieving app permissions from database "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonResponse, err := json.Marshal(appPermissions)
 		if err != nil {
 			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
 			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
@@ -138,7 +198,7 @@ func GetAllUsers(uc_service *services.UserCRUDService) func(w http.ResponseWrite
 // responses:
 //
 //	200: EnableDisableUserResponse
-func EnableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func EnableUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -182,7 +242,7 @@ func EnableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter
 // responses:
 //
 //	200: UpdateUserRoleResponse
-func DisableUser(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func DisableUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -271,7 +331,7 @@ func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w h
 // responses:
 //
 //	200: CreateUserRoleResponse
-func CreateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateUserRoleHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -315,7 +375,7 @@ func CreateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWr
 // responses:
 //
 //	200: CreateAppPermissionResponse
-func CreateAppPermission(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateAppPermissionHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -359,7 +419,7 @@ func CreateAppPermission(uc_service *services.UserCRUDService) func(w http.Respo
 // responses:
 //
 //	200: CreateRolePermissionMapptingResponse
-func CreateRolePermissionMapping(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateRolePermissionMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -380,6 +440,50 @@ func CreateRolePermissionMapping(uc_service *services.UserCRUDService) func(w ht
 		response.NewMappingInfo, response.Error = uc_service.CreateOrUpdateRolePermisssionMapping(request.RoleId, request.PermissionId)
 		if response.Error != nil {
 			http.Error(w, "error creating role permission mapping "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /user/delete SoftDeleteUserHandler idOfSoftDeleteUserById
+// Soft Delete User by id.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: SoftDeleteUserByIdResponse
+func SoftDeleteUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request SoftDeleteUserByIdRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		deletedUserInfo := &services.UserDao{Id: request.TargetUserId}
+		response := SoftDeleteUserByIdResponse{
+			DeletedUserInfo: deletedUserInfo,
+			Error:           err,
+		}
+
+		response.DeletedUserInfo, response.Error = uc_service.SoftDeleteUserById(request.TargetUserId)
+		if response.Error != nil {
+			http.Error(w, "error deleting user "+response.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 

@@ -19,6 +19,9 @@ type UserCRUDService struct {
 
 type UserCRUD interface {
 	NewUser(username string, hashed_pw string, email string) (UserDao, error)
+	GetAllActiveUsersDao() ([]UserDao, error)
+	GetAllActiveRoles([]UserRoleDao, error)
+	GetAllAppPermissions([]AppPermissionDao, error)
 	GetUserByName(username string) (UserDao, error)
 	GetUserById(id int32) (UserDao, error)
 	updateUserPasswordById(id int32, password string) error
@@ -29,6 +32,7 @@ type UserCRUD interface {
 	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
 	EnableUserById(execUserId int32, targetUserId int32) (UserDao, error)
 	DisableUserById(execUserId int32, targetUserId int32) (UserDao, error)
+	SoftDeleteUserById(targetUserId int32) (UserDao, error)
 	UpdateUserRoleMapping(execUserId int32, targetUserId int32, roleId int32) error
 	CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error)
 	CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error)
@@ -185,6 +189,52 @@ func (us *UserCRUDService) GetAllActiveUsersDao() ([]UserDao, error) {
 	return userDaos, nil
 }
 
+func (us *UserCRUDService) GetAllActiveRoles() ([]UserRoleDao, error) {
+	// Fetch the rows from the database
+	queries := infra_db_pg.New(us.DbConn)
+	rows, err := queries.GetAllUserRoles(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	// Map rows to UserDao
+	userRoleDaos := make([]UserRoleDao, len(rows))
+	for i, row := range rows {
+		userRoleDaos[i] = UserRoleDao{
+			Id:              row.RoleId,
+			RoleName:        row.RoleName,
+			RoleDescription: row.RoleDescription.String,
+			CreatedAt:       row.CreatedAt.Time,
+			LastModified:    row.LastModified.Time,
+			Enabled:         row.Enabled,
+			IsDeleted:       false,
+		}
+	}
+
+	return userRoleDaos, nil
+}
+
+func (us *UserCRUDService) GetAllAppPermissions() ([]AppPermissionDao, error) {
+	// Fetch the rows from the database
+	queries := infra_db_pg.New(us.DbConn)
+	rows, err := queries.GetAllAppPermissions(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	// Map rows to UserDao
+	appPermissionDaos := make([]AppPermissionDao, len(rows))
+	for i, row := range rows {
+		appPermissionDaos[i] = AppPermissionDao{
+			Id:                    row.ID,
+			PermissionName:        row.PermissionName,
+			PermissionDescription: row.PermissionDescription.String,
+		}
+	}
+
+	return appPermissionDaos, nil
+}
+
 func (us *UserCRUDService) EnableUserById(execUserId int32, targetUserId int32) (*UserDao, error) {
 	user := &UserDao{Id: targetUserId}
 
@@ -303,6 +353,21 @@ func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId int32, pe
 		return retVal, err
 	}
 	retVal.ParseRolePermissionMappingFromDb(row)
+
+	return retVal, err
+}
+
+func (us *UserCRUDService) SoftDeleteUserById(targetUserId int32) (*UserDao, error) {
+	retVal := &UserDao{Id: targetUserId}
+	queries := infra_db_pg.New(us.DbConn)
+
+	slog.Info("Executing SofDeleteUserById", slog.String("targetUserId", fmt.Sprint(targetUserId)))
+	row, err := queries.SoftDeleteUserById(context.Background(), targetUserId)
+	if err != nil {
+		slog.Error("Error deleteing user", slog.String("error", err.Error()))
+		return retVal, err
+	}
+	retVal.ParseUserFromDb(row)
 
 	return retVal, err
 }

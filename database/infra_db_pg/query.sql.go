@@ -225,6 +225,64 @@ func (q *Queries) GetAllActiveUsers(ctx context.Context) ([]UsersWithRole, error
 	return items, nil
 }
 
+const getAllAppPermissions = `-- name: GetAllAppPermissions :many
+SELECT id, permission_name, permission_description
+FROM public.app_permissions
+`
+
+func (q *Queries) GetAllAppPermissions(ctx context.Context) ([]AppPermission, error) {
+	rows, err := q.db.Query(ctx, getAllAppPermissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AppPermission
+	for rows.Next() {
+		var i AppPermission
+		if err := rows.Scan(&i.ID, &i.PermissionName, &i.PermissionDescription); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllUserRoles = `-- name: GetAllUserRoles :many
+SELECT "RoleId", "RoleName", "RoleDescription", "CreatedAt", "LastModified", "Enabled", "IsDeleted"
+FROM public.user_roles_active
+`
+
+func (q *Queries) GetAllUserRoles(ctx context.Context) ([]UserRolesActive, error) {
+	rows, err := q.db.Query(ctx, getAllUserRoles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserRolesActive
+	for rows.Next() {
+		var i UserRolesActive
+		if err := rows.Scan(
+			&i.RoleId,
+			&i.RoleName,
+			&i.RoleDescription,
+			&i.CreatedAt,
+			&i.LastModified,
+			&i.Enabled,
+			&i.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAuthTokenFromDb = `-- name: GetAuthTokenFromDb :one
 SELECT
 		id, user_id, token, expiration, created_at, last_modified
@@ -677,18 +735,14 @@ func (q *Queries) InsertUserHostedDb(ctx context.Context, arg InsertUserHostedDb
 
 const softDeleteUserById = `-- name: SoftDeleteUserById :one
 UPDATE users
-  set is_deleted = $2
+  set is_deleted = TRUE,
+  "enabled" = FALSE
 WHERE id = $1
 RETURNING id, username, password, email, created_at, last_modified, enabled, is_deleted
 `
 
-type SoftDeleteUserByIdParams struct {
-	ID        int32
-	IsDeleted bool
-}
-
-func (q *Queries) SoftDeleteUserById(ctx context.Context, arg SoftDeleteUserByIdParams) (User, error) {
-	row := q.db.QueryRow(ctx, softDeleteUserById, arg.ID, arg.IsDeleted)
+func (q *Queries) SoftDeleteUserById(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, softDeleteUserById, id)
 	var i User
 	err := row.Scan(
 		&i.ID,

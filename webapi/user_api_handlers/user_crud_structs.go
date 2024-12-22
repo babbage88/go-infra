@@ -22,6 +22,13 @@ type GetAllUsersResponse struct {
 	Users []services.UserDao `json:"users"`
 }
 
+type GetAllRolesResponse struct {
+	UserRoles []services.UserRoleDao `json:"userRoles"`
+}
+type GetAllAppPermissionsResponse struct {
+	AppPermissions []services.AppPermissionDao `json:"appPermissions"`
+}
+
 // Allows and Admin user to update another user's password.
 // swagger:parameters idOfUpdateUserPw
 type UpdatePasswordRequestWrapper struct {
@@ -136,4 +143,20 @@ type CreateRolePermissionMappingRequest struct {
 type CreateRolePermissionMappingResponse struct {
 	NewMappingInfo *services.RolePermissionMappingDao `json:"newMappingInfo"`
 	Error          error                              `json:"error"`
+}
+
+// Mark user as deleted in Database. Will no longer show in UI unless explicityly restored
+// swagger:parameters idOfSoftDeleteUserById
+type SoftDeleteUserByIdRequestWrapper struct {
+	//in: body
+	Body SoftDeleteUserByIdRequest `json:"body"`
+}
+
+type SoftDeleteUserByIdRequest struct {
+	TargetUserId int32 `json:"targetUserId"`
+}
+
+type SoftDeleteUserByIdResponse struct {
+	DeletedUserInfo *services.UserDao `json:"deletedUserInfo"`
+	Error           error             `json:"error"`
 }

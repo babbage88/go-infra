@@ -83,6 +83,17 @@ paths:
             summary: Login a user and return token.
             tags:
                 - login
+    /permissions:
+        post:
+            description: Returns all App Permissions
+            operationId: idOfgetAllAppPermissionsEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllAppPermissionsResponse'
+            security:
+                - bearer: []
+            tags:
+                - getAllAppPermissions
     /renew:
         post:
             description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
@@ -101,6 +112,17 @@ paths:
                     $ref: '#/responses/CertificateData'
             tags:
                 - renew
+    /roles:
+        post:
+            operationId: idOfgetAllRolesEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllRolesResponse'
+            security:
+                - bearer: []
+            summary: Returns all active User Roles.
+            tags:
+                - getAllUserRoles
     /roles/permission:
         post:
             operationId: idOfCreateRolePermissionMapping
@@ -144,6 +166,23 @@ paths:
             summary: Update user password.
             tags:
                 - updateUserPw
+    /user/delete:
+        post:
+            operationId: idOfSoftDeleteUserById
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/SoftDeleteUserByIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/SoftDeleteUserByIdResponse'
+            security:
+                - bearer: []
+            summary: Soft Delete User by id.
+            tags:
+                - SoftDeleteUserHandler
     /user/disable:
         post:
             operationId: idOfDisableUser
@@ -289,6 +328,14 @@ definitions:
                 format: int32
                 type: integer
                 x-go-name: ExecutionUserId
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    SoftDeleteUserByIdRequest:
+        properties:
             targetUserId:
                 format: int32
                 type: integer
