@@ -41,7 +41,7 @@ paths:
                 - in: body
                   name: body
                   schema:
-                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                    $ref: '#/definitions/CreateUserRoleRequest'
                   x-go-name: Body
             responses:
                 "200":
@@ -259,6 +259,16 @@ definitions:
                 format: int32
                 type: integer
                 x-go-name: RoleId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    CreateUserRoleRequest:
+        properties:
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     DisableUserRequest:

@@ -92,7 +92,7 @@ type UpdateUserRoleMappingResponse struct {
 // swagger:parameters idOfCreateUserRole
 type CreateUserRoleRequestWrapper struct {
 	//in:body
-	Body UpdateUserRoleMappingRequest `json:"body"`
+	Body CreateUserRoleRequest `json:"body"`
 }
 
 type CreateUserRoleRequest struct {

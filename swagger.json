@@ -71,7 +71,7 @@
             "name": "body",
             "in": "body",
             "schema": {
-              "$ref": "#/definitions/UpdateUserRoleMappingRequest"
+              "$ref": "#/definitions/CreateUserRoleRequest"
             }
           }
         ],
@@ -413,6 +413,20 @@
           "type": "integer",
           "format": "int32",
           "x-go-name": "RoleId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "CreateUserRoleRequest": {
+      "type": "object",
+      "properties": {
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
