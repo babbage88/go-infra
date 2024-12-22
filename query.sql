@@ -220,28 +220,41 @@ DO UPDATE SET
 	"is_deleted" = FALSE
 RETURNING *;
 
--- name: EnableUserRoleById :one
+-- name: EnableUserRoleById :exec
 UPDATE user_roles SET "enabled" = TRUE
-WHERE id = $1
-RETURNING *;
+WHERE id = $1;
 
--- name: DisableUserRoleById :one
+-- name: DisableUserRoleById :exec
 UPDATE user_roles SET "enabled" = FALSE
-WHERE id = $1
-RETURNING *;
+WHERE id = $1;
 
--- name: SoftDeleteUserRoleById :one
+-- name: SoftDeleteUserRoleById :exec
 UPDATE user_roles
 SET
 "is_deleted" = TRUE,
 "enabled" = FALSE
-WHERE id = $1
-RETURNING *;
+WHERE id = $1;
 
--- name: HardDeleteUserRoleById :one
+-- name: HardDeleteUserRoleById :exec
 DELETE FROM user_roles
-WHERE id = $1
+WHERE id = $1;
+
+-- name: InsertOrUpdateAppPermission :one
+INSERT INTO app_permissions(id, permission_name, permission_description)
+VALUES(nextval('app_permissions_id_seq'::regclass), $1, $2)
+ON CONFLICT (permission_name)
+DO UPDATE SET
+	permission_description = EXCLUDED.permission_description
 RETURNING *;
 
-
-
+-- name: InsertOrUpdateRolePermissionMapping :one
+INSERT INTO role_permission_mapping(id, role_id, permission_id, "enabled", created_at, last_modified)
+VALUES(nextval('role_permission_mapping_id_seq'::regclass), $1, $2, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT(role_id, permission_id)
+DO UPDATE SET
+  role_id = EXCLUDED.role_id,
+  permission_id = EXCLUDED.permission_id,
+  "enabled" = true,
+  created_at = CURRENT_TIMESTAMP,
+  last_modified = CURRENT_TIMESTAMP
+RETURNING *;

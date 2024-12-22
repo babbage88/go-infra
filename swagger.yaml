@@ -17,6 +17,40 @@ info:
     version: v1.0.7
 host: 10.0.0.64:8993
 paths:
+    /create/permission:
+        post:
+            operationId: idOfCreateAppPermission
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateAppPermissionRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateAppPermissionResponse'
+            security:
+                - bearer: []
+            summary: Create New App Permission.
+            tags:
+                - createAppPermission
+    /create/role:
+        post:
+            operationId: idOfCreateUserRole
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateUserRoleResponse'
+            security:
+                - bearer: []
+            summary: Create New User Role.
+            tags:
+                - createUserRole
     /create/user:
         post:
             operationId: idOfcreateUserEndpoint
@@ -67,6 +101,23 @@ paths:
                     $ref: '#/responses/CertificateData'
             tags:
                 - renew
+    /roles/permission:
+        post:
+            operationId: idOfCreateRolePermissionMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateRolePermissionMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateRolePermissionMapptingResponse'
+            security:
+                - bearer: []
+            summary: Map App Permission to User Role.
+            tags:
+                - createRolePermissionMapping
     /token/refresh:
         post:
             operationId: idOftokenRefreshEndpoint
@@ -135,7 +186,7 @@ paths:
                 - in: body
                   name: body
                   schema:
-                    $ref: '#/definitions/UpdateUserRoleRequest'
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
                   x-go-name: Body
             responses:
                 "200":
@@ -172,6 +223,16 @@ definitions:
                 x-go-name: ZipFiles
         type: object
         x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
+    CreateAppPermissionRequest:
+        properties:
+            descripiton:
+                type: string
+                x-go-name: PermissionDescription
+            name:
+                type: string
+                x-go-name: PermissionName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     CreateNewUserRequest:
         properties:
             newEmail:
@@ -186,6 +247,18 @@ definitions:
             newUsername:
                 type: string
                 x-go-name: NewUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    CreateRolePermissionMappingRequest:
+        properties:
+            permId:
+                format: int32
+                type: integer
+                x-go-name: PermissionId
+            roleId:
+                format: int32
+                type: integer
+                x-go-name: RoleId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     DisableUserRequest:
@@ -227,7 +300,7 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
-    UpdateUserRoleRequest:
+    UpdateUserRoleMappingRequest:
         properties:
             executionUserId:
                 format: int32

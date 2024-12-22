@@ -103,25 +103,14 @@ func (q *Queries) DisableUserById(ctx context.Context, arg DisableUserByIdParams
 	return i, err
 }
 
-const disableUserRoleById = `-- name: DisableUserRoleById :one
+const disableUserRoleById = `-- name: DisableUserRoleById :exec
 UPDATE user_roles SET "enabled" = FALSE
 WHERE id = $1
-RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
 `
 
-func (q *Queries) DisableUserRoleById(ctx context.Context, id int32) (UserRole, error) {
-	row := q.db.QueryRow(ctx, disableUserRoleById, id)
-	var i UserRole
-	err := row.Scan(
-		&i.ID,
-		&i.RoleName,
-		&i.RoleDescription,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Enabled,
-		&i.IsDeleted,
-	)
-	return i, err
+func (q *Queries) DisableUserRoleById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, disableUserRoleById, id)
+	return err
 }
 
 const disableUserRoleMappingById = `-- name: DisableUserRoleMappingById :one
@@ -180,25 +169,14 @@ func (q *Queries) EnableUserById(ctx context.Context, arg EnableUserByIdParams) 
 	return i, err
 }
 
-const enableUserRoleById = `-- name: EnableUserRoleById :one
+const enableUserRoleById = `-- name: EnableUserRoleById :exec
 UPDATE user_roles SET "enabled" = TRUE
 WHERE id = $1
-RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
 `
 
-func (q *Queries) EnableUserRoleById(ctx context.Context, id int32) (UserRole, error) {
-	row := q.db.QueryRow(ctx, enableUserRoleById, id)
-	var i UserRole
-	err := row.Scan(
-		&i.ID,
-		&i.RoleName,
-		&i.RoleDescription,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Enabled,
-		&i.IsDeleted,
-	)
-	return i, err
+func (q *Queries) EnableUserRoleById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, enableUserRoleById, id)
+	return err
 }
 
 const getAllActiveUsers = `-- name: GetAllActiveUsers :many
@@ -436,25 +414,14 @@ func (q *Queries) GetUserPermissionsById(ctx context.Context, userid pgtype.Int4
 	return items, nil
 }
 
-const hardDeleteUserRoleById = `-- name: HardDeleteUserRoleById :one
+const hardDeleteUserRoleById = `-- name: HardDeleteUserRoleById :exec
 DELETE FROM user_roles
 WHERE id = $1
-RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
 `
 
-func (q *Queries) HardDeleteUserRoleById(ctx context.Context, id int32) (UserRole, error) {
-	row := q.db.QueryRow(ctx, hardDeleteUserRoleById, id)
-	var i UserRole
-	err := row.Scan(
-		&i.ID,
-		&i.RoleName,
-		&i.RoleDescription,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Enabled,
-		&i.IsDeleted,
-	)
-	return i, err
+func (q *Queries) HardDeleteUserRoleById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, hardDeleteUserRoleById, id)
+	return err
 }
 
 const insertAuthToken = `-- name: InsertAuthToken :exec
@@ -531,6 +498,59 @@ func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerPara
 		&i.IsVmHost,
 		&i.IsVirtualMachine,
 		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const insertOrUpdateAppPermission = `-- name: InsertOrUpdateAppPermission :one
+INSERT INTO app_permissions(id, permission_name, permission_description)
+VALUES(nextval('app_permissions_id_seq'::regclass), $1, $2)
+ON CONFLICT (permission_name)
+DO UPDATE SET
+	permission_description = EXCLUDED.permission_description
+RETURNING id, permission_name, permission_description
+`
+
+type InsertOrUpdateAppPermissionParams struct {
+	PermissionName        string
+	PermissionDescription pgtype.Text
+}
+
+func (q *Queries) InsertOrUpdateAppPermission(ctx context.Context, arg InsertOrUpdateAppPermissionParams) (AppPermission, error) {
+	row := q.db.QueryRow(ctx, insertOrUpdateAppPermission, arg.PermissionName, arg.PermissionDescription)
+	var i AppPermission
+	err := row.Scan(&i.ID, &i.PermissionName, &i.PermissionDescription)
+	return i, err
+}
+
+const insertOrUpdateRolePermissionMapping = `-- name: InsertOrUpdateRolePermissionMapping :one
+INSERT INTO role_permission_mapping(id, role_id, permission_id, "enabled", created_at, last_modified)
+VALUES(nextval('role_permission_mapping_id_seq'::regclass), $1, $2, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT(role_id, permission_id)
+DO UPDATE SET
+  role_id = EXCLUDED.role_id,
+  permission_id = EXCLUDED.permission_id,
+  "enabled" = true,
+  created_at = CURRENT_TIMESTAMP,
+  last_modified = CURRENT_TIMESTAMP
+RETURNING id, role_id, permission_id, enabled, created_at, last_modified
+`
+
+type InsertOrUpdateRolePermissionMappingParams struct {
+	RoleID       int32
+	PermissionID int32
+}
+
+func (q *Queries) InsertOrUpdateRolePermissionMapping(ctx context.Context, arg InsertOrUpdateRolePermissionMappingParams) (RolePermissionMapping, error) {
+	row := q.db.QueryRow(ctx, insertOrUpdateRolePermissionMapping, arg.RoleID, arg.PermissionID)
+	var i RolePermissionMapping
+	err := row.Scan(
+		&i.ID,
+		&i.RoleID,
+		&i.PermissionID,
+		&i.Enabled,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -683,28 +703,17 @@ func (q *Queries) SoftDeleteUserById(ctx context.Context, arg SoftDeleteUserById
 	return i, err
 }
 
-const softDeleteUserRoleById = `-- name: SoftDeleteUserRoleById :one
+const softDeleteUserRoleById = `-- name: SoftDeleteUserRoleById :exec
 UPDATE user_roles
 SET
 "is_deleted" = TRUE,
 "enabled" = FALSE
 WHERE id = $1
-RETURNING id, role_name, role_description, created_at, last_modified, enabled, is_deleted
 `
 
-func (q *Queries) SoftDeleteUserRoleById(ctx context.Context, id int32) (UserRole, error) {
-	row := q.db.QueryRow(ctx, softDeleteUserRoleById, id)
-	var i UserRole
-	err := row.Scan(
-		&i.ID,
-		&i.RoleName,
-		&i.RoleDescription,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Enabled,
-		&i.IsDeleted,
-	)
-	return i, err
+func (q *Queries) SoftDeleteUserRoleById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, softDeleteUserRoleById, id)
+	return err
 }
 
 const updateUserEmailById = `-- name: UpdateUserEmailById :one

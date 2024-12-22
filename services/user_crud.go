@@ -23,14 +23,19 @@ type UserCRUD interface {
 	GetUserById(id int32) (UserDao, error)
 	updateUserPasswordById(id int32, password string) error
 	UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error
-	CreateOrUpdateUserRole(roleName string, roleDescr string)
 	UpdateUserEmailById(id int32, email string)
 	InsertAuthToken(token AuthTokenDao)
 	VerifyAlterUser(executionUserId int32) (bool, error)
 	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
 	EnableUserById(execUserId int32, targetUserId int32) (UserDao, error)
 	DisableUserById(execUserId int32, targetUserId int32) (UserDao, error)
-	UpdateUserRole(execUserId int32, targetUserId int32, roleId int32) error
+	UpdateUserRoleMapping(execUserId int32, targetUserId int32, roleId int32) error
+	CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error)
+	CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error)
+	CreateOrUpdateRolePermisssionMapping(roleId int32, permId int32) (*RolePermissionMappingDao, error)
+	EnableRoleById(id int32) error
+	DisableRoleById(id int32) error
+	SoftDeleteRoleById(id int32) error
 }
 
 func (us *UserCRUDService) UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error {
@@ -225,12 +230,79 @@ func (us *UserCRUDService) CreateOrUpdateUserRole(roleName string, roleDescr str
 	retVal := &UserRoleDao{RoleName: roleName, RoleDescription: roleDescr}
 	params := infra_db_pg.InsertOrUpdateUserRoleParams{RoleName: roleName, RoleDescription: pgtype.Text{String: roleDescr, Valid: true}}
 	queries := infra_db_pg.New(us.DbConn)
+	slog.Info("Executing InsertOrUpdateUserRole query", slog.String("roleName", roleName), slog.String("roleDesc", roleDescr))
 	row, err := queries.InsertOrUpdateUserRole(context.Background(), params)
 	if err != nil {
 		slog.Error("error creating or updateing role", slog.String("roleName", roleName), slog.String("error", err.Error()))
 		return retVal, err
 	}
 	retVal.ParseUserRoleFromDb(row)
+
+	return retVal, err
+}
+
+func (us *UserCRUDService) EnableRoleById(id int32) error {
+	queries := infra_db_pg.New(us.DbConn)
+	slog.Info("Executing EnableUserRoleById Query", slog.String("id", fmt.Sprint(id)))
+	err := queries.EnableUserRoleById(context.Background(), id)
+	if err != nil {
+		slog.Error("Error executing EnableUserRoleById Query", slog.String("error", err.Error()))
+		return err
+	}
+	return err
+}
+
+func (us *UserCRUDService) DisableRoleById(id int32) error {
+	queries := infra_db_pg.New(us.DbConn)
+	slog.Info("Executing DisableUserRoleById Query", slog.String("id", fmt.Sprint(id)))
+	err := queries.DisableUserRoleById(context.Background(), id)
+	if err != nil {
+		slog.Error("Error executing DisableUserRoleById Query", slog.String("error", err.Error()))
+		return err
+	}
+	return err
+}
+
+func (us *UserCRUDService) SoftDeleteRoleById(id int32) error {
+	queries := infra_db_pg.New(us.DbConn)
+	slog.Info("Executing SoftDeleteUserRoleById Query", slog.String("id", fmt.Sprint(id)))
+	err := queries.SoftDeleteUserRoleById(context.Background(), id)
+	if err != nil {
+		slog.Error("Error executing SoftDeleteUserRoleById Query", slog.String("error", err.Error()))
+		return err
+	}
+	return err
+}
+
+func (us *UserCRUDService) CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error) {
+	retVal := &AppPermissionDao{PermissionName: name, PermissionDescription: desc}
+	params := infra_db_pg.InsertOrUpdateAppPermissionParams{PermissionName: name, PermissionDescription: pgtype.Text{String: desc, Valid: true}}
+	queries := infra_db_pg.New(us.DbConn)
+
+	slog.Info("Creating App Permission", slog.String("Name", name))
+	row, err := queries.InsertOrUpdateAppPermission(context.Background(), params)
+	if err != nil {
+		slog.Error("Error executing InsertOrUpdateAppPermission query", slog.String("error", err.Error()))
+		return retVal, err
+	}
+	retVal.ParseAppPermissionFromDb(row)
+
+	return retVal, err
+
+}
+
+func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId int32, permId int32) (*RolePermissionMappingDao, error) {
+	retVal := &RolePermissionMappingDao{RoleId: roleId, PermissionId: permId}
+	params := infra_db_pg.InsertOrUpdateRolePermissionMappingParams{RoleID: roleId, PermissionID: permId}
+	queries := infra_db_pg.New(us.DbConn)
+
+	slog.Info("Creating Role Permission Mapping", slog.String("RoleId", fmt.Sprint(roleId)), slog.String("PermissionId", fmt.Sprint(permId)))
+	row, err := queries.InsertOrUpdateRolePermissionMapping(context.Background(), params)
+	if err != nil {
+		slog.Error("Error executing InsertOrUpdateRolePermissionMapping query", slog.String("error", err.Error()))
+		return retVal, err
+	}
+	retVal.ParseRolePermissionMappingFromDb(row)
 
 	return retVal, err
 }

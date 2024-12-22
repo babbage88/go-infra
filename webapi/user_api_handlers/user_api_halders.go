@@ -226,11 +226,11 @@ func DisableUser(uc_service *services.UserCRUDService) func(w http.ResponseWrite
 // responses:
 //
 //	200: EnableDisableUserResponse
-func UpdateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		var request UpdateUserRoleRequest
+		var request UpdateUserRoleMappingRequest
 
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
@@ -239,7 +239,7 @@ func UpdateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWr
 			return
 		}
 
-		response := UpdateUserRoleResponse{
+		response := UpdateUserRoleMappingResponse{
 			Error: err,
 		}
 
@@ -249,6 +249,138 @@ func UpdateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWr
 			return
 		} else {
 			response.Success = true
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /create/role createUserRole idOfCreateUserRole
+// Create New User Role.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: CreateUserRoleResponse
+func CreateUserRole(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request CreateUserRoleRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		newUserRoleInfo := &services.UserRoleDao{RoleName: request.RoleName, RoleDescription: request.RoleDescription}
+		response := CreateUserRoleResponse{
+			NewUserRoleInfo: newUserRoleInfo,
+			Error:           err,
+		}
+
+		response.NewUserRoleInfo, response.Error = uc_service.CreateOrUpdateUserRole(request.RoleName, request.RoleDescription)
+		if response.Error != nil {
+			http.Error(w, "error creating role "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /create/permission createAppPermission idOfCreateAppPermission
+// Create New App Permission.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: CreateAppPermissionResponse
+func CreateAppPermission(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request CreateAppPermissionRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		newAppPermissionInfo := &services.AppPermissionDao{PermissionName: request.PermissionName, PermissionDescription: request.PermissionDescription}
+		response := CreateAppPermissionResponse{
+			NewAppPermissionInfo: newAppPermissionInfo,
+			Error:                err,
+		}
+
+		response.NewAppPermissionInfo, response.Error = uc_service.CreateOrUpdateAppPermission(request.PermissionName, request.PermissionDescription)
+		if response.Error != nil {
+			http.Error(w, "error creating role "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /roles/permission createRolePermissionMapping idOfCreateRolePermissionMapping
+// Map App Permission to User Role.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: CreateRolePermissionMapptingResponse
+func CreateRolePermissionMapping(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request CreateRolePermissionMappingRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		newRolePermissionMappingInfo := &services.RolePermissionMappingDao{RoleId: request.RoleId, PermissionId: request.PermissionId}
+		response := CreateRolePermissionMappingResponse{
+			NewMappingInfo: newRolePermissionMappingInfo,
+			Error:          err,
+		}
+
+		response.NewMappingInfo, response.Error = uc_service.CreateOrUpdateRolePermisssionMapping(request.RoleId, request.PermissionId)
+		if response.Error != nil {
+			http.Error(w, "error creating role permission mapping "+response.Error.Error(), http.StatusUnauthorized)
+			return
 		}
 
 		jsonResponse, err := json.Marshal(response)

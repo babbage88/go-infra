@@ -77,3 +77,18 @@ type UserRoleDao struct {
 	CreatedAt       time.Time `json:"createdAt"`
 	LastModified    time.Time `json:"lastModified"`
 }
+
+type AppPermissionDao struct {
+	Id                    int32  `json:"id"`
+	PermissionName        string `json:"permissionName"`
+	PermissionDescription string `json:"permissionDescription"`
+}
+
+type RolePermissionMappingDao struct {
+	Id           int32     `json:"id"`
+	RoleId       int32     `json:"roleId"`
+	PermissionId int32     `json:"permissionId"`
+	Enabled      bool      `json:"enabled"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastModified time.Time `json:"lastModified"`
+}

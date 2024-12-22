@@ -72,18 +72,68 @@ type EnableDisableUserResponse struct {
 
 // User Id of the executing and target users
 // swagger:parameters idOfUpdateUserRole
-type UpdateUserRoleRequestWrapper struct {
+type UpdateUserRoleMappingRequestWrapper struct {
 	//in:body
-	Body UpdateUserRoleRequest `json:"body"`
+	Body UpdateUserRoleMappingRequest `json:"body"`
 }
 
-type UpdateUserRoleRequest struct {
+type UpdateUserRoleMappingRequest struct {
 	ExecutionUserId int32 `json:"executionUserId"`
 	TargetUserId    int32 `json:"targetUserId"`
 	RoleId          int32 `json:"roleId"`
 }
 
-type UpdateUserRoleResponse struct {
+type UpdateUserRoleMappingResponse struct {
 	Success bool  `json:"success"`
 	Error   error `json:"error"`
+}
+
+// User Id of the executing and target users
+// swagger:parameters idOfCreateUserRole
+type CreateUserRoleRequestWrapper struct {
+	//in:body
+	Body UpdateUserRoleMappingRequest `json:"body"`
+}
+
+type CreateUserRoleRequest struct {
+	RoleName        string `json:"roleName"`
+	RoleDescription string `json:"roleDesc"`
+}
+
+type CreateUserRoleResponse struct {
+	Error           error                 `json:"error"`
+	NewUserRoleInfo *services.UserRoleDao `json:"newUserRoleInfo"`
+}
+
+// Name and Description for new App Permission
+// swagger:parameters idOfCreateAppPermission
+type CreateAppPermissionRequestWrapper struct {
+	//in: body
+	Body CreateAppPermissionRequest `json:"body"`
+}
+type CreateAppPermissionRequest struct {
+	PermissionName        string `json:"name"`
+	PermissionDescription string `json:"descripiton"`
+}
+
+type CreateAppPermissionResponse struct {
+	NewAppPermissionInfo *services.AppPermissionDao `json:"newPermissionInfo"`
+	Error                error                      `json:"error"`
+}
+
+// Name and Description for new App Permission
+// swagger:parameters idOfCreateRolePermissionMapping
+type CreateRolePermissionMappingRequestWrapper struct {
+	//in: body
+	Body CreateRolePermissionMappingRequest `json:"body"`
+}
+
+type CreateRolePermissionMappingRequest struct {
+	RoleId       int32 `json:"roleId"`
+	PermissionId int32 `json:"permId"`
+}
+
+type CreateRolePermissionMappingResponse struct {
+	NewMappingInfo *services.RolePermissionMappingDao `json:"newMappingInfo"`
+	Error          error                              `json:"error"`
 }

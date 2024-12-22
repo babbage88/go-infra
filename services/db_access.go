@@ -10,6 +10,8 @@ type DbParser interface {
 	ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow)
 	ParseAuthTokenFromDb(token infra_db_pg.AuthToken)
 	ParseUserRoleFromDb(dbRow infra_db_pg.UserRole)
+	ParseAppPermissionFromDb(dbRow infra_db_pg.AppPermission)
+	ParseRolePermissionMappingFromDb(dbRow infra_db_pg.RolePermissionMapping)
 }
 
 func (u *UserDao) ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow) {
@@ -61,4 +63,19 @@ func (ur *UserRoleDao) ParseUserRoleFromDb(dbRow infra_db_pg.UserRole) {
 	ur.IsDeleted = dbRow.IsDeleted
 	ur.CreatedAt = dbRow.CreatedAt.Time
 	ur.LastModified = dbRow.LastModified.Time
+}
+
+func (ap *AppPermissionDao) ParseAppPermissionFromDb(dbRow infra_db_pg.AppPermission) {
+	ap.Id = dbRow.ID
+	ap.PermissionName = dbRow.PermissionName
+	ap.PermissionDescription = dbRow.PermissionDescription.String
+}
+
+func (rpm *RolePermissionMappingDao) ParseRolePermissionMappingFromDb(dbRow infra_db_pg.RolePermissionMapping) {
+	rpm.Id = dbRow.ID
+	rpm.PermissionId = dbRow.PermissionID
+	rpm.RoleId = dbRow.RoleID
+	rpm.Enabled = dbRow.Enabled
+	rpm.CreatedAt = dbRow.CreatedAt.Time
+	rpm.LastModified = dbRow.LastModified.Time
 }

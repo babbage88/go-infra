@@ -24,6 +24,64 @@
   },
   "host": "10.0.0.64:8993",
   "paths": {
+    "/create/permission": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "createAppPermission"
+        ],
+        "summary": "Create New App Permission.",
+        "operationId": "idOfCreateAppPermission",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateAppPermissionRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateAppPermissionResponse"
+          }
+        }
+      }
+    },
+    "/create/role": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "createUserRole"
+        ],
+        "summary": "Create New User Role.",
+        "operationId": "idOfCreateUserRole",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRoleMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateUserRoleResponse"
+          }
+        }
+      }
+    },
     "/create/user": {
       "post": {
         "security": [
@@ -101,6 +159,35 @@
         "responses": {
           "200": {
             "$ref": "#/responses/CertificateData"
+          }
+        }
+      }
+    },
+    "/roles/permission": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "createRolePermissionMapping"
+        ],
+        "summary": "Map App Permission to User Role.",
+        "operationId": "idOfCreateRolePermissionMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateRolePermissionMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateRolePermissionMapptingResponse"
           }
         }
       }
@@ -224,7 +311,7 @@
             "name": "body",
             "in": "body",
             "schema": {
-              "$ref": "#/definitions/UpdateUserRoleRequest"
+              "$ref": "#/definitions/UpdateUserRoleMappingRequest"
             }
           }
         ],
@@ -278,6 +365,20 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
     },
+    "CreateAppPermissionRequest": {
+      "type": "object",
+      "properties": {
+        "descripiton": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "PermissionName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
     "CreateNewUserRequest": {
       "type": "object",
       "properties": {
@@ -296,6 +397,22 @@
         "newUsername": {
           "type": "string",
           "x-go-name": "NewUsername"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "CreateRolePermissionMappingRequest": {
+      "type": "object",
+      "properties": {
+        "permId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "PermissionId"
+        },
+        "roleId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "RoleId"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
@@ -352,7 +469,7 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
-    "UpdateUserRoleRequest": {
+    "UpdateUserRoleMappingRequest": {
       "type": "object",
       "properties": {
         "executionUserId": {

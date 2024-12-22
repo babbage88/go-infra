@@ -152,12 +152,14 @@ type UserRoleMapping struct {
 	LastModified pgtype.Timestamptz
 }
 
-type UserRolesView struct {
-	UserId       pgtype.Int4
-	Username     pgtype.Text
-	RoleId       pgtype.Int4
-	Role         pgtype.Text
-	LastModified pgtype.Timestamptz
+type UserRolesActive struct {
+	RoleId          int32
+	RoleName        string
+	RoleDescription pgtype.Text
+	CreatedAt       pgtype.Timestamptz
+	LastModified    pgtype.Timestamptz
+	Enabled         bool
+	IsDeleted       bool
 }
 
 type UsersAudit struct {
