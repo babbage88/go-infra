@@ -312,10 +312,6 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     DisableUserRequest:
         properties:
-            executionUserId:
-                format: int32
-                type: integer
-                x-go-name: ExecutionUserId
             targetUserId:
                 format: int32
                 type: integer
@@ -324,10 +320,6 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     EnableUserRequest:
         properties:
-            executionUserId:
-                format: int32
-                type: integer
-                x-go-name: ExecutionUserId
             targetUserId:
                 format: int32
                 type: integer
@@ -344,10 +336,6 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UpdateUserPasswordRequest:
         properties:
-            executionUserId:
-                format: int32
-                type: integer
-                x-go-name: ExecutionUserId
             newPassword:
                 type: string
                 x-go-name: NewPassword

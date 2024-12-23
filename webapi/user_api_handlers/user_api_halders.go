@@ -80,7 +80,7 @@ func UpdateUserPasswordHandler(uc_service *services.UserCRUDService) func(w http
 		response := UserPasswordUpdateResponse{
 			TargetUserId: request.TargetUserId,
 		}
-		response.Error = uc_service.UpdateUserPasswordById(request.ExecutionUserId, request.TargetUserId, request.NewPassword)
+		response.Error = uc_service.UpdateUserPasswordById(request.TargetUserId, request.NewPassword)
 		if response.Error != nil {
 			response.Success = false
 			http.Error(w, "error updating user password "+err.Error(), http.StatusUnauthorized)
@@ -216,7 +216,7 @@ func EnableUserHandler(uc_service *services.UserCRUDService) func(w http.Respons
 			Error:            err,
 		}
 
-		response.ModifiedUserInfo, response.Error = uc_service.EnableUserById(request.ExecutionUserId, request.TargetUserId)
+		response.ModifiedUserInfo, response.Error = uc_service.EnableUserById(request.TargetUserId)
 		if response.Error != nil {
 			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
 			return
@@ -260,7 +260,7 @@ func DisableUserHandler(uc_service *services.UserCRUDService) func(w http.Respon
 			Error:            err,
 		}
 
-		response.ModifiedUserInfo, response.Error = uc_service.DisableUserById(request.ExecutionUserId, request.TargetUserId)
+		response.ModifiedUserInfo, response.Error = uc_service.DisableUserById(request.TargetUserId)
 		if response.Error != nil {
 			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
 			return

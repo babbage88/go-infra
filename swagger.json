@@ -501,11 +501,6 @@
     "DisableUserRequest": {
       "type": "object",
       "properties": {
-        "executionUserId": {
-          "type": "integer",
-          "format": "int32",
-          "x-go-name": "ExecutionUserId"
-        },
         "targetUserId": {
           "type": "integer",
           "format": "int32",
@@ -517,11 +512,6 @@
     "EnableUserRequest": {
       "type": "object",
       "properties": {
-        "executionUserId": {
-          "type": "integer",
-          "format": "int32",
-          "x-go-name": "ExecutionUserId"
-        },
         "targetUserId": {
           "type": "integer",
           "format": "int32",
@@ -544,11 +534,6 @@
     "UpdateUserPasswordRequest": {
       "type": "object",
       "properties": {
-        "executionUserId": {
-          "type": "integer",
-          "format": "int32",
-          "x-go-name": "ExecutionUserId"
-        },
         "newPassword": {
           "type": "string",
           "x-go-name": "NewPassword"

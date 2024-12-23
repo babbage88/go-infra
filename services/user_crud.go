@@ -25,13 +25,13 @@ type UserCRUD interface {
 	GetUserByName(username string) (UserDao, error)
 	GetUserById(id int32) (UserDao, error)
 	updateUserPasswordById(id int32, password string) error
-	UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error
+	UpdateUserPasswordById(targetUserId int32, newPassword string) error
 	UpdateUserEmailById(id int32, email string)
 	InsertAuthToken(token AuthTokenDao)
 	VerifyAlterUser(executionUserId int32) (bool, error)
 	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
-	EnableUserById(execUserId int32, targetUserId int32) (UserDao, error)
-	DisableUserById(execUserId int32, targetUserId int32) (UserDao, error)
+	EnableUserById(targetUserId int32) (UserDao, error)
+	DisableUserById(targetUserId int32) (UserDao, error)
 	SoftDeleteUserById(targetUserId int32) (UserDao, error)
 	UpdateUserRoleMapping(execUserId int32, targetUserId int32, roleId int32) error
 	CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error)
@@ -42,8 +42,8 @@ type UserCRUD interface {
 	SoftDeleteRoleById(id int32) error
 }
 
-func (us *UserCRUDService) UpdateUserPasswordById(execUserId int32, targetUserId int32, newPassword string) error {
-	slog.Info("attempting updating user password", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+func (us *UserCRUDService) UpdateUserPasswordById(targetUserId int32, newPassword string) error {
+	slog.Info("attempting updating user password", slog.String("targetUser", fmt.Sprint(targetUserId)))
 	err := us.updateUserPasswordById(targetUserId, newPassword)
 	if err != nil {
 		slog.Error("error when attempting to update password", slog.String("error", err.Error()))
@@ -235,7 +235,7 @@ func (us *UserCRUDService) GetAllAppPermissions() ([]AppPermissionDao, error) {
 	return appPermissionDaos, nil
 }
 
-func (us *UserCRUDService) EnableUserById(execUserId int32, targetUserId int32) (*UserDao, error) {
+func (us *UserCRUDService) EnableUserById(targetUserId int32) (*UserDao, error) {
 	user := &UserDao{Id: targetUserId}
 
 	params := infra_db_pg.EnableUserByIdParams{ID: targetUserId, Enabled: true}
@@ -243,14 +243,14 @@ func (us *UserCRUDService) EnableUserById(execUserId int32, targetUserId int32) 
 	rows, err := queries.EnableUserById(context.Background(), params)
 	if err != nil {
 		user.ParseUserFromDb(rows)
-		slog.Error("error enabling user", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserId)))
 		return user, err
 	}
 	user.ParseUserFromDb(rows)
 	return user, err
 }
 
-func (us *UserCRUDService) DisableUserById(execUserId int32, targetUserId int32) (*UserDao, error) {
+func (us *UserCRUDService) DisableUserById(targetUserId int32) (*UserDao, error) {
 	user := &UserDao{Id: targetUserId}
 
 	params := infra_db_pg.DisableUserByIdParams{ID: targetUserId, Enabled: false}
@@ -258,7 +258,7 @@ func (us *UserCRUDService) DisableUserById(execUserId int32, targetUserId int32)
 	rows, err := queries.DisableUserById(context.Background(), params)
 	if err != nil {
 		user.ParseUserFromDb(rows)
-		slog.Error("error enabling user", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserId)))
 		return user, err
 	}
 	user.ParseUserFromDb(rows)

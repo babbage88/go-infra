@@ -20,7 +20,7 @@ WHERE u.is_deleted = false;
 
 -- +goose Down
 -- +goose StatementBegin
-SECREATE OR REPLACE VIEW public.users_with_roles
+CREATE OR REPLACE VIEW public.users_with_roles
 AS SELECT u.id,
     u.username,
     u.password,

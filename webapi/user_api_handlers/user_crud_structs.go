@@ -37,9 +37,8 @@ type UpdatePasswordRequestWrapper struct {
 }
 
 type UpdateUserPasswordRequest struct {
-	ExecutionUserId int32  `json:"executionUserId"`
-	TargetUserId    int32  `json:"targetUserId"`
-	NewPassword     string `json:"newPassword"`
+	TargetUserId int32  `json:"targetUserId"`
+	NewPassword  string `json:"newPassword"`
 }
 
 type UserPasswordUpdateResponse struct {
@@ -63,13 +62,11 @@ type DisableUserRequestWrapper struct {
 }
 
 type DisableUserRequest struct {
-	ExecutionUserId int32 `json:"executionUserId"`
-	TargetUserId    int32 `json:"targetUserId"`
+	TargetUserId int32 `json:"targetUserId"`
 }
 
 type EnableUserRequest struct {
-	ExecutionUserId int32 `json:"executionUserId"`
-	TargetUserId    int32 `json:"targetUserId"`
+	TargetUserId int32 `json:"targetUserId"`
 }
 
 type EnableDisableUserResponse struct {
