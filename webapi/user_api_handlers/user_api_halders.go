@@ -100,7 +100,7 @@ func UpdateUserPasswordHandler(uc_service *services.UserCRUDService) func(w http
 	}
 }
 
-// swagger:route POST /users getallusers idOfgetAllUsersEndpoint
+// swagger:route GET /users getallusers idOfgetAllUsersEndpoint
 // Returns all active users.
 //
 // security:
@@ -130,7 +130,7 @@ func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.Respon
 	}
 }
 
-// swagger:route POST /roles getAllUserRoles idOfgetAllRolesEndpoint
+// swagger:route GET /roles getAllUserRoles idOfgetAllRolesEndpoint
 // Returns all active User Roles.
 //
 // security:
@@ -160,7 +160,7 @@ func GetAllRolesHandler(uc_service *services.UserCRUDService) func(w http.Respon
 	}
 }
 
-// swagger:route POST /permissions getAllAppPermissions idOfgetAllAppPermissionsEndpoint
+// swagger:route GET /permissions getAllAppPermissions idOfgetAllAppPermissionsEndpoint
 // Returns all App Permissions
 //
 // security:

@@ -136,7 +136,7 @@
       }
     },
     "/permissions": {
-      "post": {
+      "get": {
         "security": [
           {
             "bearer": []
@@ -183,7 +183,7 @@
       }
     },
     "/roles": {
-      "post": {
+      "get": {
         "security": [
           {
             "bearer": []
@@ -390,7 +390,7 @@
       }
     },
     "/users": {
-      "post": {
+      "get": {
         "security": [
           {
             "bearer": []

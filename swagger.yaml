@@ -84,7 +84,7 @@ paths:
             tags:
                 - login
     /permissions:
-        post:
+        get:
             description: Returns all App Permissions
             operationId: idOfgetAllAppPermissionsEndpoint
             responses:
@@ -113,7 +113,7 @@ paths:
             tags:
                 - renew
     /roles:
-        post:
+        get:
             operationId: idOfgetAllRolesEndpoint
             responses:
                 "200":
@@ -235,7 +235,7 @@ paths:
             tags:
                 - updateUserRole
     /users:
-        post:
+        get:
             operationId: idOfgetAllUsersEndpoint
             responses:
                 "200":
