@@ -82,9 +82,8 @@ type UpdateUserRoleMappingRequestWrapper struct {
 }
 
 type UpdateUserRoleMappingRequest struct {
-	ExecutionUserId int32 `json:"executionUserId"`
-	TargetUserId    int32 `json:"targetUserId"`
-	RoleId          int32 `json:"roleId"`
+	TargetUserId int32 `json:"targetUserId"`
+	RoleId       int32 `json:"roleId"`
 }
 
 type UpdateUserRoleMappingResponse struct {

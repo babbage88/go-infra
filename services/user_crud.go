@@ -33,7 +33,7 @@ type UserCRUD interface {
 	EnableUserById(targetUserId int32) (UserDao, error)
 	DisableUserById(targetUserId int32) (UserDao, error)
 	SoftDeleteUserById(targetUserId int32) (UserDao, error)
-	UpdateUserRoleMapping(execUserId int32, targetUserId int32, roleId int32) error
+	UpdateUserRoleMapping(targetUserId int32, roleId int32) error
 	CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error)
 	CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error)
 	CreateOrUpdateRolePermisssionMapping(roleId int32, permId int32) (*RolePermissionMappingDao, error)
@@ -265,12 +265,12 @@ func (us *UserCRUDService) DisableUserById(targetUserId int32) (*UserDao, error)
 	return user, err
 }
 
-func (us *UserCRUDService) UpdateUserRoleMapping(execUserId int32, targetUserId int32, roleId int32) error {
+func (us *UserCRUDService) UpdateUserRoleMapping(targetUserId int32, roleId int32) error {
 	params := infra_db_pg.InsertOrUpdateUserRoleMappingByIdParams{UserID: targetUserId, RoleID: roleId}
 	queries := infra_db_pg.New(us.DbConn)
 	_, err := queries.InsertOrUpdateUserRoleMappingById(context.Background(), params)
 	if err != nil {
-		slog.Error("error modifying user group mappings", slog.String("execUser", fmt.Sprint(execUserId)), slog.String("targetUser", fmt.Sprint(targetUserId)))
+		slog.Error("error modifying user group mappings", slog.String("targetUser", fmt.Sprint(targetUserId)))
 		return err
 	}
 	return err

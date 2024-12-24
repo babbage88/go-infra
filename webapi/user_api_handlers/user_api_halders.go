@@ -2,6 +2,7 @@ package userapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -303,7 +304,8 @@ func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w h
 			Error: err,
 		}
 
-		response.Error = uc_service.UpdateUserRoleMapping(request.ExecutionUserId, request.TargetUserId, request.RoleId)
+		slog.Info("Updating user role mapping", slog.String("targetUserID", fmt.Sprint(request.TargetUserId)), slog.String("roleID", fmt.Sprint(request.RoleId)))
+		response.Error = uc_service.UpdateUserRoleMapping(request.TargetUserId, request.RoleId)
 		if response.Error != nil {
 			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
 			return
@@ -349,6 +351,7 @@ func CreateUserRoleHandler(uc_service *services.UserCRUDService) func(w http.Res
 			Error:           err,
 		}
 
+		slog.Info("CreateorUpdate user role", slog.String("RoleName", request.RoleName))
 		response.NewUserRoleInfo, response.Error = uc_service.CreateOrUpdateUserRole(request.RoleName, request.RoleDescription)
 		if response.Error != nil {
 			http.Error(w, "error creating role "+response.Error.Error(), http.StatusUnauthorized)

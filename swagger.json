@@ -549,11 +549,6 @@
     "UpdateUserRoleMappingRequest": {
       "type": "object",
       "properties": {
-        "executionUserId": {
-          "type": "integer",
-          "format": "int32",
-          "x-go-name": "ExecutionUserId"
-        },
         "roleId": {
           "type": "integer",
           "format": "int32",
