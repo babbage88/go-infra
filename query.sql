@@ -14,8 +14,8 @@ SELECT
     "username",
     "password",
     "email",
-    "role",
-    "role_id",
+    "roles",
+    "role_ids",
     "created_at",
     "last_modified",
     "enabled",
@@ -29,8 +29,8 @@ SELECT
     "username",
     "password",
     "email",
-    "role",
-    "role_id",
+    "roles",
+    "role_ids",
     "created_at",
     "last_modified",
     "enabled",
@@ -39,7 +39,7 @@ FROM public.users_with_roles uwr
 WHERE username = $1;
 
 -- name: GetUserLogin :one
-SELECT id, username, "password" , email, "enabled", "role", "role_id" FROM public.users_with_roles uwr
+SELECT id, username, "password" , email, "enabled", "roles", "role_ids" FROM public.users_with_roles uwr
 WHERE username = $1
 LIMIT 1;
 
@@ -142,8 +142,8 @@ SELECT
     "username",
     "password",
      "email",
-    "role",
-    "role_id",
+    "roles",
+    "role_ids",
     "created_at",
     "last_modified",
     "enabled",

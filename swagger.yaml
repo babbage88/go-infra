@@ -408,11 +408,15 @@ responses:
             lastModified:
                 format: date-time
                 type: string
-            role:
-                type: string
-            role_id:
-                format: int32
-                type: integer
+            role_ids:
+                items:
+                    format: int32
+                    type: integer
+                type: array
+            roles:
+                items:
+                    type: string
+                type: array
             username:
                 type: string
 securityDefinitions:

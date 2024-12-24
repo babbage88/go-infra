@@ -13,8 +13,8 @@ type UserDao struct {
 	Id           int32     `json:"id"`
 	UserName     string    `json:"username"`
 	Email        string    `json:"email"`
-	Role         string    `json:"role"`
-	RoleId       int32     `json:"role_id"`
+	Roles        []string  `json:"roles"`
+	RoleIds      []int32   `json:"role_ids"`
 	CreatedAt    time.Time `json:"createdAt"`
 	LastModified time.Time `json:"lastModified"`
 	Enabled      bool      `json:"enabled"`

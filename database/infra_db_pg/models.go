@@ -176,8 +176,8 @@ type UsersWithRole struct {
 	Username     pgtype.Text
 	Password     pgtype.Text
 	Email        pgtype.Text
-	Role         string
-	RoleID       int32
+	Roles        interface{}
+	RoleIds      interface{}
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	Enabled      bool

@@ -108,7 +108,7 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 		LoginResult := loginReq.Login(ua_service.DbConn)
 
 		if LoginResult.Result.Success {
-			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.RoleId, LoginResult.UserInfo.Email)
+			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.RoleIds, LoginResult.UserInfo.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))

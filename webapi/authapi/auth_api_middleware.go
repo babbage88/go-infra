@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/babbage88/go-infra/utils/env_helper"
@@ -86,22 +85,21 @@ func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string,
 			return
 		}
 
-		subject, ok := claims["sub"].(string)
+		roleIDsInterface, ok := claims["role_ids"].([]interface{})
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Subject claim missing"}`))
+			w.Write([]byte(`{"error": "Role IDs missing"}`))
 			return
 		}
 
-		userId, err := strconv.Atoi(subject)
-		if err != nil {
-			slog.Error("Error converting subject to int", slog.String("Error", err.Error()))
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "Internal Server Error"}`))
-			return
+		var roleIDs []int32
+		for _, roleID := range roleIDsInterface {
+			if id, ok := roleID.(float64); ok { // JWT encodes numbers as float64
+				roleIDs = append(roleIDs, int32(id))
+			}
 		}
 
-		hasPermission, err := ua.VerifyUserPermission(int32(userId), permissionName)
+		hasPermission, err := ua.VerifyUserRolesForPermission(roleIDs, permissionName)
 		if err != nil {
 			slog.Error("Error verifying user permission", slog.String("Error", err.Error()))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -115,7 +113,7 @@ func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string,
 			return
 		}
 
-		slog.Info("User permission verified successfully.", slog.Int("UserID", userId), slog.String("Permission", permissionName))
+		slog.Info("User permission verified successfully.", slog.Any("RoleIDs", roleIDs), slog.String("Permission", permissionName))
 		next.ServeHTTP(w, r)
 	}
 }

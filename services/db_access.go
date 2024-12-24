@@ -19,8 +19,30 @@ func (u *UserDao) ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow) {
 	u.UserName = dbRow.Username.String
 	u.Email = dbRow.Email.String
 	u.Enabled = dbRow.Enabled
-	u.Role = dbRow.Role
-	u.RoleId = dbRow.RoleID
+
+	// Parse roles
+	if roles, ok := dbRow.Roles.([]interface{}); ok {
+		u.Roles = make([]string, len(roles))
+		for i, role := range roles {
+			if roleStr, ok := role.(string); ok {
+				u.Roles[i] = roleStr
+			}
+		}
+	} else {
+		u.Roles = []string{}
+	}
+
+	// Parse role_ids
+	if roleIDs, ok := dbRow.RoleIds.([]interface{}); ok {
+		u.RoleIds = make([]int32, len(roleIDs))
+		for i, roleID := range roleIDs {
+			if roleIDInt, ok := roleID.(int32); ok {
+				u.RoleIds[i] = roleIDInt
+			}
+		}
+	} else {
+		u.RoleIds = []int32{}
+	}
 
 }
 
@@ -38,12 +60,33 @@ func (u *UserDao) ParseUserWithRoleFromDb(dbuser infra_db_pg.UsersWithRole) {
 	u.Id = dbuser.ID
 	u.UserName = dbuser.Username.String
 	u.Email = dbuser.Email.String
-	u.Role = dbuser.Role
-	u.RoleId = dbuser.RoleID
 	u.CreatedAt = dbuser.CreatedAt.Time
 	u.LastModified = dbuser.LastModified.Time
 	u.Enabled = dbuser.Enabled
 	u.IsDeleted = dbuser.IsDeleted
+	// Parse roles
+	if roles, ok := dbuser.Roles.([]interface{}); ok {
+		u.Roles = make([]string, len(roles))
+		for i, role := range roles {
+			if roleStr, ok := role.(string); ok {
+				u.Roles[i] = roleStr
+			}
+		}
+	} else {
+		u.Roles = []string{}
+	}
+
+	// Parse role_ids
+	if roleIDs, ok := dbuser.RoleIds.([]interface{}); ok {
+		u.RoleIds = make([]int32, len(roleIDs))
+		for i, roleID := range roleIDs {
+			if roleIDInt, ok := roleID.(int32); ok {
+				u.RoleIds[i] = roleIDInt
+			}
+		}
+	} else {
+		u.RoleIds = []int32{}
+	}
 }
 
 func (t *AuthTokenDao) ParseAuthTokenFromDb(token infra_db_pg.AuthToken) {

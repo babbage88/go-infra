@@ -174,16 +174,7 @@ func (us *UserCRUDService) GetAllActiveUsersDao() ([]UserDao, error) {
 	// Map rows to UserDao
 	userDaos := make([]UserDao, len(rows))
 	for i, row := range rows {
-		userDaos[i] = UserDao{
-			Id:           row.ID,
-			UserName:     row.Username.String,
-			Email:        row.Email.String,
-			Role:         row.Role,
-			CreatedAt:    row.CreatedAt.Time,
-			LastModified: row.LastModified.Time,
-			Enabled:      row.Enabled,
-			IsDeleted:    false,
-		}
+		userDaos[i].ParseUserWithRoleFromDb(row)
 	}
 
 	return userDaos, nil

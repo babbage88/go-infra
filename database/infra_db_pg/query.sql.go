@@ -185,8 +185,8 @@ SELECT
     "username",
     "password",
      "email",
-    "role",
-    "role_id",
+    "roles",
+    "role_ids",
     "created_at",
     "last_modified",
     "enabled",
@@ -208,8 +208,8 @@ func (q *Queries) GetAllActiveUsers(ctx context.Context) ([]UsersWithRole, error
 			&i.Username,
 			&i.Password,
 			&i.Email,
-			&i.Role,
-			&i.RoleID,
+			&i.Roles,
+			&i.RoleIds,
 			&i.CreatedAt,
 			&i.LastModified,
 			&i.Enabled,
@@ -325,8 +325,8 @@ SELECT
     "username",
     "password",
     "email",
-    "role",
-    "role_id",
+    "roles",
+    "role_ids",
     "created_at",
     "last_modified",
     "enabled",
@@ -343,8 +343,8 @@ func (q *Queries) GetUserById(ctx context.Context, id int32) (UsersWithRole, err
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
-		&i.RoleID,
+		&i.Roles,
+		&i.RoleIds,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -359,8 +359,8 @@ SELECT
     "username",
     "password",
     "email",
-    "role",
-    "role_id",
+    "roles",
+    "role_ids",
     "created_at",
     "last_modified",
     "enabled",
@@ -377,8 +377,8 @@ func (q *Queries) GetUserByName(ctx context.Context, username pgtype.Text) (User
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.Role,
-		&i.RoleID,
+		&i.Roles,
+		&i.RoleIds,
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.Enabled,
@@ -402,7 +402,7 @@ func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (in
 }
 
 const getUserLogin = `-- name: GetUserLogin :one
-SELECT id, username, "password" , email, "enabled", "role", "role_id" FROM public.users_with_roles uwr
+SELECT id, username, "password" , email, "enabled", "roles", "role_ids" FROM public.users_with_roles uwr
 WHERE username = $1
 LIMIT 1
 `
@@ -413,8 +413,8 @@ type GetUserLoginRow struct {
 	Password pgtype.Text
 	Email    pgtype.Text
 	Enabled  bool
-	Role     string
-	RoleID   int32
+	Roles    interface{}
+	RoleIds  interface{}
 }
 
 func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUserLoginRow, error) {
@@ -426,8 +426,8 @@ func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUs
 		&i.Password,
 		&i.Email,
 		&i.Enabled,
-		&i.Role,
-		&i.RoleID,
+		&i.Roles,
+		&i.RoleIds,
 	)
 	return i, err
 }

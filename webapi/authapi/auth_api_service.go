@@ -30,6 +30,30 @@ type UserAuth interface {
 	CreateAuthToken(userid int32, role string, email string) (AuthToken, error)
 	CreateSignedTokenString(sub string, userInfo interface{}) (string, time.Time, error)
 	VerifyToken(tokenString string) error
+	VerifyUserRolesForPermission(roleIds []int32, permissionName string) (bool, error)
+}
+
+func (ua *UserAuthService) VerifyUserRolesForPermission(roleIds []int32, permissionName string) (bool, error) {
+	var lastError error // Store any encountered errors for logging or debugging
+
+	for _, roleId := range roleIds {
+		hasPermission, err := ua.VerifyUserPermission(roleId, permissionName)
+		if err != nil {
+			// Save the error but continue checking other roles
+			lastError = err
+			continue
+		}
+		if hasPermission {
+			return true, err
+		}
+	}
+
+	if lastError != nil {
+		// Log the error for debugging purposes
+		slog.Error("Error occurred while verifying permissions for roles", slog.String("Error", lastError.Error()))
+	}
+	// Return false if no roles grant the permission
+	return false, lastError
 }
 
 func (ua *UserAuthService) VerifyUser(userid int32) bool {
@@ -66,7 +90,7 @@ func (t *AuthToken) RefreshAccessTokens(dbConn *pgxpool.Pool) error {
 		return fmt.Errorf("User is not enabled")
 	}
 	userInfo := map[string]interface{}{
-		"role":  qry.Role,
+		"uid":   fmt.Sprint(qry.ID),
 		"email": qry.Email,
 	}
 	jwt_algo := os.Getenv("JWT_ALGORITHM")
@@ -159,53 +183,50 @@ func (t *AuthToken) CreateRefreshToken() {
 	t.RefreshToken = rt
 }
 
-func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, roleId int32, userInfo interface{}) (string, time.Time, error) {
-	expire_minutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
-	jwt_algo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
+func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, roleIds []int32, userInfo interface{}) (string, time.Time, error) {
+	expireMinutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
+	if err != nil {
+		slog.Error("Error parsing EXPIRATION_MINUTES, defaulting to 60.", slog.String("Error", err.Error()))
+		expireMinutes = 60
+	}
+
+	jwtAlgo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
 	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
 
-	if err != nil {
-		slog.Error("Error Parsing int64 from .env EXPIRATION_MINUTES, setting value to 60.", slog.String("Error", err.Error()))
-		expire_minutes = 60
-	}
-	token := jwt.New(jwt.GetSigningMethod(jwt_algo))
-	exp := time.Now().Add(time.Minute * time.Duration(expire_minutes))
-	token.Claims = &InfraJWTClaim{
-		&jwt.RegisteredClaims{
-			// Set the userid and expiration as the standard claim.
-			Issuer:    "goinfra",
-			ExpiresAt: jwt.NewNumericDate(exp),
-			Subject:   sub,
-			Audience:  jwt.ClaimStrings{fmt.Sprint(roleId)},
-		},
-		// UserInfo passed from caller as map[string]string
-		userInfo,
-	}
-	val, err := token.SignedString(jwtKey)
+	token := jwt.New(jwt.GetSigningMethod(jwtAlgo))
+	exp := time.Now().Add(time.Minute * time.Duration(expireMinutes))
 
+	token.Claims = jwt.MapClaims{
+		"sub":       sub,
+		"role_ids":  roleIds,
+		"user_info": userInfo,
+		"exp":       exp.Unix(),
+		"iss":       "goinfra",
+	}
+
+	signedToken, err := token.SignedString(jwtKey)
 	if err != nil {
 		return "", exp, err
 	}
-	return val, exp, nil
+
+	return signedToken, exp, nil
 }
 
-func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, roleId int32, email string) (AuthToken, error) {
-
+func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, roleIds []int32, email string) (AuthToken, error) {
 	var retval AuthToken
 	userInfo := map[string]interface{}{
-		"roleId": fmt.Sprint(roleId),
-		"email":  email,
+		"email": email,
 	}
 
-	tokenString, expire_time, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), roleId, userInfo)
+	tokenString, expireTime, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), roleIds, userInfo)
 	if err != nil {
-		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
+		slog.Error("Error creating signed JWT token", slog.String("Error", err.Error()))
 		return retval, err
 	}
 
 	retval = AuthToken{
 		UserID:     userid,
-		Expiration: expire_time,
+		Expiration: expireTime,
 		Token:      tokenString,
 	}
 
