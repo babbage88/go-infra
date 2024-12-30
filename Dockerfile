@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-
 ARG GO_VERSION=1.23.0
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 WORKDIR /src
@@ -21,6 +20,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 
 # Final stage copy bin and install pre-requisites
 FROM alpine:latest AS final
+LABEL org.opencontainers.image.source https://github.com/babbage88/go-infra
+
 
 WORKDIR /app
 
