@@ -206,17 +206,17 @@ END $$;
 
 -- +goose StatementBegin
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_roles
--- +goose envsub on
-        WHERE rolname = '${DEV_DB_USER}'
-    ) THEN
-        CREATE ROLE ${DEV_DB_USER};
--- +goose envsub off
-    END IF;
-END $$;
+-- DO $$
+-- BEGIN
+--     IF NOT EXISTS (
+--         SELECT 1 FROM pg_roles
+-- -- +goose envsub on
+--         WHERE rolname = '${DEV_DB_USER}'
+--     ) THEN
+--         CREATE ROLE ${DEV_DB_USER};
+-- -- +goose envsub off
+--     END IF;
+-- END $$;
 -- +goose StatementEnd
 
 -- +goose StatementBegin
