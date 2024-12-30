@@ -10,6 +10,7 @@ import (
 
 	"github.com/babbage88/go-infra/auth/hashing"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/internal/pretty"
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -25,10 +26,38 @@ type UserAuth interface {
 	VerifyUser(userid int32) bool
 	RefreshAuthTokens(dbConn *pgxpool.Pool) error
 	HashUserPassword()
+	VerifyUserPermission(executionUserId int32, permissionsName string) (bool, error)
 	NewLoginRequest(username string, password string, isHashed bool) *UserLoginResponse
 	CreateAuthToken(userid int32, role string, email string) (AuthToken, error)
 	CreateSignedTokenString(sub string, userInfo interface{}) (string, time.Time, error)
 	VerifyToken(tokenString string) error
+	VerifyUserRolesForPermission(roleIds []int32, permissionName string) (bool, error)
+	VerifyUserPermissionByRole(roleId int32, permissionName string) (bool, error)
+}
+
+func (ua *UserAuthService) VerifyUserRolesForPermission(roleIds []int32, permissionName string) (bool, error) {
+	var lastError error // Store any encountered errors for logging or debugging
+
+	for _, roleId := range roleIds {
+		hasPermission, err := ua.VerifyUserPermissionByRole(roleId, permissionName)
+		if err != nil {
+			// Save the error but continue checking other roles
+			pretty.PrintErrorf("RolePermVerify error %s", err.Error())
+			slog.Error("Error encountered while verifying permissions", slog.String("roleId", fmt.Sprint(roleId)), slog.String("error", err.Error()))
+			lastError = err
+			continue
+		}
+		if hasPermission {
+			return true, err
+		}
+	}
+
+	if lastError != nil {
+		// Log the error for debugging purposes
+		slog.Error("Error occurred while verifying permissions for roles", slog.String("Error", lastError.Error()))
+	}
+	// Return false if no roles grant the permission
+	return false, lastError
 }
 
 func (ua *UserAuthService) VerifyUser(userid int32) bool {
@@ -38,6 +67,34 @@ func (ua *UserAuthService) VerifyUser(userid int32) bool {
 		slog.Error("Error querying database for user", slog.String("Error", err.Error()), slog.String("UserName", fmt.Sprint(userid)))
 	}
 	return qry.Enabled
+}
+
+func (us *UserAuthService) VerifyUserPermission(ueid int32, permissionName string) (bool, error) {
+	params := infra_db_pg.VerifyUserPermissionByIdParams{
+		UserId:     pgtype.Int4{Int32: ueid, Valid: true},
+		Permission: pgtype.Text{String: permissionName, Valid: true},
+	}
+	queries := infra_db_pg.New(us.DbConn)
+	qry, err := queries.VerifyUserPermissionById(context.Background(), params)
+	if err != nil {
+		slog.Error("error verifying user permissions", slog.String("error", err.Error()))
+		return false, err
+	}
+	return qry, err
+}
+
+func (us *UserAuthService) VerifyUserPermissionByRole(roleId int32, permissionName string) (bool, error) {
+	params := infra_db_pg.VerifyUserPermissionByRoleIdParams{
+		RoleId:     roleId,
+		Permission: pgtype.Text{String: permissionName, Valid: true},
+	}
+	queries := infra_db_pg.New(us.DbConn)
+	qry, err := queries.VerifyUserPermissionByRoleId(context.Background(), params)
+	if err != nil {
+		slog.Error("error verifying user permissions", slog.String("error", err.Error()))
+		return false, err
+	}
+	return qry, err
 }
 
 func (t *AuthToken) RefreshAccessTokens(dbConn *pgxpool.Pool) error {
@@ -51,7 +108,7 @@ func (t *AuthToken) RefreshAccessTokens(dbConn *pgxpool.Pool) error {
 		return fmt.Errorf("User is not enabled")
 	}
 	userInfo := map[string]interface{}{
-		"role":  qry.Role,
+		"uid":   fmt.Sprint(qry.ID),
 		"email": qry.Email,
 	}
 	jwt_algo := os.Getenv("JWT_ALGORITHM")
@@ -94,7 +151,7 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 	if !result.PasswordValid {
 		slog.Error("Supplied password does not match the password stored in database", slog.String("User", request.UserName))
 		result.Success = false
-		result.Error = errors.New("Password does not match.")
+		result.Error = errors.New("password does not match")
 		result.UserEnabled = qry.Enabled
 		response.Result = result
 		return response
@@ -104,7 +161,7 @@ func (request *UserLoginRequest) Login(connPool *pgxpool.Pool) UserLoginResponse
 		slog.Error("User is disabled", slog.String("User", request.UserName))
 		result.Success = false
 		result.UserEnabled = qry.Enabled
-		result.Error = errors.New("User is diabled.")
+		result.Error = errors.New("user is diabled.")
 		response.Result = result
 		return response
 	}
@@ -144,53 +201,50 @@ func (t *AuthToken) CreateRefreshToken() {
 	t.RefreshToken = rt
 }
 
-func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, role string, userInfo interface{}) (string, time.Time, error) {
-	expire_minutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
-	jwt_algo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
+func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, roleIds []int32, userInfo interface{}) (string, time.Time, error) {
+	expireMinutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
+	if err != nil {
+		slog.Error("Error parsing EXPIRATION_MINUTES, defaulting to 60.", slog.String("Error", err.Error()))
+		expireMinutes = 60
+	}
+
+	jwtAlgo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
 	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
 
-	if err != nil {
-		slog.Error("Error Parsing int64 from .env EXPIRATION_MINUTES, setting value to 60.", slog.String("Error", err.Error()))
-		expire_minutes = 60
-	}
-	token := jwt.New(jwt.GetSigningMethod(jwt_algo))
-	exp := time.Now().Add(time.Minute * time.Duration(expire_minutes))
-	token.Claims = &InfraJWTClaim{
-		&jwt.RegisteredClaims{
-			// Set the userid and expiration as the standard claim.
-			Issuer:    "goinfra",
-			ExpiresAt: jwt.NewNumericDate(exp),
-			Subject:   sub,
-			Audience:  jwt.ClaimStrings{role},
-		},
-		// UserInfo passed from caller as map[string]string
-		userInfo,
-	}
-	val, err := token.SignedString(jwtKey)
+	token := jwt.New(jwt.GetSigningMethod(jwtAlgo))
+	exp := time.Now().Add(time.Minute * time.Duration(expireMinutes))
 
+	token.Claims = jwt.MapClaims{
+		"sub":       sub,
+		"role_ids":  roleIds,
+		"user_info": userInfo,
+		"exp":       exp.Unix(),
+		"iss":       "goinfra",
+	}
+
+	signedToken, err := token.SignedString(jwtKey)
 	if err != nil {
 		return "", exp, err
 	}
-	return val, exp, nil
+
+	return signedToken, exp, nil
 }
 
-func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, role string, email string) (AuthToken, error) {
-
+func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, roleIds []int32, email string) (AuthToken, error) {
 	var retval AuthToken
 	userInfo := map[string]interface{}{
-		"role":  role,
 		"email": email,
 	}
 
-	tokenString, expire_time, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), role, userInfo)
+	tokenString, expireTime, err := ua.CreateSignedAuthTokenString(fmt.Sprint(userid), roleIds, userInfo)
 	if err != nil {
-		slog.Error("Error creating signed jwt token", slog.String("Error", err.Error()))
+		slog.Error("Error creating signed JWT token", slog.String("Error", err.Error()))
 		return retval, err
 	}
 
 	retval = AuthToken{
 		UserID:     userid,
-		Expiration: expire_time,
+		Expiration: expireTime,
 		Token:      tokenString,
 	}
 

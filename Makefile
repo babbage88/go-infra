@@ -1,9 +1,13 @@
 DOCKER_HUB:=jtrahan88/goinfra:
+DOCKER_HUB_TEST:=jtrahan88/goinfra-test:
+ENV_FILE:=.env
+MIG:=$(shell date '+%m%d%Y.%H%M%S')
+SHELL := /bin/bash
 
 check-swagger:
 	which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
 
-swagger: check-swagger
+swagger:
 	swagger generate spec -o ./swagger.yaml --scan-models && swagger generate spec -o swagger.json --scan-models
 
 dev-swagger: check-swagger
@@ -18,6 +22,12 @@ local-swagger: check-swagger
 	swagger mixin spec/swagger.local.yaml local-swagger.yaml --output swagger.yaml --format=yaml
 	rm local-swagger.json && rm local-swagger.yaml
 
+k3local-swagger: check-swagger
+	swagger generate spec -o ./k3local-swagger.yaml --scan-models && swagger generate spec -o k3local-swagger.json --scan-models
+	swagger mixin spec/swagger.localdev.json k3local-swagger.json --output swagger.json --format=json
+	swagger mixin spec/swagger.localdev.yaml k3local-swagger.yaml --output swagger.yaml --format=yaml
+	rm k3local-swagger.json && rm k3local-swagger.yaml
+
 run-local: local-swagger
 	go run .
 
@@ -27,9 +37,24 @@ embed-swagger:
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443
 
-buildandpush: dev-swagger
+buildandpushdev: dev-swagger
+	docker buildx use infrabuilder
 	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB)$(tag) . --push
 
-deploydev:
+buildandpushlocalk3: k3local-swagger
+	docker buildx use infrabuilder
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB_TEST)$(tag) . --push
+
+deploydev: buildandpushdev
 	kubectl apply -f deployment/kubernetes/go-infra.yaml
 	kubectl rollout restart deployment go-infra
+
+deploylocalk3: buildandpushlocalk3
+	kubelocal apply -f deployment/kubernetes/localdev/go-infra-dev.yaml
+	kubelocal rollout restart deployment go-infra
+
+new-sqlmigration:
+	@source $(ENV_FILE) && \
+		export GOOSE_DBSTRING GOOSE_MIGRATION_DIR GOOSE_DRIVER && \
+		goose create -s $(MIG) sql
+

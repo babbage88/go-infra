@@ -13,11 +13,12 @@ type UserDao struct {
 	Id           int32     `json:"id"`
 	UserName     string    `json:"username"`
 	Email        string    `json:"email"`
-	Role         string    `json:"role"`
-	CreatedAt    time.Time `json:"created_at"`
-	LastModified time.Time `json:"last_modified"`
+	Roles        []string  `json:"roles"`
+	RoleIds      []int32   `json:"role_ids"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastModified time.Time `json:"lastModified"`
 	Enabled      bool      `json:"enabled"`
-	IsDeleted    bool      `json:"is_deleted"`
+	IsDeleted    bool      `json:"isDeleted"`
 }
 
 type AuthTokenDao struct {
@@ -65,4 +66,29 @@ type UserHostedDb struct {
 	PrivateIpAddress     *netip.Addr
 	CreatedAt            time.Time
 	LastModified         time.Time
+}
+
+type UserRoleDao struct {
+	Id              int32     `json:"id"`
+	RoleName        string    `json:"roleName"`
+	RoleDescription string    `json:"roleDesc"`
+	Enabled         bool      `json:"enabled"`
+	IsDeleted       bool      `json:"isDeleted"`
+	CreatedAt       time.Time `json:"createdAt"`
+	LastModified    time.Time `json:"lastModified"`
+}
+
+type AppPermissionDao struct {
+	Id                    int32  `json:"id"`
+	PermissionName        string `json:"permissionName"`
+	PermissionDescription string `json:"permissionDescription"`
+}
+
+type RolePermissionMappingDao struct {
+	Id           int32     `json:"id"`
+	RoleId       int32     `json:"roleId"`
+	PermissionId int32     `json:"permissionId"`
+	Enabled      bool      `json:"enabled"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastModified time.Time `json:"lastModified"`
 }

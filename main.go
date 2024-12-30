@@ -29,13 +29,13 @@ package main
 import (
 	_ "embed"
 	"flag"
-	"fmt"
-	"log/slog"
+	"os"
 
+	"github.com/babbage88/go-infra/database/bootstrap"
+	"github.com/babbage88/go-infra/internal/pretty"
 	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
-	_ "github.com/pdrum/swagger-automation/docs"
 )
 
 //go:embed swagger.yaml
@@ -44,31 +44,34 @@ var swaggerSpec []byte
 func main() {
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	envFilePath := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
-	username := flag.String("username", "jtrahan", "Username to create")
-	pw := flag.String("pw", "", "")
+	bootstrapNewDb := flag.Bool("db-bootstrap", false, "Create new dev database.")
+	initDevUser := flag.Bool("devuser", false, "Update the devuser password")
 	version := flag.Bool("version", false, "Show the current version.")
-	testfuncs := flag.Bool("test", false, "run test module")
 	flag.Parse()
+
+	envars := initEnvironment(*envFilePath)
+
+	if *bootstrapNewDb {
+		bootstrap.NewDb()
+		pretty.Print("test")
+		err := bootstrap.CreateInfradbUser(os.Getenv("DB_USER"))
+		if err != nil {
+			pretty.PrintErrorf("Error configuring db user %s", err.Error())
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
 
 	if *version {
 		showVersion()
 		return
 	}
 
-	envars := initEnvironment(*envFilePath)
 	connPool := initPgConnPool()
 	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
 	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
-
-	if *testfuncs {
-		request := &authapi.UserLoginRequest{UserName: *username, Password: *pw}
-		loginTestResponse := request.Login(authService.DbConn)
-		if loginTestResponse.Result.Success {
-			slog.Info("Login Successful")
-		}
-		userService.NewUser(*username, *pw, fmt.Sprint(*username, "@trahan.dev"), "Admin")
-		userService.UpdateUserPasswordById(1, *pw)
-		return
+	if *initDevUser {
+		userService.UpdateUserPasswordById(1, envars.GetVarMapValue("DEV_APP_PASS"))
 	}
 
 	api_server.StartWebApiServer(authService, userService, swaggerSpec, srvport)

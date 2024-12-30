@@ -189,7 +189,7 @@ ALTER TABLE ONLY public.users
 
 -- +goose StatementEnd
 
--- +goose statementbegin
+-- +goose StatementBegin
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -202,22 +202,22 @@ BEGIN
             ADD CONSTRAINT auth_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
     END IF;
 END $$;
--- +goose statementend
+-- +goose StatementEnd
 
--- +goose statementbegin
+-- +goose StatementBegin
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_roles
--- +goose envsub on
-        WHERE rolname = '${DEV_DB_USER}'
-    ) THEN
-        CREATE ROLE ${DEV_DB_USER};
--- +goose envsub off
-    END IF;
-END $$;
--- +goose statementend
+-- DO $$
+-- BEGIN
+--     IF NOT EXISTS (
+--         SELECT 1 FROM pg_roles
+-- -- +goose envsub on
+--         WHERE rolname = '${DEV_DB_USER}'
+--     ) THEN
+--         CREATE ROLE ${DEV_DB_USER};
+-- -- +goose envsub off
+--     END IF;
+-- END $$;
+-- +goose StatementEnd
 
 -- +goose StatementBegin
 -- +goose envsub on

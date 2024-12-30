@@ -10,6 +10,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AppPermission struct {
+	ID                    int32
+	PermissionName        string
+	PermissionDescription pgtype.Text
+}
+
 type AuthToken struct {
 	ID           int32
 	UserID       pgtype.Int4
@@ -56,12 +62,27 @@ type HostedDbPlatform struct {
 	DefaultListenPort pgtype.Int4
 }
 
+type RolePermissionMapping struct {
+	ID           int32
+	RoleID       int32
+	PermissionID int32
+	Enabled      bool
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+type RolePermissionsView struct {
+	RoleId       int32
+	Role         string
+	PermissionId pgtype.Int4
+	Permission   pgtype.Text
+}
+
 type User struct {
 	ID           int32
 	Username     pgtype.Text
 	Password     pgtype.Text
 	Email        pgtype.Text
-	Role         pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	Enabled      bool
@@ -102,6 +123,44 @@ type UserHostedK8 struct {
 	LastModified         pgtype.Timestamptz
 }
 
+type UserPermissionsView struct {
+	UserId       pgtype.Int4
+	Username     pgtype.Text
+	PermissionId pgtype.Int4
+	Permission   pgtype.Text
+	Role         pgtype.Text
+	LastModified pgtype.Timestamptz
+}
+
+type UserRole struct {
+	ID              int32
+	RoleName        string
+	RoleDescription pgtype.Text
+	CreatedAt       pgtype.Timestamptz
+	LastModified    pgtype.Timestamptz
+	Enabled         bool
+	IsDeleted       bool
+}
+
+type UserRoleMapping struct {
+	ID           int32
+	UserID       int32
+	RoleID       int32
+	Enabled      bool
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+type UserRolesActive struct {
+	RoleId          int32
+	RoleName        string
+	RoleDescription pgtype.Text
+	CreatedAt       pgtype.Timestamptz
+	LastModified    pgtype.Timestamptz
+	Enabled         bool
+	IsDeleted       bool
+}
+
 type UsersAudit struct {
 	AuditID   int32
 	UserID    pgtype.Int4
@@ -109,4 +168,17 @@ type UsersAudit struct {
 	Email     pgtype.Text
 	DeletedAt pgtype.Timestamptz
 	DeletedBy pgtype.Text
+}
+
+type UsersWithRole struct {
+	ID           int32
+	Username     pgtype.Text
+	Password     pgtype.Text
+	Email        pgtype.Text
+	Roles        interface{}
+	RoleIds      interface{}
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	Enabled      bool
+	IsDeleted    bool
 }

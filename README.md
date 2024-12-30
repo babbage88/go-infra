@@ -5,7 +5,7 @@ At the moment, I'm not really trying to build this with the intention of anyone 
 But, I try to comment or make README's whenever I get stuck on something and find that the solutions ends up not being well documented elsewhere. I know I've come accross some random personal repo while
 searching how to do something that's more of a niche topic or tech. So, if you look at the PR history, you'll see me summarizing my bigger changes into the void.
 
-I know theres probably much better tools to accomplish some of the thing I do in this repo, but I'm basically just doing everything for fun/learning. I tend to try and avoid non-standard or 3rd party libraries as much as I can or until it stops being enjoyable trying to build it myself. 
+I know theres probably much better tools to accomplish some of the thing I do in this repo, but I'm basically just doing everything for fun/learning. I tend to try and avoid non-standard or 3rd party libraries as much as I can or until it stops being enjoyable trying to build it myself.
 
 ## Architecture
 I'm not the type of guy who generally feels inclined to have a deep discussion on the differences between Vertical Slice vs N-Tier, or best patteren to use for x problem. Luckily in Golang, those things are less relevant/important.

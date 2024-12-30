@@ -28,7 +28,7 @@ spec:
       containers:
         - name: go-infra
           #image: git.trahan.dev/jtrahan/goinfra:v1.0.3
-          image: docker.io/jtrahan88/goinfra:v1.0.7
+          image: docker.io/jtrahan88/goinfra:v1.0.8dev
           imagePullPolicy: Always
           ports:
             - containerPort: 8993

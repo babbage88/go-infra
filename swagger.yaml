@@ -15,8 +15,42 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
-host: 10.0.0.64:8993
+host: localhost:8993
 paths:
+    /create/permission:
+        post:
+            operationId: idOfCreateAppPermission
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateAppPermissionRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateAppPermissionResponse'
+            security:
+                - bearer: []
+            summary: Create New App Permission.
+            tags:
+                - createAppPermission
+    /create/role:
+        post:
+            operationId: idOfCreateUserRole
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateUserRoleRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateUserRoleResponse'
+            security:
+                - bearer: []
+            summary: Create New User Role.
+            tags:
+                - createUserRole
     /create/user:
         post:
             operationId: idOfcreateUserEndpoint
@@ -49,6 +83,17 @@ paths:
             summary: Login a user and return token.
             tags:
                 - login
+    /permissions:
+        get:
+            description: Returns all App Permissions
+            operationId: idOfgetAllAppPermissionsEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllAppPermissionsResponse'
+            security:
+                - bearer: []
+            tags:
+                - getAllAppPermissions
     /renew:
         post:
             description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
@@ -67,6 +112,34 @@ paths:
                     $ref: '#/responses/CertificateData'
             tags:
                 - renew
+    /roles:
+        get:
+            operationId: idOfgetAllRolesEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllRolesResponse'
+            security:
+                - bearer: []
+            summary: Returns all active User Roles.
+            tags:
+                - getAllUserRoles
+    /roles/permission:
+        post:
+            operationId: idOfCreateRolePermissionMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateRolePermissionMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateRolePermissionMapptingResponse'
+            security:
+                - bearer: []
+            summary: Map App Permission to User Role.
+            tags:
+                - createRolePermissionMapping
     /token/refresh:
         post:
             operationId: idOftokenRefreshEndpoint
@@ -76,6 +149,102 @@ paths:
             summary: Refresh accessTokens andreturn to client.
             tags:
                 - tokenRefresh
+    /update/userpass:
+        post:
+            operationId: idOfUpdateUserPw
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserPasswordRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UserPasswordUpdateResponse'
+            security:
+                - bearer: []
+            summary: Update user password.
+            tags:
+                - updateUserPw
+    /user/delete:
+        post:
+            operationId: idOfSoftDeleteUserById
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/SoftDeleteUserByIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/SoftDeleteUserByIdResponse'
+            security:
+                - bearer: []
+            summary: Soft Delete User by id.
+            tags:
+                - SoftDeleteUserHandler
+    /user/disable:
+        post:
+            operationId: idOfDisableUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/DisableUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UpdateUserRoleResponse'
+            security:
+                - bearer: []
+            summary: Disable specified target User Id.
+            tags:
+                - disableUser
+    /user/enable:
+        post:
+            operationId: idOfEnableUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/EnableUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            summary: Enable specified target User Id.
+            tags:
+                - enableUser
+    /user/role:
+        post:
+            description: Update User Role Mapping
+            operationId: idOfUpdateUserRole
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            tags:
+                - updateUserRole
+    /users:
+        get:
+            operationId: idOfgetAllUsersEndpoint
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllUsersResponse'
+            security:
+                - bearer: []
+            summary: Returns all active users.
+            tags:
+                - getallusers
 definitions:
     CertDnsRenewReq:
         properties:
@@ -93,6 +262,16 @@ definitions:
                 x-go-name: ZipFiles
         type: object
         x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
+    CreateAppPermissionRequest:
+        properties:
+            descripiton:
+                type: string
+                x-go-name: PermissionDescription
+            name:
+                type: string
+                x-go-name: PermissionName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     CreateNewUserRequest:
         properties:
             newEmail:
@@ -107,6 +286,75 @@ definitions:
             newUsername:
                 type: string
                 x-go-name: NewUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    CreateRolePermissionMappingRequest:
+        properties:
+            permId:
+                format: int32
+                type: integer
+                x-go-name: PermissionId
+            roleId:
+                format: int32
+                type: integer
+                x-go-name: RoleId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    CreateUserRoleRequest:
+        properties:
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    DisableUserRequest:
+        properties:
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    EnableUserRequest:
+        properties:
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    SoftDeleteUserByIdRequest:
+        properties:
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UpdateUserPasswordRequest:
+        properties:
+            newPassword:
+                type: string
+                x-go-name: NewPassword
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UpdateUserRoleMappingRequest:
+        properties:
+            roleId:
+                format: int32
+                type: integer
+                x-go-name: RoleId
+            targetUserId:
+                format: int32
+                type: integer
+                x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UserLoginRequest:
@@ -148,20 +396,27 @@ responses:
     UserDao:
         description: Respose will return login result and the user info.
         headers:
-            created_at:
+            createdAt:
                 format: date-time
                 type: string
             email:
                 type: string
             enabled:
                 type: boolean
-            is_deleted:
+            isDeleted:
                 type: boolean
-            last_modified:
+            lastModified:
                 format: date-time
                 type: string
-            role:
-                type: string
+            role_ids:
+                items:
+                    format: int32
+                    type: integer
+                type: array
+            roles:
+                items:
+                    type: string
+                type: array
             username:
                 type: string
 securityDefinitions:

@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 -- +goose envsub on
 -- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DEV_DB_USER;
-SELECT "sqlc parsing";
+SELECT 'sqlc parsing';
 -- +goose envsub off
 -- +goose StatementEnd
 

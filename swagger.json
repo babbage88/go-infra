@@ -22,8 +22,66 @@
     },
     "version": "v1.0.7"
   },
-  "host": "10.0.0.64:8993",
+  "host": "localhost:8993",
   "paths": {
+    "/create/permission": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "createAppPermission"
+        ],
+        "summary": "Create New App Permission.",
+        "operationId": "idOfCreateAppPermission",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateAppPermissionRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateAppPermissionResponse"
+          }
+        }
+      }
+    },
+    "/create/role": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "createUserRole"
+        ],
+        "summary": "Create New User Role.",
+        "operationId": "idOfCreateUserRole",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateUserRoleRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateUserRoleResponse"
+          }
+        }
+      }
+    },
     "/create/user": {
       "post": {
         "security": [
@@ -77,6 +135,25 @@
         }
       }
     },
+    "/permissions": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "description": "Returns all App Permissions",
+        "tags": [
+          "getAllAppPermissions"
+        ],
+        "operationId": "idOfgetAllAppPermissionsEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllAppPermissionsResponse"
+          }
+        }
+      }
+    },
     "/renew": {
       "post": {
         "description": "Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge",
@@ -105,6 +182,54 @@
         }
       }
     },
+    "/roles": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "getAllUserRoles"
+        ],
+        "summary": "Returns all active User Roles.",
+        "operationId": "idOfgetAllRolesEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllRolesResponse"
+          }
+        }
+      }
+    },
+    "/roles/permission": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "createRolePermissionMapping"
+        ],
+        "summary": "Map App Permission to User Role.",
+        "operationId": "idOfCreateRolePermissionMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateRolePermissionMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateRolePermissionMapptingResponse"
+          }
+        }
+      }
+    },
     "/token/refresh": {
       "post": {
         "tags": [
@@ -115,6 +240,170 @@
         "responses": {
           "200": {
             "$ref": "#/responses/AuthToken"
+          }
+        }
+      }
+    },
+    "/update/userpass": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "updateUserPw"
+        ],
+        "summary": "Update user password.",
+        "operationId": "idOfUpdateUserPw",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UserPasswordUpdateResponse"
+          }
+        }
+      }
+    },
+    "/user/delete": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SoftDeleteUserHandler"
+        ],
+        "summary": "Soft Delete User by id.",
+        "operationId": "idOfSoftDeleteUserById",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SoftDeleteUserByIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/SoftDeleteUserByIdResponse"
+          }
+        }
+      }
+    },
+    "/user/disable": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "disableUser"
+        ],
+        "summary": "Disable specified target User Id.",
+        "operationId": "idOfDisableUser",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/DisableUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdateUserRoleResponse"
+          }
+        }
+      }
+    },
+    "/user/enable": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "enableUser"
+        ],
+        "summary": "Enable specified target User Id.",
+        "operationId": "idOfEnableUser",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/EnableUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/EnableDisableUserResponse"
+          }
+        }
+      }
+    },
+    "/user/role": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "description": "Update User Role Mapping",
+        "tags": [
+          "updateUserRole"
+        ],
+        "operationId": "idOfUpdateUserRole",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRoleMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/EnableDisableUserResponse"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "getallusers"
+        ],
+        "summary": "Returns all active users.",
+        "operationId": "idOfgetAllUsersEndpoint",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllUsersResponse"
           }
         }
       }
@@ -143,6 +432,20 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
     },
+    "CreateAppPermissionRequest": {
+      "type": "object",
+      "properties": {
+        "descripiton": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "PermissionName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
     "CreateNewUserRequest": {
       "type": "object",
       "properties": {
@@ -161,6 +464,100 @@
         "newUsername": {
           "type": "string",
           "x-go-name": "NewUsername"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "CreateRolePermissionMappingRequest": {
+      "type": "object",
+      "properties": {
+        "permId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "PermissionId"
+        },
+        "roleId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "RoleId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "CreateUserRoleRequest": {
+      "type": "object",
+      "properties": {
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "DisableUserRequest": {
+      "type": "object",
+      "properties": {
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "EnableUserRequest": {
+      "type": "object",
+      "properties": {
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "SoftDeleteUserByIdRequest": {
+      "type": "object",
+      "properties": {
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "UpdateUserPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "newPassword": {
+          "type": "string",
+          "x-go-name": "NewPassword"
+        },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "UpdateUserRoleMappingRequest": {
+      "type": "object",
+      "properties": {
+        "roleId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "RoleId"
+        },
+        "targetUserId": {
+          "type": "integer",
+          "format": "int32",
+          "x-go-name": "TargetUserId"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
@@ -222,7 +619,7 @@
     "UserDao": {
       "description": "Respose will return login result and the user info.",
       "headers": {
-        "created_at": {
+        "createdAt": {
           "type": "string",
           "format": "date-time"
         },
@@ -232,15 +629,25 @@
         "enabled": {
           "type": "boolean"
         },
-        "is_deleted": {
+        "isDeleted": {
           "type": "boolean"
         },
-        "last_modified": {
+        "lastModified": {
           "type": "string",
           "format": "date-time"
         },
-        "role": {
-          "type": "string"
+        "role_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "username": {
           "type": "string"
