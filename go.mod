@@ -8,7 +8,6 @@ require (
 )
 
 require (
-	github.com/a-h/templ v0.2.793
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/prometheus/client_golang v1.19.1
 	golang.org/x/crypto v0.27.0
