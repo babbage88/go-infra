@@ -75,7 +75,6 @@ type RolePermissionsView struct {
 	RoleId       int32
 	Role         string
 	PermissionId pgtype.Int4
-	MappingId    pgtype.Int4
 	Permission   pgtype.Text
 }
 

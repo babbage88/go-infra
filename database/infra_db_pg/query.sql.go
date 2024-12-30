@@ -840,3 +840,29 @@ func (q *Queries) VerifyUserPermissionById(ctx context.Context, arg VerifyUserPe
 	err := row.Scan(&exists)
 	return exists, err
 }
+
+const verifyUserPermissionByRoleId = `-- name: VerifyUserPermissionByRoleId :one
+SELECT EXISTS (
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "RoleId" = $1 and "Permission" = $2
+)
+`
+
+type VerifyUserPermissionByRoleIdParams struct {
+	RoleId     int32
+	Permission pgtype.Text
+}
+
+func (q *Queries) VerifyUserPermissionByRoleId(ctx context.Context, arg VerifyUserPermissionByRoleIdParams) (bool, error) {
+	row := q.db.QueryRow(ctx, verifyUserPermissionByRoleId, arg.RoleId, arg.Permission)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}

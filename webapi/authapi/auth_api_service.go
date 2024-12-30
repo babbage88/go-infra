@@ -10,6 +10,7 @@ import (
 
 	"github.com/babbage88/go-infra/auth/hashing"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/internal/pretty"
 	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -31,15 +32,18 @@ type UserAuth interface {
 	CreateSignedTokenString(sub string, userInfo interface{}) (string, time.Time, error)
 	VerifyToken(tokenString string) error
 	VerifyUserRolesForPermission(roleIds []int32, permissionName string) (bool, error)
+	VerifyUserPermissionByRole(roleId int32, permissionName string) (bool, error)
 }
 
 func (ua *UserAuthService) VerifyUserRolesForPermission(roleIds []int32, permissionName string) (bool, error) {
 	var lastError error // Store any encountered errors for logging or debugging
 
 	for _, roleId := range roleIds {
-		hasPermission, err := ua.VerifyUserPermission(roleId, permissionName)
+		hasPermission, err := ua.VerifyUserPermissionByRole(roleId, permissionName)
 		if err != nil {
 			// Save the error but continue checking other roles
+			pretty.PrintErrorf("RolePermVerify error %s", err.Error())
+			slog.Error("Error encountered while verifying permissions", slog.String("roleId", fmt.Sprint(roleId)), slog.String("error", err.Error()))
 			lastError = err
 			continue
 		}
@@ -64,6 +68,7 @@ func (ua *UserAuthService) VerifyUser(userid int32) bool {
 	}
 	return qry.Enabled
 }
+
 func (us *UserAuthService) VerifyUserPermission(ueid int32, permissionName string) (bool, error) {
 	params := infra_db_pg.VerifyUserPermissionByIdParams{
 		UserId:     pgtype.Int4{Int32: ueid, Valid: true},
@@ -76,7 +81,20 @@ func (us *UserAuthService) VerifyUserPermission(ueid int32, permissionName strin
 		return false, err
 	}
 	return qry, err
+}
 
+func (us *UserAuthService) VerifyUserPermissionByRole(roleId int32, permissionName string) (bool, error) {
+	params := infra_db_pg.VerifyUserPermissionByRoleIdParams{
+		RoleId:     roleId,
+		Permission: pgtype.Text{String: permissionName, Valid: true},
+	}
+	queries := infra_db_pg.New(us.DbConn)
+	qry, err := queries.VerifyUserPermissionByRoleId(context.Background(), params)
+	if err != nil {
+		slog.Error("error verifying user permissions", slog.String("error", err.Error()))
+		return false, err
+	}
+	return qry, err
 }
 
 func (t *AuthToken) RefreshAccessTokens(dbConn *pgxpool.Pool) error {

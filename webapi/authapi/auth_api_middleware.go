@@ -49,6 +49,7 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 }
 
 func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string, next http.HandlerFunc) http.HandlerFunc {
+	slog.Info("Starting AuthMiddlewareRequirePermissions", slog.String("Required Perm", permissionName))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -99,6 +100,7 @@ func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string,
 			}
 		}
 
+		slog.Info("Verifying permission for role id", slog.String("roleID", fmt.Sprint(roleIDs)), slog.String("PermName", permissionName))
 		hasPermission, err := ua.VerifyUserRolesForPermission(roleIDs, permissionName)
 		if err != nil {
 			slog.Error("Error verifying user permission", slog.String("Error", err.Error()))

@@ -188,6 +188,19 @@ SELECT EXISTS (
   WHERE "UserId" = $1 and "Permission" = $2
 );
 
+-- name: VerifyUserPermissionByRoleId :one
+SELECT EXISTS (
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "RoleId" = $1 and "Permission" = $2
+);
+
 -- name: InsertOrUpdateUserRoleMappingById :one
 INSERT INTO public.user_role_mapping(user_id, role_id, enabled)
 VALUES ($1, $2, TRUE)

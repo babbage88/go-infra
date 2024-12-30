@@ -22,7 +22,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "10.0.0.64:8993",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {

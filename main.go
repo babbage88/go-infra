@@ -45,6 +45,7 @@ func main() {
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	envFilePath := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
 	bootstrapNewDb := flag.Bool("db-bootstrap", false, "Create new dev database.")
+	initDevUser := flag.Bool("devuser", false, "Update the devuser password")
 	version := flag.Bool("version", false, "Show the current version.")
 	flag.Parse()
 
@@ -69,6 +70,9 @@ func main() {
 	connPool := initPgConnPool()
 	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
 	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
+	if *initDevUser {
+		userService.UpdateUserPasswordById(1, envars.GetVarMapValue("DEV_APP_PASS"))
+	}
 
 	api_server.StartWebApiServer(authService, userService, swaggerSpec, srvport)
 }
