@@ -29,7 +29,10 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"os"
 
+	"github.com/babbage88/go-infra/database/bootstrap"
+	"github.com/babbage88/go-infra/internal/pretty"
 	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
@@ -41,15 +44,28 @@ var swaggerSpec []byte
 func main() {
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	envFilePath := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
+	bootstrapNewDb := flag.Bool("db-bootstrap", false, "Create new dev database.")
 	version := flag.Bool("version", false, "Show the current version.")
 	flag.Parse()
+
+	envars := initEnvironment(*envFilePath)
+
+	if *bootstrapNewDb {
+		bootstrap.NewDb()
+		pretty.Print("test")
+		err := bootstrap.CreateInfradbUser(os.Getenv("DB_USER"))
+		if err != nil {
+			pretty.PrintErrorf("Error configuring db user %s", err.Error())
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
 
 	if *version {
 		showVersion()
 		return
 	}
 
-	envars := initEnvironment(*envFilePath)
 	connPool := initPgConnPool()
 	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
 	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
