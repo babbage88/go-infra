@@ -49,6 +49,12 @@ SELECT
 FROM public.users
 where username = $1;
 
+-- name: GetUserNameById :one
+SELECT
+  "username"
+FROM public.users
+WHERE id = $1;
+
 -- name: UpdateUserPasswordById :exec
 UPDATE users
   set password = $2

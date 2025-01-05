@@ -3,6 +3,7 @@ consumes:
 produces:
     - application/json
 schemes:
+    - http
     - https
 swagger: "2.0"
 info:
@@ -14,7 +15,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -244,6 +245,23 @@ paths:
             summary: Returns all active users.
             tags:
                 - getallusers
+    /users/{ID}:
+        get:
+            operationId: idOfgetUserByIdEndpoint
+            parameters:
+                - description: ID of user
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserByIdResponse'
+            security:
+                - bearer: []
+            summary: Returns User Info for the user id specified in URL users.
+            tags:
+                - getUserById
 definitions:
     CertDnsRenewReq:
         properties:

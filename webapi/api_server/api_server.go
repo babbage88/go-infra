@@ -29,6 +29,7 @@ func StartWebApiServer(authService *authapi.UserAuthService, userCRUDService *se
 	mux.Handle("/create/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreatePermission", userapi.CreateAppPermissionHandler(userCRUDService))))
 	mux.Handle("/roles/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterRole", userapi.CreateRolePermissionMappingHandler(userCRUDService))))
 	mux.Handle("/roles", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadRole", userapi.GetAllRolesHandler(userCRUDService))))
+	mux.Handle("/users/{ID}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadUser", userapi.GetUserByIdHandler(userCRUDService))))
 	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermission", userapi.GetAllAppPermissionsHandler(userCRUDService))))
 	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(envars, userapi.GetAllUsersHandler(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))

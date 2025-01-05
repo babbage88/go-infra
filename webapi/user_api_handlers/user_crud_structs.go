@@ -22,9 +22,22 @@ type GetAllUsersResponse struct {
 	Users []services.UserDao `json:"users"`
 }
 
+// swagger:parameters idOfgetUserByIdEndpoint
+type GetUserByIdRequest struct {
+	// ID of user
+	//
+	// In: path
+	ID string `json:"ID"`
+}
+
+type GetUserByIdResponse struct {
+	User services.UserDao `json:"user"`
+}
+
 type GetAllRolesResponse struct {
 	UserRoles []services.UserRoleDao `json:"userRoles"`
 }
+
 type GetAllAppPermissionsResponse struct {
 	AppPermissions []services.AppPermissionDao `json:"appPermissions"`
 }

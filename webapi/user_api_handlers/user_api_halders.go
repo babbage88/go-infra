@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/utils/type_helper"
 )
 
 // swagger:route POST /create/user createuser idOfcreateUserEndpoint
@@ -122,6 +123,45 @@ func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.Respon
 		if err != nil {
 			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
 			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route GET /users/{ID} getUserById idOfgetUserByIdEndpoint
+// Returns User Info for the user id specified in URL users.
+//
+// security:
+// - bearer:
+// responses:
+//   200: GetUserByIdResponse
+
+func GetUserByIdHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlId := r.PathValue("ID")
+		id, err := type_helper.ParseInt32(urlId)
+		if err != nil {
+			slog.Error("Error Parsing user id from URL path", slog.String("Error", err.Error()))
+			http.Error(w, "Error Parsing user id from URL path "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		slog.Info("Getting user info for User Id", slog.String("ID", urlId))
+		user, err := uc_service.GetUserById(id)
+		if err != nil {
+			slog.Error("Error getting user from database", slog.String("Error", err.Error()))
+			http.Error(w, "Error getting user from database "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonResponse, err := json.Marshal(user)
+		if err != nil {
+			slog.Error("Error marshaling user into json", slog.String("Error", err.Error()))
+			http.Error(w, "Error marshaling user to json "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 

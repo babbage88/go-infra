@@ -2,6 +2,7 @@ package authapi
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -16,10 +17,17 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 
 		w.Header().Set("Content-Type", "application/json")
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if len(authHeader) != 2 {
-			fmt.Println("Malformed token")
+		if authHeader == nil {
+			slog.Error("Auth Header is nil")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Malformed Token"))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Auth Header is nil"})
+			return
+		}
+		if len(authHeader) != 2 {
+			slog.Error("Malformed token")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Malformed Token"})
+			return
 		} else {
 			jwtToken := authHeader[1]
 			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
@@ -40,7 +48,7 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 			} else {
 				slog.Error("Error validating token", slog.String("Error", err.Error()))
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Unauthorized"))
+				json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
 			}
 		}
 
@@ -54,8 +62,15 @@ func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string,
 		w.Header().Set("Content-Type", "application/json")
 
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+		if authHeader == nil {
+			slog.Error("Auth Header is nil")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Auth Header is nil"})
+			return
+		}
 		if len(authHeader) != 2 {
 			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Malformed Token"})
 			w.Write([]byte(`{"error": "Malformed Token"}`))
 			return
 		}

@@ -1,4 +1,4 @@
-DOCKER_HUB:=ghcr.io/babbage88/goinfra:
+DOCKER_HUB:=ghcr.io/babbage88/go-infra:
 DOCKER_HUB_TEST:=jtrahan88/goinfra-test:
 ENV_FILE:=.env
 MIG:=$(shell date '+%m%d%Y.%H%M%S')
