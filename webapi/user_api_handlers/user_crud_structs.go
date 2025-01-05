@@ -88,7 +88,7 @@ type EnableDisableUserResponse struct {
 }
 
 // User Id of the executing and target users
-// swagger:parameters idOfUpdateUserRole
+// swagger:parameters idOfUpdateUserRole idOfdisableUserRoleMapping
 type UpdateUserRoleMappingRequestWrapper struct {
 	//in:body
 	Body UpdateUserRoleMappingRequest `json:"body"`

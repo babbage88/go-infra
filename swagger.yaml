@@ -229,11 +229,28 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/EnableDisableUserResponse'
+                    $ref: '#/responses/UpdateUserRoleMappingResponse'
             security:
                 - bearer: []
             tags:
                 - updateUserRole
+    /user/role/remove:
+        post:
+            description: Disable User Role Mapping
+            operationId: idOfdisableUserRoleMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            tags:
+                - disableUserRoleMapping
     /users:
         get:
             operationId: idOfgetAllUsersEndpoint
