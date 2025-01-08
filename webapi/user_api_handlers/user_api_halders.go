@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/utils/type_helper"
 )
 
 // swagger:route POST /create/user createuser idOfcreateUserEndpoint
@@ -122,6 +123,45 @@ func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.Respon
 		if err != nil {
 			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
 			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route GET /users/{ID} getUserById idOfgetUserByIdEndpoint
+// Returns User Info for the user id specified in URL users.
+//
+// security:
+// - bearer:
+// responses:
+//   200: GetUserByIdResponse
+
+func GetUserByIdHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		urlId := r.PathValue("ID")
+		id, err := type_helper.ParseInt32(urlId)
+		if err != nil {
+			slog.Error("Error Parsing user id from URL path", slog.String("Error", err.Error()))
+			http.Error(w, "Error Parsing user id from URL path "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		slog.Info("Getting user info for User Id", slog.String("ID", urlId))
+		user, err := uc_service.GetUserById(id)
+		if err != nil {
+			slog.Error("Error getting user from database", slog.String("Error", err.Error()))
+			http.Error(w, "Error getting user from database "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		jsonResponse, err := json.Marshal(user)
+		if err != nil {
+			slog.Error("Error marshaling user into json", slog.String("Error", err.Error()))
+			http.Error(w, "Error marshaling user to json "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -286,7 +326,7 @@ func DisableUserHandler(uc_service *services.UserCRUDService) func(w http.Respon
 // - bearer:
 // responses:
 //
-//	200: EnableDisableUserResponse
+//	200: UpdateUserRoleMappingResponse
 func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -306,6 +346,52 @@ func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w h
 
 		slog.Info("Updating user role mapping", slog.String("targetUserID", fmt.Sprint(request.TargetUserId)), slog.String("roleID", fmt.Sprint(request.RoleId)))
 		response.Error = uc_service.UpdateUserRoleMapping(request.TargetUserId, request.RoleId)
+		if response.Error != nil {
+			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
+			return
+		} else {
+			response.Success = true
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+// swagger:route POST /user/role/remove disableUserRoleMapping idOfdisableUserRoleMapping
+// Disable User Role Mapping
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: EnableDisableUserResponse
+func DisableUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request UpdateUserRoleMappingRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		response := UpdateUserRoleMappingResponse{
+			Error: err,
+		}
+
+		slog.Info("Updating user role mapping", slog.String("targetUserID", fmt.Sprint(request.TargetUserId)), slog.String("roleID", fmt.Sprint(request.RoleId)))
+		response.Error = uc_service.DisableUserRoleMapping(request.TargetUserId, request.RoleId)
 		if response.Error != nil {
 			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
 			return

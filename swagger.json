@@ -6,6 +6,7 @@
     "application/json"
   ],
   "schemes": [
+    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -21,7 +22,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -383,6 +384,35 @@
         ],
         "responses": {
           "200": {
+            "$ref": "#/responses/UpdateUserRoleMappingResponse"
+          }
+        }
+      }
+    },
+    "/user/role/remove": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "description": "Disable User Role Mapping",
+        "tags": [
+          "disableUserRoleMapping"
+        ],
+        "operationId": "idOfdisableUserRoleMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRoleMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "$ref": "#/responses/EnableDisableUserResponse"
           }
         }
@@ -403,6 +433,34 @@
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllUsersResponse"
+          }
+        }
+      }
+    },
+    "/users/{ID}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "getUserById"
+        ],
+        "summary": "Returns User Info for the user id specified in URL users.",
+        "operationId": "idOfgetUserByIdEndpoint",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of user",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetUserByIdResponse"
           }
         }
       }

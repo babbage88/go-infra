@@ -3,6 +3,7 @@ consumes:
 produces:
     - application/json
 schemes:
+    - http
     - https
 swagger: "2.0"
 info:
@@ -14,7 +15,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.0.7
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -228,11 +229,28 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/EnableDisableUserResponse'
+                    $ref: '#/responses/UpdateUserRoleMappingResponse'
             security:
                 - bearer: []
             tags:
                 - updateUserRole
+    /user/role/remove:
+        post:
+            description: Disable User Role Mapping
+            operationId: idOfdisableUserRoleMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+            security:
+                - bearer: []
+            tags:
+                - disableUserRoleMapping
     /users:
         get:
             operationId: idOfgetAllUsersEndpoint
@@ -244,6 +262,23 @@ paths:
             summary: Returns all active users.
             tags:
                 - getallusers
+    /users/{ID}:
+        get:
+            operationId: idOfgetUserByIdEndpoint
+            parameters:
+                - description: ID of user
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserByIdResponse'
+            security:
+                - bearer: []
+            summary: Returns User Info for the user id specified in URL users.
+            tags:
+                - getUserById
 definitions:
     CertDnsRenewReq:
         properties:

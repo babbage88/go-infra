@@ -432,6 +432,20 @@ func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUs
 	return i, err
 }
 
+const getUserNameById = `-- name: GetUserNameById :one
+SELECT
+  "username"
+FROM public.users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserNameById(ctx context.Context, id int32) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, getUserNameById, id)
+	var username pgtype.Text
+	err := row.Scan(&username)
+	return username, err
+}
+
 const getUserPermissionsById = `-- name: GetUserPermissionsById :many
 SELECT
   "UserId",
