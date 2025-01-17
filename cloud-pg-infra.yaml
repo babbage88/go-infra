@@ -1,20 +1,17 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: infra-user-cluster-dev
+  name: infra-db
 spec:
   instances: 3
-  superuserSecret:
-    #name: infrauser-dev-db-postgres
-    name: pg-su-app-secret
   bootstrap:
     initdb:
-      database: appuser
-      owner: appuser
+      database: infradb
+      owner: infradbuser
       secret:
-        name: dev-app-secret
+        name: infra-db-user
   storage:
-    size: 4Gi
+    size: 7Gi
   postgresql:
     pg_hba:
       - host all all all scram-sha-256
