@@ -28,7 +28,7 @@ spec:
       containers:
         - name: go-infra
           #image: git.trahan.dev/jtrahan/goinfra:v1.0.3
-          image: jtrahan88/go-infra:v1.0.8
+          image: ghcr.io/babbage88/go-infra:v1.0.9
           imagePullPolicy: Always
           ports:
             - containerPort: 8993
@@ -49,13 +49,14 @@ spec:
               cpu: "250m"
       initContainers:
         - name: infra-db-migrate
-          image: jtrahan88/infra-db:v1.0.8
+          image: ghcr.io/babbage88/init-infradb:v1.0.9
           restartPolicy: Always
           imagePullPolicy: Always
           command: ["/app/migrate"]
           volumeMounts:
             - name: initdb-env
               mountPath: "/app/.env"
+              subPath: .env
       volumes:
         - name: cf-token-ini
           secret:
