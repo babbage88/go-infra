@@ -20,15 +20,15 @@ spec:
                   - key: kubernetes.io/hostname # Use the hostname label
                     operator: In
                     values:
-                      - trahkube1
-                      - trahkube2
-                      - trahkube3
-                      - trahkube4
-                      - trahk3worker1
+                      - taloskube1
+                      - taloskube2
+                      - taloskube3
+                      - taloskube4
+                      - taloskube5
       containers:
         - name: go-infra
           #image: git.trahan.dev/jtrahan/goinfra:v1.0.3
-          image: ghcr.io/babbage88/goinfra:v1.0.8
+          image: jtrahan88/go-infra:v1.0.8
           imagePullPolicy: Always
           ports:
             - containerPort: 8993
@@ -47,6 +47,15 @@ spec:
             requests:
               memory: "256Mi"
               cpu: "250m"
+      initContainers:
+        - name: infra-db-migrate
+          image: jtrahan88/infra-db:v1.0.8
+          restartPolicy: Always
+          imagePullPolicy: Always
+          command: ["/app/migrate"]
+          volumeMounts:
+            - name: initdb-env
+              mountPath: "/app/.env"
       volumes:
         - name: cf-token-ini
           secret:
@@ -54,5 +63,8 @@ spec:
         - name: k3s-env
           secret:
             secretName: k3s-env
+        - name: initdb-env
+          secret:
+            secretName: initdb.env
       imagePullSecrets:
         - name: ghcr
