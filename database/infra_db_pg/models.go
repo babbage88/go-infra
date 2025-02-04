@@ -40,6 +40,14 @@ type DnsRecord struct {
 	LastModified pgtype.Timestamptz
 }
 
+type HealthCheck struct {
+	ID           int32
+	Status       pgtype.Text
+	CheckType    pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
 type HostServer struct {
 	ID               int32
 	Hostname         string

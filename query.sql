@@ -286,3 +286,8 @@ FROM public.user_roles_active;
 -- name: GetAllAppPermissions :many
 SELECT id, permission_name, permission_description
 FROM public.app_permissions;
+
+-- name: DbHealthCheckRead :one
+SELECT id, status, check_type
+FROM public.health_check WHERE check_type = "Read"
+LIMIT 1;

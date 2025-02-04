@@ -45,6 +45,25 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const dbHealthCheckRead = `-- name: DbHealthCheckRead :one
+SELECT id, status, check_type
+FROM public.health_check WHERE check_type = "Read"
+LIMIT 1
+`
+
+type DbHealthCheckReadRow struct {
+	ID        int32
+	Status    pgtype.Text
+	CheckType pgtype.Text
+}
+
+func (q *Queries) DbHealthCheckRead(ctx context.Context) (DbHealthCheckReadRow, error) {
+	row := q.db.QueryRow(ctx, dbHealthCheckRead)
+	var i DbHealthCheckReadRow
+	err := row.Scan(&i.ID, &i.Status, &i.CheckType)
+	return i, err
+}
+
 const deleteAuthTokenById = `-- name: DeleteAuthTokenById :exec
 DELETE FROM auth_tokens
 WHERE id = $1

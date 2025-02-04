@@ -12,22 +12,8 @@ spec:
       labels:
         app: go-infra
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/hostname # Use the hostname label
-                    operator: In
-                    values:
-                      - taloskube1
-                      - taloskube2
-                      - taloskube3
-                      - taloskube4
-                      - taloskube5
       containers:
         - name: go-infra
-          #image: git.trahan.dev/jtrahan/goinfra:v1.0.3
           image: ghcr.io/babbage88/go-infra:v1.0.9
           imagePullPolicy: Always
           ports:
@@ -47,16 +33,6 @@ spec:
             requests:
               memory: "256Mi"
               cpu: "250m"
-      initContainers:
-        - name: infra-db-migrate
-          image: ghcr.io/babbage88/init-infradb:v1.0.9
-          restartPolicy: Always
-          imagePullPolicy: Always
-          command: ["/app/migrate"]
-          volumeMounts:
-            - name: initdb-env
-              mountPath: "/app/.env"
-              subPath: .env
       volumes:
         - name: cf-token-ini
           secret:
@@ -64,8 +40,5 @@ spec:
         - name: k3s-env
           secret:
             secretName: k3s-env
-        - name: initdb-env
-          secret:
-            secretName: initdb.env
       imagePullSecrets:
         - name: ghcr
