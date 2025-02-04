@@ -79,7 +79,6 @@ func (us *UserCRUDService) VerifyAlterUser(ueid int32) (bool, error) {
 		return false, err
 	}
 	return qry, err
-
 }
 
 func (us *UserCRUDService) NewUser(username string, password string, email string) (UserDao, error) {
@@ -341,7 +340,6 @@ func (us *UserCRUDService) CreateOrUpdateAppPermission(name string, desc string)
 	retVal.ParseAppPermissionFromDb(row)
 
 	return retVal, err
-
 }
 
 func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId int32, permId int32) (*RolePermissionMappingDao, error) {
