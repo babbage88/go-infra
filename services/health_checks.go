@@ -25,7 +25,7 @@ type HealthCheckService struct {
 
 type IHealthCheckService interface {
 	DbReadHealthCheck() DbHeathCheckResponse
-	DbReadHealthCheckHandler() func(http.ResponseWriter, *http.Response)
+	DbReadHealthCheckHandler() func(http.ResponseWriter, *http.Request)
 }
 
 func (h *HealthCheckService) DbReadHealthCheck() DbHeathCheckResponse {
@@ -44,8 +44,8 @@ func (h *HealthCheckService) DbReadHealthCheck() DbHeathCheckResponse {
 	return *dbHealth
 }
 
-func (h *HealthCheckService) DbReadHealthCheckHandler() func(http.ResponseWriter, *http.Response) {
-	return func(w http.ResponseWriter, r *http.Response) {
+func (h *HealthCheckService) DbReadHealthCheckHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		readCheck := h.DbReadHealthCheck()
 		if readCheck.Error != nil {
 			slog.Error("Error running db read healthcheck", slog.String("error", readCheck.Error.Error()))

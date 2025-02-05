@@ -289,5 +289,5 @@ FROM public.app_permissions;
 
 -- name: DbHealthCheckRead :one
 SELECT id, status, check_type
-FROM public.health_check WHERE check_type = "Read"
+FROM public.health_check WHERE check_type = 'Read'
 LIMIT 1;
