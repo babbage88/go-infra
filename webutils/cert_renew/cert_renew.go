@@ -2,14 +2,13 @@ package cert_renew
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"strings"
+	"time"
 
-	"github.com/babbage88/go-infra/utils/env_helper"
+	"github.com/babbage88/go-acme-cli/cloud_providers/cf_acme"
 )
 
 var certPrefix string = "-----BEGIN CERTIFICATE-----"
@@ -22,6 +21,16 @@ var keySuffix string = "-----END PRIVATE KEY-----"
 
 var certbotConfigDir string = ".certbot/config"
 
+type CertificateData struct {
+	DomainNames   []string `json:"domainName"`
+	CertPEM       string   `json:"cert_pem"`
+	ChainPEM      string   `json:"chain_pem"`
+	Fullchain     string   `json:"fullchain_pem"`
+	PrivKey       string   `json:"priv_key"`
+	ZipDir        string   `json:"zipDir"`
+	S3DownloadUrl string   `json:"s3DownloadUrl"`
+}
+
 // Login Request takes  in Username and Password.
 // swagger:parameters idOfrenewEndpoint
 type CertDnsRenewReqWrapper struct {
@@ -30,28 +39,59 @@ type CertDnsRenewReqWrapper struct {
 }
 
 type CertDnsRenewReq struct {
-	DomainName string `json:"domainName"`
-	Provider   string `json:"provider"`
-	Email      string `json:"email"`
-	ZipFiles   bool   `json:"zipFiles"`
+	DomainNames          []string      `json:"domainName"`
+	AcmeEmail            string        `json:"acmeEmail"`
+	AcmeUrl              string        `json:"acmeUrl"`
+	SaveZip              bool          `json:"saveZip"`
+	ZipDir               string        `json:"zipDir"`
+	PushS3               bool          `json:"pushS3"`
+	Token                string        `json:"token"`
+	RecursiveNameServers []string      `json:"recurseServers"`
+	Timeout              time.Duration `json:"timeout"`
 }
 
-// Renew will return CertificateData result and the user info.
-// swagger:response CertificateData
-// This text will appear as description of your response body.
-type CertificateData struct {
-	//in:body
-	DomainName      string `json:"domainName"`
-	CertPEM         string `json:"cert_pem"`
-	ChainPEM        string `json:"chain_pem"`
-	Fullchain       string `json:"fullchain_pem"`
-	FullchainAndKey string `json:"fullchain_and_key"`
-	PrivKey         string `json:"priv_key"`
-	ZipDir          string
+func (c *CertDnsRenewReq) InitAcmeRenewRequest() *cf_acme.CertificateRenewalRequest {
+	cfReq := &cf_acme.CertificateRenewalRequest{
+		DomainNames: c.DomainNames,
+		AcmeEmail:   c.AcmeEmail,
+		AcmeUrl:     c.AcmeUrl,
+		SaveZip:     c.SaveZip,
+		PushS3:      c.PushS3,
+		ZipDir:      c.ZipDir,
+	}
+
+	return cfReq
+}
+
+func (c *CertificateData) ParseAcmeCertStruct(acmeCert *cf_acme.CertificateData) {
+	c.DomainNames = acmeCert.DomainNames
+	c.CertPEM = acmeCert.CertPEM
+	c.ChainPEM = acmeCert.CertPEM
+	c.Fullchain = acmeCert.Fullchain
+	c.PrivKey = acmeCert.PrivKey
+	c.ZipDir = acmeCert.ZipDir
+	c.S3DownloadUrl = c.S3DownloadUrl
+}
+func (c *CertificateData) TrimJsonCertificateData() {
+	certTrimmed, err := readAndTrimCert(c.CertPEM, certPrefix, certSuffix)
+	if err == nil {
+		slog.Info("Timming certificate prefix/suffix json")
+		c.CertPEM = certTrimmed
+	}
+	priKeyStr, err := readAndTrimCert(c.PrivKey, keyPrefix, keySuffix)
+	if err == nil {
+		slog.Info("Trimming key prefix for json")
+		c.PrivKey = priKeyStr
+	}
+	chainStrTrim, err := readAndTrimCert(c.ChainPEM, certPrefix, certSuffix)
+	if err == nil {
+		slog.Info("Timming certificate prefix/suffix json")
+		c.ChainPEM = chainStrTrim
+	}
 }
 
 type Renewal interface {
-	Renew() CertificateData
+	Renew(token string, recursiveNameservers []string, timeout time.Duration) cf_acme.CertificateData
 }
 
 // CertRenewReq is the interface with the GetDomainName method.
@@ -59,93 +99,27 @@ type CertRenewReq interface {
 	GetDomainName() string
 }
 
-func (c CertDnsRenewReq) GetDomainName() (string, error) {
-	domain := strings.TrimPrefix(c.DomainName, "*.")
-	if domain == "" {
-		return "", errors.New("domain name cannot be empty")
-	}
-	return domain, nil
-}
-
-func (c CertDnsRenewReq) Renew(envars *env_helper.EnvVars) (CertificateData, error) {
-	domname, err := c.GetDomainName()
-	savedir := fmt.Sprint(domname, "/")
-
-	authFile := envars.GetVarMapValue("CF_INI")
-	fmt.Printf("authfil: %s\n", authFile)
-	fmt.Printf("cert savedir value: %s\n", savedir)
-
-	cmd := exec.Command("certbot",
-		"certonly",
-		"--dns-cloudflare",
-		"--dns-cloudflare-credentials", authFile,
-		"--dns-cloudflare-propagation-seconds", "60",
-		"--email", c.Email,
-		"--agree-tos",
-		"--no-eff-email",
-		"-d", c.DomainName,
-		"--config-dir", ".certbot/config",
-		"--logs-dir", ".certbot/logs",
-		"--work-dir", ".certbot/work",
-		"--cert-path", savedir, "--chain-path", savedir, "--fullchain-path", savedir, "--key-path", savedir,
-	)
-
-	var cert_info CertificateData
-
-	slog.Info("Starting command to renew certificate", slog.String("Domain", c.DomainName), slog.String("DNS Provider", c.Provider))
-	err = cmd.Run()
-
+func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
+	certData := &CertificateData{}
+	acmeRenewal := c.InitAcmeRenewRequest()
+	certificates, err := acmeRenewal.Renew(c.Token, c.RecursiveNameServers, c.Timeout)
 	if err != nil {
-		slog.Error("Error executing renewal command.")
-		return cert_info, err
+		slog.Error("error renewing certificate")
 	}
-	live_dir := fmt.Sprint(certbotConfigDir, "/live/", savedir)
+	certificates.PushZipDirToS3(c.ZipDir)
+	certData.ParseAcmeCertStruct(&certificates)
 
-	cert_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "cert.pem"))
-	cert_str := string(cert_byte)
-
-	chain_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "chain.pem"))
-	chain_str := string(chain_byte)
-
-	fullchain_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "fullchain.pem"))
-	fullchain_str := string(fullchain_byte)
-
-	privkey_byte, _ := os.ReadFile(fmt.Sprint(live_dir, "privkey.pem"))
-	privkey_str := string(privkey_byte)
-
-	fullchain_and_key := fmt.Sprint(fullchain_str, privkey_str)
-
-	cert_info.CertPEM = cert_str
-	cert_info.ChainPEM = chain_str
-	cert_info.Fullchain = fullchain_str
-	cert_info.PrivKey = privkey_str
-	cert_info.DomainName = c.DomainName
-	cert_info.FullchainAndKey = fullchain_and_key
-
-	if c.ZipFiles {
-		cert_info.ZipDir = fmt.Sprint(live_dir, "certs.zip")
-		err := createZipFile(live_dir, cert_info)
-		if err != nil {
-			return cert_info, err
-		}
-	}
-
-	return cert_info, err
+	certData.TrimJsonCertificateData()
+	return certData, err
 }
 
 // ReadAndTrimFile reads the content of a file, removes the PEM delimiters, and returns the trimmed content.
-func ReadAndTrimFile(filename string, beginMarker string, endMarker string) (string, error) {
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	slog.Info("Parsing file conents ", slog.String("Filename", filename))
-	contentStr := string(content)
-	contentStr = strings.ReplaceAll(contentStr, beginMarker, "")
-	contentStr = strings.ReplaceAll(contentStr, endMarker, "")
-	slog.Info("Paring finished", slog.String("Content", contentStr))
+func readAndTrimCert(s string, beginMarker string, endMarker string) (string, error) {
+	s = strings.ReplaceAll(s, beginMarker, "")
+	s = strings.ReplaceAll(s, endMarker, "")
+	slog.Info("Paring finished", slog.String("Content", s))
 
-	return strings.TrimSpace(contentStr), nil
+	return strings.TrimSpace(s), nil
 }
 
 func createZipFile(liveDir string, certInfo CertificateData) error {
@@ -167,7 +141,6 @@ func createZipFile(liveDir string, certInfo CertificateData) error {
 		{"chain.pem", certInfo.ChainPEM},
 		{"fullchain.pem", certInfo.Fullchain},
 		{"privkey.pem", certInfo.PrivKey},
-		{"fullchainandkey.pem", certInfo.FullchainAndKey},
 	}
 
 	for _, file := range files {
