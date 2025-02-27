@@ -6,6 +6,7 @@
     "application/json"
   ],
   "schemes": [
+    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -21,7 +22,7 @@
     },
     "version": "v1.0.7"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -469,21 +470,46 @@
     "CertDnsRenewReq": {
       "type": "object",
       "properties": {
+        "acmeEmail": {
+          "type": "string",
+          "x-go-name": "AcmeEmail"
+        },
+        "acmeUrl": {
+          "type": "string",
+          "x-go-name": "AcmeUrl"
+        },
         "domainName": {
-          "type": "string",
-          "x-go-name": "DomainName"
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DomainNames"
         },
-        "email": {
-          "type": "string",
-          "x-go-name": "Email"
-        },
-        "provider": {
-          "type": "string",
-          "x-go-name": "Provider"
-        },
-        "zipFiles": {
+        "pushS3": {
           "type": "boolean",
-          "x-go-name": "ZipFiles"
+          "x-go-name": "PushS3"
+        },
+        "recurseServers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "RecursiveNameServers"
+        },
+        "saveZip": {
+          "type": "boolean",
+          "x-go-name": "SaveZip"
+        },
+        "timeout": {
+          "$ref": "#/definitions/Duration"
+        },
+        "token": {
+          "type": "string",
+          "x-go-name": "Token"
+        },
+        "zipDir": {
+          "type": "string",
+          "x-go-name": "ZipDir"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
@@ -565,6 +591,12 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
+    "Duration": {
+      "description": "A Duration represents the elapsed time between two instants\nas an int64 nanosecond count. The representation limits the\nlargest representable duration to approximately 290 years.",
+      "type": "integer",
+      "format": "int64",
+      "x-go-package": "time"
+    },
     "EnableUserRequest": {
       "type": "object",
       "properties": {
@@ -645,29 +677,6 @@
           "type": "string"
         },
         "token": {
-          "type": "string"
-        }
-      }
-    },
-    "CertificateData": {
-      "description": "Renew will return CertificateData result and the user info.",
-      "headers": {
-        "ZipDir": {
-          "type": "string"
-        },
-        "cert_pem": {
-          "type": "string"
-        },
-        "chain_pem": {
-          "type": "string"
-        },
-        "fullchain_and_key": {
-          "type": "string"
-        },
-        "fullchain_pem": {
-          "type": "string"
-        },
-        "priv_key": {
           "type": "string"
         }
       }

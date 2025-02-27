@@ -3,6 +3,7 @@ consumes:
 produces:
     - application/json
 schemes:
+    - http
     - https
 swagger: "2.0"
 info:
@@ -13,8 +14,8 @@ info:
         name: N/A
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
-    version: v1.0.10
-host: infra.trahan.dev
+    version: v1.0.7
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -281,18 +282,36 @@ paths:
 definitions:
     CertDnsRenewReq:
         properties:
+            acmeEmail:
+                type: string
+                x-go-name: AcmeEmail
+            acmeUrl:
+                type: string
+                x-go-name: AcmeUrl
             domainName:
-                type: string
-                x-go-name: DomainName
-            email:
-                type: string
-                x-go-name: Email
-            provider:
-                type: string
-                x-go-name: Provider
-            zipFiles:
+                items:
+                    type: string
+                type: array
+                x-go-name: DomainNames
+            pushS3:
                 type: boolean
-                x-go-name: ZipFiles
+                x-go-name: PushS3
+            recurseServers:
+                items:
+                    type: string
+                type: array
+                x-go-name: RecursiveNameServers
+            saveZip:
+                type: boolean
+                x-go-name: SaveZip
+            timeout:
+                $ref: '#/definitions/Duration'
+            token:
+                type: string
+                x-go-name: Token
+            zipDir:
+                type: string
+                x-go-name: ZipDir
         type: object
         x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
     CreateAppPermissionRequest:
@@ -351,6 +370,14 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    Duration:
+        description: |-
+            A Duration represents the elapsed time between two instants
+            as an int64 nanosecond count. The representation limits the
+            largest representable duration to approximately 290 years.
+        format: int64
+        type: integer
+        x-go-package: time
     EnableUserRequest:
         properties:
             targetUserId:
@@ -410,21 +437,6 @@ responses:
             refreshToken:
                 type: string
             token:
-                type: string
-    CertificateData:
-        description: Renew will return CertificateData result and the user info.
-        headers:
-            ZipDir:
-                type: string
-            cert_pem:
-                type: string
-            chain_pem:
-                type: string
-            fullchain_and_key:
-                type: string
-            fullchain_pem:
-                type: string
-            priv_key:
                 type: string
     UserDao:
         description: Respose will return login result and the user info.

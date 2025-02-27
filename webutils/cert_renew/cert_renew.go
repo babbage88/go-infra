@@ -102,7 +102,7 @@ type CertRenewReq interface {
 func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	certData := &CertificateData{}
 	acmeRenewal := c.InitAcmeRenewRequest()
-	certificates, err := acmeRenewal.Renew(c.Token, c.RecursiveNameServers, c.Timeout)
+	certificates, err := acmeRenewal.RenewCertWithDns()
 	if err != nil {
 		slog.Error("error renewing certificate")
 	}
