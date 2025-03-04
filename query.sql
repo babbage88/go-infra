@@ -49,6 +49,12 @@ SELECT
 FROM public.users
 where username = $1;
 
+-- name: GetUserNameById :one
+SELECT
+  "username"
+FROM public.users
+WHERE id = $1;
+
 -- name: UpdateUserPasswordById :exec
 UPDATE users
   set password = $2
@@ -280,3 +286,8 @@ FROM public.user_roles_active;
 -- name: GetAllAppPermissions :many
 SELECT id, permission_name, permission_description
 FROM public.app_permissions;
+
+-- name: DbHealthCheckRead :one
+SELECT id, status, check_type
+FROM public.health_check WHERE check_type = 'Read'
+LIMIT 1;

@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: go-infra-service
 spec:
+  allocateLoadBalancerNodePorts: false
   selector:
     app: go-infra
   ports:

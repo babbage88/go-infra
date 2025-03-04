@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -48,7 +48,7 @@ func parseCertbotOutput(output []string) ParsedCertbotOutput {
 // - application/json
 // - application/zip
 
-func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
+func Renewcert_renew() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Received POST request for Cert Renewal")
 		var req cert_renew.CertDnsRenewReq
@@ -59,10 +59,11 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 			return
 		}
 
-		slog.Info("Decoded request body", slog.String("DomainName", req.DomainName))
+		slog.Info("Decoded request body", slog.String("DomainName", req.DomainNames[0]))
 
 		// Pass envars to the Renew method
-		cert_info, err := req.Renew(envars)
+		req.Timeout = req.Timeout * time.Second
+		cert_info, err := req.Renew()
 		if err != nil {
 			slog.Error("error renewing cert", slog.String("error", err.Error()))
 		}
@@ -70,7 +71,7 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 		slog.Info("Renewal command executed")
 
 		// Prepare the response
-		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainName))
+		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainNames[0]))
 		// Serialize response to JSON
 		jsonResponse, err := json.Marshal(cert_info)
 		if err != nil {
@@ -79,17 +80,11 @@ func Renewcert_renew(envars *env_helper.EnvVars) http.HandlerFunc {
 			return
 		}
 
-		if req.ZipFiles {
-			w.Header().Set("Content-Type", "application/zip")
-			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", req.DomainName))
-			http.ServeFile(w, r, cert_info.ZipDir)
-		} else {
-			// Set response headers and write JSON response
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(jsonResponse)
-			slog.Info("Response sent successfully")
-		}
+		// Set response headers and write JSON response
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+		slog.Info("Response sent successfully")
 	}
 }
 

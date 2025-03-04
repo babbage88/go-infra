@@ -45,6 +45,25 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const dbHealthCheckRead = `-- name: DbHealthCheckRead :one
+SELECT id, status, check_type
+FROM public.health_check WHERE check_type = 'Read'
+LIMIT 1
+`
+
+type DbHealthCheckReadRow struct {
+	ID        int32
+	Status    pgtype.Text
+	CheckType pgtype.Text
+}
+
+func (q *Queries) DbHealthCheckRead(ctx context.Context) (DbHealthCheckReadRow, error) {
+	row := q.db.QueryRow(ctx, dbHealthCheckRead)
+	var i DbHealthCheckReadRow
+	err := row.Scan(&i.ID, &i.Status, &i.CheckType)
+	return i, err
+}
+
 const deleteAuthTokenById = `-- name: DeleteAuthTokenById :exec
 DELETE FROM auth_tokens
 WHERE id = $1
@@ -430,6 +449,20 @@ func (q *Queries) GetUserLogin(ctx context.Context, username pgtype.Text) (GetUs
 		&i.RoleIds,
 	)
 	return i, err
+}
+
+const getUserNameById = `-- name: GetUserNameById :one
+SELECT
+  "username"
+FROM public.users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserNameById(ctx context.Context, id int32) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, getUserNameById, id)
+	var username pgtype.Text
+	err := row.Scan(&username)
+	return username, err
 }
 
 const getUserPermissionsById = `-- name: GetUserPermissionsById :many

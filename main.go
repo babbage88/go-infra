@@ -70,9 +70,10 @@ func main() {
 	connPool := initPgConnPool()
 	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
 	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
+	healthCheckService := &services.HealthCheckService{DbConn: connPool, Envars: envars}
 	if *initDevUser {
 		userService.UpdateUserPasswordById(1, envars.GetVarMapValue("DEV_APP_PASS"))
 	}
 
-	api_server.StartWebApiServer(authService, userService, swaggerSpec, srvport)
+	api_server.StartWebApiServer(healthCheckService, authService, userService, swaggerSpec, srvport)
 }

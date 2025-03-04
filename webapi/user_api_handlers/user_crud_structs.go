@@ -22,9 +22,22 @@ type GetAllUsersResponse struct {
 	Users []services.UserDao `json:"users"`
 }
 
+// swagger:parameters idOfgetUserByIdEndpoint
+type GetUserByIdRequest struct {
+	// ID of user
+	//
+	// In: path
+	ID string `json:"ID"`
+}
+
+type GetUserByIdResponse struct {
+	User services.UserDao `json:"user"`
+}
+
 type GetAllRolesResponse struct {
 	UserRoles []services.UserRoleDao `json:"userRoles"`
 }
+
 type GetAllAppPermissionsResponse struct {
 	AppPermissions []services.AppPermissionDao `json:"appPermissions"`
 }
@@ -75,7 +88,7 @@ type EnableDisableUserResponse struct {
 }
 
 // User Id of the executing and target users
-// swagger:parameters idOfUpdateUserRole
+// swagger:parameters idOfUpdateUserRole idOfdisableUserRoleMapping
 type UpdateUserRoleMappingRequestWrapper struct {
 	//in:body
 	Body UpdateUserRoleMappingRequest `json:"body"`

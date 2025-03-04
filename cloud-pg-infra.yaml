@@ -1,0 +1,19 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: infra-db
+spec:
+  instances: 3
+  bootstrap:
+    initdb:
+      database: infradb
+      owner: infradbuser
+      secret:
+        name: infra-db-user
+  storage:
+    size: 7Gi
+  postgresql:
+    pg_hba:
+      - host all all all scram-sha-256
+  monitoring:
+    enablePodMonitor: true

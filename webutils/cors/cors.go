@@ -1,6 +1,7 @@
 package cors
 
 import (
+	"log"
 	"log/slog"
 	"net/http"
 )
@@ -55,6 +56,12 @@ func handleOPTIONS(w http.ResponseWriter, r *http.Request) {
 // CORSWithPOST is a middleware for handling CORS with POST requests.
 func CORSWithPOST(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rvr := recover(); rvr != nil {
+				log.Printf("Recovered from panic: %v\n", rvr)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}()
 		// Handle OPTIONS requests using the helper function
 		if r.Method == http.MethodOptions {
 			handleOPTIONS(w, r)
@@ -80,6 +87,12 @@ func CORSWithPOST(next http.Handler) http.Handler {
 // CORSWithPOST is a middleware for handling CORS with POST requests.
 func CORSWithGET(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rvr := recover(); rvr != nil {
+				log.Printf("Recovered from panic: %v\n", rvr)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}()
 		// Handle OPTIONS requests using the helper function
 		if r.Method == http.MethodOptions {
 			handleOPTIONS(w, r)
@@ -94,8 +107,8 @@ func CORSWithGET(next http.Handler) http.Handler {
 
 		// Add CORS headers for non-OPTIONS requests
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)

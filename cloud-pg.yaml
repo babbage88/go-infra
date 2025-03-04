@@ -1,0 +1,19 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: infra-user-cluster-dev
+spec:
+  instances: 3
+  bootstrap:
+    initdb:
+      database: appuser
+      owner: appuser
+      secret:
+        name: dev-app-secret
+  storage:
+    size: 4Gi
+  postgresql:
+    pg_hba:
+      - host all all all scram-sha-256
+  monitoring:
+    enablePodMonitor: true
