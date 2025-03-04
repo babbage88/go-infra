@@ -4,9 +4,6 @@ metadata:
   name: infra-user-cluster-dev
 spec:
   instances: 3
-  superuserSecret:
-    #name: infrauser-dev-db-postgres
-    name: pg-su-app-secret
   bootstrap:
     initdb:
       database: appuser
