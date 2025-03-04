@@ -2,6 +2,7 @@ package cert_renew
 
 import (
 	"log/slog"
+	"os"
 	"strings"
 	"time"
 
@@ -104,7 +105,19 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	if err != nil {
 		slog.Error("error renewing certificate")
 	}
-	certificates.PushZipDirToS3(c.ZipDir)
+	err = certificates.SaveToZip(c.ZipDir)
+	if err != nil {
+		slog.Error("error creating zip file", slog.String("error", err.Error()))
+	}
+	err = certificates.PushZipDirToS3(c.ZipDir)
+	if err != nil {
+		slog.Error("error pushing zip file to S3", slog.String("error", err.Error()))
+	}
+	err = os.Remove(certificates.ZipDir)
+	if err != nil {
+		slog.Error("error removing zip file", slog.String("error", err.Error()))
+	}
+
 	certData.ParseAcmeCertStruct(&certificates)
 
 	return certData, err
