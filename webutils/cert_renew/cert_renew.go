@@ -1,25 +1,20 @@
 package cert_renew
 
 import (
-	"archive/zip"
-	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/babbage88/go-acme-cli/cloud_providers/cf_acme"
 )
 
-var certPrefix string = "-----BEGIN CERTIFICATE-----"
+var certPrefix string = "-----BEGIN CERTIFICATE-----\n"
 
-var certSuffix string = "-----END CERTIFICATE-----"
+var certSuffix string = "\n-----END CERTIFICATE-----\n"
 
-var keyPrefix string = "-----BEGIN PRIVATE KEY-----"
+var keyPrefix string = "-----BEGIN PRIVATE KEY-----\n"
 
-var keySuffix string = "-----END PRIVATE KEY-----"
-
-var certbotConfigDir string = ".certbot/config"
+var keySuffix string = "\n-----END PRIVATE KEY-----\n"
 
 type CertificateData struct {
 	DomainNames   []string `json:"domainName"`
@@ -52,12 +47,15 @@ type CertDnsRenewReq struct {
 
 func (c *CertDnsRenewReq) InitAcmeRenewRequest() *cf_acme.CertificateRenewalRequest {
 	cfReq := &cf_acme.CertificateRenewalRequest{
-		DomainNames: c.DomainNames,
-		AcmeEmail:   c.AcmeEmail,
-		AcmeUrl:     c.AcmeUrl,
-		SaveZip:     c.SaveZip,
-		PushS3:      c.PushS3,
-		ZipDir:      c.ZipDir,
+		DomainNames:          c.DomainNames,
+		AcmeEmail:            c.AcmeEmail,
+		AcmeUrl:              c.AcmeUrl,
+		SaveZip:              c.SaveZip,
+		PushS3:               c.PushS3,
+		ZipDir:               c.ZipDir,
+		Token:                c.Token,
+		RecursiveNameServers: c.RecursiveNameServers,
+		Timeout:              c.Timeout,
 	}
 
 	return cfReq
@@ -70,7 +68,7 @@ func (c *CertificateData) ParseAcmeCertStruct(acmeCert *cf_acme.CertificateData)
 	c.Fullchain = acmeCert.Fullchain
 	c.PrivKey = acmeCert.PrivKey
 	c.ZipDir = acmeCert.ZipDir
-	c.S3DownloadUrl = c.S3DownloadUrl
+	c.S3DownloadUrl = acmeCert.S3DownloadUrl
 }
 func (c *CertificateData) TrimJsonCertificateData() {
 	certTrimmed, err := readAndTrimCert(c.CertPEM, certPrefix, certSuffix)
@@ -102,14 +100,13 @@ type CertRenewReq interface {
 func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	certData := &CertificateData{}
 	acmeRenewal := c.InitAcmeRenewRequest()
-	certificates, err := acmeRenewal.RenewCertWithDns()
+	certificates, err := acmeRenewal.Renew(c.Token, c.RecursiveNameServers, c.Timeout)
 	if err != nil {
 		slog.Error("error renewing certificate")
 	}
 	certificates.PushZipDirToS3(c.ZipDir)
 	certData.ParseAcmeCertStruct(&certificates)
 
-	certData.TrimJsonCertificateData()
 	return certData, err
 }
 
@@ -120,39 +117,4 @@ func readAndTrimCert(s string, beginMarker string, endMarker string) (string, er
 	slog.Info("Paring finished", slog.String("Content", s))
 
 	return strings.TrimSpace(s), nil
-}
-
-func createZipFile(liveDir string, certInfo CertificateData) error {
-	zipFileName := fmt.Sprintf("%s/certs.zip", liveDir)
-	zipFile, err := os.Create(zipFileName)
-	if err != nil {
-		return err
-	}
-	defer zipFile.Close()
-
-	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
-
-	// List of files to include in the zip
-	files := []struct {
-		Name, Content string
-	}{
-		{"cert.pem", certInfo.CertPEM},
-		{"chain.pem", certInfo.ChainPEM},
-		{"fullchain.pem", certInfo.Fullchain},
-		{"privkey.pem", certInfo.PrivKey},
-	}
-
-	for _, file := range files {
-		f, err := zipWriter.Create(file.Name)
-		if err != nil {
-			return err
-		}
-		_, err = f.Write([]byte(file.Content))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

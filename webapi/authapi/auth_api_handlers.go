@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/golang-jwt/jwt/v5"
@@ -61,6 +62,7 @@ func Renewcert_renew() http.HandlerFunc {
 		slog.Info("Decoded request body", slog.String("DomainName", req.DomainNames[0]))
 
 		// Pass envars to the Renew method
+		req.Timeout = req.Timeout * time.Second
 		cert_info, err := req.Renew()
 		if err != nil {
 			slog.Error("error renewing cert", slog.String("error", err.Error()))

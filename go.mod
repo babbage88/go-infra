@@ -8,10 +8,10 @@ require (
 )
 
 require (
-	github.com/babbage88/go-acme-cli v1.0.9
+	github.com/babbage88/go-acme-cli v1.0.20
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/prometheus/client_golang v1.20.5
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 )
 
 require (
