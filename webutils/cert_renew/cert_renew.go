@@ -109,7 +109,7 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	if err != nil {
 		slog.Error("error creating zip file", slog.String("error", err.Error()))
 	}
-	err = certificates.PushZipDirToS3(c.ZipDir)
+	err = certificates.PushCertBufferToS3(c.ZipDir)
 	if err != nil {
 		slog.Error("error pushing zip file to S3", slog.String("error", err.Error()))
 	}
