@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/goccy/go-yaml"
 )
@@ -51,4 +52,24 @@ func (k *KubeSecretManifest) ToYaml() ([]byte, error) {
 
 	fmt.Println(string(out))
 	return out, err
+}
+
+func (k *KubeSecretManifest) ExportYaml(path string) (int, error) {
+	out, err := k.ToYaml()
+	if err != nil {
+		slog.Error("error marshaling to yaml", slog.String("error", err.Error()))
+		return 0, err
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		slog.Error("error creating file", slog.String("error", err.Error()))
+	}
+	defer f.Close()
+
+	l, err := f.Write([]byte(out))
+	if err != nil {
+		slog.Error("error writing file", slog.String("error", err.Error()))
+	}
+	return l, err
 }
