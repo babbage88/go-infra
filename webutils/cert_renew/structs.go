@@ -1,6 +1,12 @@
 package cert_renew
 
-import "encoding/base64"
+import (
+	"encoding/base64"
+	"fmt"
+	"log/slog"
+
+	"github.com/goccy/go-yaml"
+)
 
 const TlsSecretKind string = "Secret"
 const TlsSecretApiVersion string = "v1"
@@ -34,4 +40,15 @@ func NewKubeTlsSecretManifest(tlsCrt string, tlsKey string, secretName string) *
 	}
 
 	return manifest
+}
+
+func (k *KubeSecretManifest) ToYaml() ([]byte, error) {
+	out, err := yaml.Marshal(k)
+	if err != nil {
+		slog.Error("error marshaling to yaml", slog.String("error", err.Error()))
+		return out, err
+	}
+
+	fmt.Println(string(out))
+	return out, err
 }

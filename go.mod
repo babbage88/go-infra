@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/babbage88/go-acme-cli v1.0.23
+	github.com/goccy/go-yaml v1.16.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/prometheus/client_golang v1.20.5
 	golang.org/x/crypto v0.35.0
