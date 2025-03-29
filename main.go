@@ -4,7 +4,7 @@
 //
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
-//		Version: v1.0.7
+//		Version: v1.1.0
 //		License: N/A
 //		Contact: Justin Trahan<test@trahan.dev>
 //

@@ -20,7 +20,7 @@
     "license": {
       "name": "N/A"
     },
-    "version": "v1.0.7"
+    "version": "v1.1.0"
   },
   "host": "localhost:8993",
   "paths": {

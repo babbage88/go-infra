@@ -14,7 +14,7 @@ info:
         name: N/A
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
-    version: v1.0.7
+    version: v1.1.0
 host: localhost:8993
 paths:
     /create/permission:
