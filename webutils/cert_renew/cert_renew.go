@@ -38,7 +38,6 @@ type CertDnsRenewReq struct {
 	DomainNames          []string      `json:"domainName"`
 	AcmeEmail            string        `json:"acmeEmail"`
 	AcmeUrl              string        `json:"acmeUrl"`
-	SaveZip              bool          `json:"saveZip"`
 	ZipDir               string        `json:"zipDir"`
 	PushS3               bool          `json:"pushS3"`
 	Token                string        `json:"token"`
@@ -51,7 +50,6 @@ func (c *CertDnsRenewReq) InitAcmeRenewRequest() *cf_acme.CertificateRenewalRequ
 		DomainNames:          c.DomainNames,
 		AcmeEmail:            c.AcmeEmail,
 		AcmeUrl:              c.AcmeUrl,
-		SaveZip:              c.SaveZip,
 		PushS3:               c.PushS3,
 		ZipDir:               c.ZipDir,
 		Token:                c.Token,
@@ -104,10 +102,6 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	certificates, err := acmeRenewal.Renew(c.Token, c.RecursiveNameServers, c.Timeout)
 	if err != nil {
 		slog.Error("error renewing certificate")
-	}
-	err = certificates.SaveToZip(c.ZipDir)
-	if err != nil {
-		slog.Error("error creating zip file", slog.String("error", err.Error()))
 	}
 	err = certificates.PushCertBufferToS3(c.ZipDir)
 	if err != nil {
