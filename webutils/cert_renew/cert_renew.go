@@ -111,6 +111,13 @@ func (c *CertDnsRenewReq) ZipFileName() string {
 	}
 }
 
+func (c *CertDnsRenewReq) KubeSecretName() string {
+	var retVal strings.Builder
+	retVal.WriteString(strings.TrimPrefix(strings.ReplaceAll(c.DomainNames[0], ".", "-"), "*-"))
+	slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
+	return retVal.String()
+}
+
 func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	certData := &CertificateData{}
 	acmeRenewal := c.InitAcmeRenewRequest()
@@ -118,7 +125,7 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	if err != nil {
 		slog.Error("error renewing certificate")
 	}
-	manifest := NewKubeTlsSecretManifest(certificates.CertPEM, certificates.PrivKey, "trahan-dev-secret")
+	manifest := NewKubeTlsSecretManifest(certificates.CertPEM, certificates.PrivKey, c.KubeSecretName())
 	out, _ := manifest.ToYaml()
 	files := make(map[string][]byte)
 	files["kube_secret.yaml"] = out
