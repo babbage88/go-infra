@@ -96,6 +96,19 @@ type CertRenewReq interface {
 	GetDomainName() string
 }
 
+func (c *CertDnsRenewReq) ZipFileName() string {
+	var retVal strings.Builder
+	retVal.WriteString("__certs__")
+	if c.ZipDir == "" {
+		retVal.WriteString(strings.TrimPrefix(c.DomainNames[0], "*"))
+		retVal.WriteString(".zip")
+		return retVal.String()
+	} else {
+		retVal.WriteString(c.ZipDir)
+		return retVal.String()
+	}
+}
+
 func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	certData := &CertificateData{}
 	acmeRenewal := c.InitAcmeRenewRequest()
@@ -103,7 +116,12 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	if err != nil {
 		slog.Error("error renewing certificate")
 	}
-	err = certificates.PushCertBufferToS3(c.ZipDir)
+	manifest := NewKubeTlsSecretManifest(certificates.CertPEM, certificates.PrivKey, "trahan-dev-secret")
+	out, _ := manifest.ToYaml()
+	files := make(map[string][]byte)
+	files["kube_secret.yaml"] = out
+	certificates.PushCertBufferToS3WithFiles(c.ZipFileName(), files)
+	err = certificates.PushCertBufferToS3(c.ZipFileName())
 	if err != nil {
 		slog.Error("error pushing zip file to S3", slog.String("error", err.Error()))
 	}

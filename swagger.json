@@ -6,7 +6,6 @@
     "application/json"
   ],
   "schemes": [
-    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -22,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/permission": {
       "post": {
@@ -495,10 +494,6 @@
             "type": "string"
           },
           "x-go-name": "RecursiveNameServers"
-        },
-        "saveZip": {
-          "type": "boolean",
-          "x-go-name": "SaveZip"
         },
         "timeout": {
           "$ref": "#/definitions/Duration"

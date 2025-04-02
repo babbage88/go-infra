@@ -1,5 +1,6 @@
 response.json
 goinfra
+k8s.env
 **.zip
 cloud-pg-lap.yaml
 req.json

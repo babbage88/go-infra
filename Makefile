@@ -1,6 +1,7 @@
 GHCR_REPO:=ghcr.io/babbage88/go-infra:
 GHCR_REPO_TEST:=jtrahan88/goinfra-test:
 ENV_FILE:=.env
+BUILDER := infrabuilder
 MIG:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
 
@@ -36,6 +37,15 @@ embed-swagger:
 
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443
+
+
+check-builder:
+	@if ! docker buildx inspect $(BUILDER) > /dev/null 2>&1; then \
+		echo "Builder $(BUILDER) does not exist. Creating..."; \
+		docker buildx create --name $(BUILDER) --bootstrap; \
+	fi
+
+create-builder: check-builder
 
 buildandpushdev: dev-swagger
 	docker buildx use infrabuilder
