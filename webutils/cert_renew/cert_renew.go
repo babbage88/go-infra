@@ -102,9 +102,11 @@ func (c *CertDnsRenewReq) ZipFileName() string {
 	if c.ZipDir == "" {
 		retVal.WriteString(strings.TrimPrefix(c.DomainNames[0], "*"))
 		retVal.WriteString(".zip")
+		slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
 		return retVal.String()
 	} else {
 		retVal.WriteString(c.ZipDir)
+		slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
 		return retVal.String()
 	}
 }

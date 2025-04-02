@@ -14,18 +14,67 @@ spec:
     spec:
       containers:
         - name: go-infra
-          image: ghcr.io/babbage88/go-infra:v1.0.9
+          image: ghcr.io/babbage88/go-infra:v1.1.3
           imagePullPolicy: Always
           ports:
             - containerPort: 8993
           command: ["/app/server"]
-          volumeMounts:
-            - name: cf-token-ini
-              mountPath: "/run/secrets/cf_token.ini"
-              subPath: cf_token.ini
-            - name: k3s-env
-              mountPath: "/app/.env"
-              subPath: k3s.env
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: JWT_KEY
+            - name: EXPIRATION_MINUTES
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: EXPIRATION_MINUTES
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: DATABASE_URL
+            - name: JWT_ALGORITHM
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: JWT_ALGORITHM
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: DB_NAME
+            - name: S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: S3_ENDPOINT
+            - name: S3_KEYID
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: S3_KEYID
+            - name: S3_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: S3_SECRET
+            - name: S3_DEFAULT_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: S3_DEFAULT_BUCKET
+            - name: S3_USESSL
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: S3_USESSL
+            - name: CLOUDFLARE_DNS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: CLOUDFLARE_DNS_API_TOKEN
           resources:
             limits:
               memory: "512Mi"
@@ -33,12 +82,5 @@ spec:
             requests:
               memory: "256Mi"
               cpu: "250m"
-      volumes:
-        - name: cf-token-ini
-          secret:
-            secretName: cf-token-ini
-        - name: k3s-env
-          secret:
-            secretName: k3s-env
       imagePullSecrets:
         - name: ghcr
