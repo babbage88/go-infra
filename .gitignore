@@ -2,6 +2,7 @@ response.json
 response_renew.json
 goinfra
 k8s.env
+k8s.env.yaml
 **.zip
 cloud-pg-lap.yaml
 req.json

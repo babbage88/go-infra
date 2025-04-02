@@ -123,7 +123,6 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	files := make(map[string][]byte)
 	files["kube_secret.yaml"] = out
 	certificates.PushCertBufferToS3WithFiles(c.ZipFileName(), files)
-	err = certificates.PushCertBufferToS3(c.ZipFileName())
 	if err != nil {
 		slog.Error("error pushing zip file to S3", slog.String("error", err.Error()))
 	}
