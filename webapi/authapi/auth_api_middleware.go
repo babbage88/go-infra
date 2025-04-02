@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
-	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.HandlerFunc {
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
@@ -35,7 +35,7 @@ func AuthMiddleware(envars *env_helper.EnvVars, next http.HandlerFunc) http.Hand
 					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
 				// Retrieve the secret key from environment variables
-				SECRETKEY := envars.GetVarMapValue("JWT_KEY")
+				SECRETKEY := os.Getenv("JWT_KEY")
 				if SECRETKEY == "" {
 					return nil, fmt.Errorf("secret key not found")
 				}
@@ -80,7 +80,7 @@ func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string,
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			SECRETKEY := ua.Envars.GetVarMapValue("JWT_KEY")
+			SECRETKEY := os.Getenv("JWT_KEY")
 			if SECRETKEY == "" {
 				return nil, fmt.Errorf("secret key not found")
 			}

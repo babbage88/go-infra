@@ -7,14 +7,12 @@ import (
 
 	"github.com/babbage88/go-infra/auth/hashing"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
-	"github.com/babbage88/go-infra/utils/env_helper"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserCRUDService struct {
 	DbConn *pgxpool.Pool
-	Envars *env_helper.EnvVars
 }
 
 type UserCRUD interface {

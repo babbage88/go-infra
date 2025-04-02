@@ -11,7 +11,7 @@ import (
 	"github.com/babbage88/go-infra/auth/hashing"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/internal/pretty"
-	"github.com/babbage88/go-infra/utils/env_helper"
+	"github.com/babbage88/go-infra/internal/type_helper"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,7 +19,6 @@ import (
 
 type UserAuthService struct {
 	DbConn *pgxpool.Pool
-	Envars *env_helper.EnvVars
 }
 
 type UserAuth interface {
@@ -185,7 +184,6 @@ func (ua *UserAuthService) NewLoginRequest(username string, password string) *Us
 
 func (t *AuthToken) CreateRefreshToken() {
 	jwtKey := os.Getenv("JWT_KEY")
-	//refreshEnvValue, err := type_helper.ParseInt64(os.Getenv("REFRESH_EXPIRATION_HOURS"))
 	refreshExpiration := time.Now().Add(time.Hour * 48).Unix()
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
 
@@ -202,14 +200,15 @@ func (t *AuthToken) CreateRefreshToken() {
 }
 
 func (ua *UserAuthService) CreateSignedAuthTokenString(sub string, roleIds []int32, userInfo interface{}) (string, time.Time, error) {
-	expireMinutes, err := ua.Envars.ParseEnvVarInt64("EXPIRATION_MINUTES")
+	var expireMinutes, err = type_helper.ParseInt64(os.Getenv("EXPIRATION_MINUTES"))
+
 	if err != nil {
 		slog.Error("Error parsing EXPIRATION_MINUTES, defaulting to 60.", slog.String("Error", err.Error()))
 		expireMinutes = 60
 	}
 
-	jwtAlgo := ua.Envars.GetVarMapValue("JWT_ALGORITHM")
-	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
+	jwtAlgo := os.Getenv("JWT_ALGORITHM")
+	jwtKey := []byte(os.Getenv("JWT_KEY"))
 
 	token := jwt.New(jwt.GetSigningMethod(jwtAlgo))
 	exp := time.Now().Add(time.Minute * time.Duration(expireMinutes))
@@ -254,7 +253,7 @@ func (ua *UserAuthService) CreateAuthTokenOnLogin(userid int32, roleIds []int32,
 }
 
 func (ua *UserAuthService) VerifyToken(tokenString string) error {
-	jwtKey := []byte(ua.Envars.GetVarMapValue("JWT_KEY"))
+	jwtKey := []byte(os.Getenv("JWT_KEY"))
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
@@ -271,7 +270,7 @@ func (ua *UserAuthService) VerifyToken(tokenString string) error {
 }
 
 func (ua *UserAuthService) ParseAccessToken(accessToken string) *InfraJWTClaim {
-	jwtKey := ua.Envars.GetVarMapValue("JWT_KEY")
+	jwtKey := os.Getenv("JWT_KEY")
 	parsedAccessToken, _ := jwt.ParseWithClaims(accessToken, &InfraJWTClaim{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtKey), nil
 	})

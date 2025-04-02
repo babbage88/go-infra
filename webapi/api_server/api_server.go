@@ -14,9 +14,8 @@ import (
 )
 
 func StartWebApiServer(healthCheckService *services.HealthCheckService, authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
-	envars := authService.Envars
 	mux := http.NewServeMux()
-	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew())))
+	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
@@ -33,9 +32,9 @@ func StartWebApiServer(healthCheckService *services.HealthCheckService, authServ
 	mux.Handle("/roles", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadRole", userapi.GetAllRolesHandler(userCRUDService))))
 	mux.Handle("/users/{ID}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadUser", userapi.GetUserByIdHandler(userCRUDService))))
 	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermission", userapi.GetAllAppPermissionsHandler(userCRUDService))))
-	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(envars, userapi.GetAllUsersHandler(userCRUDService))))
+	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(userapi.GetAllUsersHandler(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
-	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(envars, http.HandlerFunc(authapi.HealthCheckHandler))))
+	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	// Add Swagger UI handler

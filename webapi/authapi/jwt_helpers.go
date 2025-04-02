@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/babbage88/go-infra/utils/type_helper"
+	"github.com/babbage88/go-infra/internal/type_helper"
 	"github.com/golang-jwt/jwt/v5"
 )
 

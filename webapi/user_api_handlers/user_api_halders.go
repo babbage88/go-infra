@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/babbage88/go-infra/internal/type_helper"
 	"github.com/babbage88/go-infra/services"
-	"github.com/babbage88/go-infra/utils/type_helper"
 )
 
 // swagger:route POST /create/user createuser idOfcreateUserEndpoint
