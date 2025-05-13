@@ -43,4 +43,5 @@ COPY --from=build /bin/server /app/
 # Expose the port that the application listens on.
 EXPOSE 8080
 
-ENTRYPOINT [ "/app/server" ]
+#ENTRYPOINT [ "/app/server" ]
+ENTRYPOINT [ "/app/server", "--devuser" ]

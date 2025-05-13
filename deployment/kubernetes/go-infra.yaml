@@ -77,8 +77,7 @@ spec:
                   key: CLOUDFLARE_DNS_API_TOKEN
           resources:
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "1Gi"
             requests:
               memory: "256Mi"
               cpu: "250m"
