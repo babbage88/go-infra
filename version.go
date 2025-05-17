@@ -12,6 +12,7 @@ import (
 const (
 	pushCmd               string = "push"
 	pushTagsCmdFlag       string = "--tags"
+	gitForceFlag          string = "--force"
 	gitTagCmd             string = "tag"
 	gitTagCmdAddFlag      string = "-a"
 	gitTagCmdMessageFlag  string = "-m"
@@ -108,7 +109,7 @@ func (v *VersionInfo) pushNewTag(newTag string) error {
 		return fmt.Errorf("error pushing new tags %w", err)
 	}
 	fmt.Println(output)
-	pushTagsOutput, err := bumper.RunGitCommand(pushCmd, pushTagsCmdFlag)
+	pushTagsOutput, err := bumper.RunGitCommand(pushCmd, pushTagsCmdFlag, gitForceFlag)
 	if err != nil {
 		return fmt.Errorf("error pushing new tags %w", err)
 	}
