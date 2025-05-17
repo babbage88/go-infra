@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: go-infra
-          image: ghcr.io/babbage88/go-infra:v1.2.0
+          image: ghcr.io/babbage88/go-infra:v1.2.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8993

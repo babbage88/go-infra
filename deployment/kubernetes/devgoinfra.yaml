@@ -23,7 +23,7 @@ spec:
                 - trahkube1
       containers:
       - name: go-infra
-        image: git.trahan.dev/jtrahan/goinfra:v1.0.4
+        image: ghcr.io/babbage88/go-infra:v1.2.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8993
