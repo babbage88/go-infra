@@ -4,19 +4,19 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
-	"github.com/babbage88/go-infra/webutils/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func StartWebApiServer(healthCheckService *services.HealthCheckService, authService authapi.AuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
 	mux := http.NewServeMux()
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
-	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
+	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateUser", userapi.CreateUserHandler(userCRUDService))))
@@ -44,7 +44,7 @@ func StartWebApiServer(healthCheckService *services.HealthCheckService, authServ
 	clog := customlogger.SetupLogger(config)
 
 	clog.Info("Starting http server.")
-	err := http.ListenAndServe(*srvadr, mux)
+	err := http.ListenAndServe(*srvadr, cors.HandleCORSPreflightMiddleware(mux))
 	if err != nil {
 		slog.Error("Failed to start server", slog.String("Error", err.Error()))
 	}
