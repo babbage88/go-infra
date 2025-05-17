@@ -29,7 +29,16 @@ type VersionInfo struct {
 	Author  string `json:"author" yaml:"author"`
 }
 
-func marshalVersionInfo() VersionInfo {
+func marshalVersionInfo(data []byte) VersionInfo {
+	var versionInfo VersionInfo
+	err := yaml.Unmarshal(data, &versionInfo)
+	if err != nil {
+		slog.Error("Error unmarshalling the version.yaml file")
+	}
+	return versionInfo
+}
+
+func marshalVersionInfoFile() VersionInfo {
 	f, err := os.ReadFile(bumper.VersionYamlFile)
 	if err != nil {
 		slog.Error("error reading the version.yaml file", slog.String("filename", bumper.VersionYamlFile), slog.String("error", err.Error()))

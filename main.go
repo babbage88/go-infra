@@ -46,9 +46,12 @@ import (
 var swaggerSpec []byte
 var versionInfo VersionInfo
 
+//go:embed version.yaml
+var versionInfoBytes []byte
+
 func main() {
 	configureDefaultLogger(slog.LevelInfo)
-	versionInfo = marshalVersionInfo()
+	versionInfo = marshalVersionInfo(versionInfoBytes)
 	versionInfo.LogVersionInfo()
 	var isLocalDevelopment bool
 	var envFile string
