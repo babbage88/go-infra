@@ -2,17 +2,43 @@ package main
 
 import (
 	"fmt"
-	"runtime"
+	"log/slog"
+	"os"
+
+	"github.com/goccy/go-yaml"
 )
 
 const (
-	Author  = "Justin Trahan"
-	Version = "v1.0.4"
-	Name    = "go-infra"
+	versionYamlFile string = "version.yaml"
 )
 
-func showVersion() string {
-	fmt.Printf("%s\nVersion: %s\nOS: %s Arch: %s\nAuthor: %s\n", Name, Version, runtime.GOOS, runtime.GOARCH, Author)
+type VersionInfo struct {
+	Name    string `json:"name" yaml:"name"`
+	Version string `json:"version" yaml:"version"`
+	Author  string `json:"author" yaml:"author"`
+}
 
-	return Version
+func marshalVersionInfo() VersionInfo {
+	f, err := os.ReadFile(versionYamlFile)
+	if err != nil {
+		slog.Error("error reading the version.yaml file", slog.String("filename", versionYamlFile), slog.String("error", err.Error()))
+	}
+
+	var versionInfo VersionInfo
+	err = yaml.Unmarshal(f, &versionInfo)
+	if err != nil {
+		slog.Error("Error unmarshalling the version.yaml file")
+	}
+	return versionInfo
+}
+
+func (v *VersionInfo) PrintVersion() string {
+	versionString := fmt.Sprintf("%s %s\n", v.Name, v.Version)
+	fmt.Println(versionString)
+	return versionString
+
+}
+
+func (v *VersionInfo) LogVersionInfo() {
+	slog.Info("Verion Info", slog.String("Name", v.Name), slog.String("Version", v.Version), slog.String("Author", v.Author))
 }
