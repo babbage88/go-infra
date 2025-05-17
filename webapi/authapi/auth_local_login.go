@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/golang-jwt/jwt/v5"
@@ -64,41 +63,23 @@ func (us *LocalAuthService) VerifyUserPermissionByRole(roleId uuid.UUID, permiss
 func (a *LocalAuthService) CreateAuthTokenOnLogin(id uuid.UUID, roleIds uuid.UUIDs, email string) (AuthToken, error) {
 	tokens := AuthToken{UserID: id}
 
-	jwt_algo := os.Getenv("JWT_ALGORITHM")
-	signingMethod := jwt.GetSigningMethod(jwt_algo)
-	// Create token
-	token := jwt.New(signingMethod)
+	signingMethod := getJwtSigningMenthodFromEnv()
 
-	// Set claims
-	// This is the information which frontend can use
-	// The backend can also decode the token and get admin etc.
-	claims := token.Claims.(jwt.MapClaims)
-	claims["sub"] = id
-	claims["name"] = email
-	claims["role_ids"] = roleIds
-	expiration := time.Now().Add(time.Minute * 15)
-	claims["exp"] = expiration.Unix()
+	// Create access accessToken
+	accessToken, err := NewAccessToken(id, roleIds, email, signingMethod)
 
-	// Generate encoded token and send it as response.
-	// The signing string should be secret (a generated UUID works too)
-	t, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
-	tokens.Expiration = expiration
 	if err != nil {
 		return tokens, err
 	}
-	tokens.Token = t
+	tokens.Token = accessToken
 
-	refreshToken := jwt.New(jwt.SigningMethodHS256)
-	rtClaims := refreshToken.Claims.(jwt.MapClaims)
-	rtClaims["sub"] = id
-	rtClaims["exp"] = time.Now().Add(time.Hour * 48).Unix()
+	refreshToken, err := NewRefreshToken(id, signingMethod)
 
-	rt, err := refreshToken.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
 		return tokens, err
 	}
 
-	tokens.RefreshToken = rt
+	tokens.RefreshToken = refreshToken
 	return tokens, nil
 }
 
@@ -191,4 +172,15 @@ func (ua *LocalAuthService) VerifyUserRolesForPermission(roleIds uuid.UUIDs, per
 	}
 	// Return false if no roles grant the permission
 	return false, lastError
+}
+
+func getJwtSigningMenthodFromEnv() jwt.SigningMethod {
+	jwt_algo := os.Getenv("JWT_ALGORITHM")
+	if len(jwt_algo) < 1 {
+		slog.Info("No JWT_ALGORITHM set, defaulting to HS256")
+		return jwt.SigningMethodHS256
+	}
+
+	signingMethod := jwt.GetSigningMethod(jwt_algo)
+	return signingMethod
 }

@@ -92,7 +92,7 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(os.Getenv("JWT_KEY")), nil
@@ -105,7 +105,7 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		uid, err := uuid.Parse(claims["sub"].(string))
 		if err != nil {
-			return tokenPair, fmt.Errorf("Error parsing uuid from string id: %s error: %w", claims["sub"].(string), &err)
+			return tokenPair, fmt.Errorf("error parsing uuid from string id: %s error: %w", claims["sub"].(string), err)
 		}
 
 		tokenPair.UserID = uid
@@ -114,8 +114,7 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 		// Get the user record from database or
 		// run through your business logic to verify if the user can log in
 		if err == nil {
-			jwt_algo := os.Getenv("JWT_ALGORITHM")
-			signingMethod := jwt.GetSigningMethod(jwt_algo)
+			signingMethod := getJwtSigningMenthodFromEnv()
 			tokenPair.Token, err = NewAccessToken(usrInfo.Id, usrInfo.RoleIds, usrInfo.Email, signingMethod)
 			if err != nil {
 				return tokenPair, fmt.Errorf("error creating NewAccessToken %w", err)
