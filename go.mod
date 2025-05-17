@@ -16,10 +16,12 @@ require (
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/prometheus/client_golang v1.22.0
 	golang.org/x/crypto v0.38.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
 )
 
