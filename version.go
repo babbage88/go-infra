@@ -56,12 +56,12 @@ func (v *VersionInfo) CheckMatchesGitAndBump(bumpType string) error {
 	switch {
 	case result == -1:
 		slog.Warn("The latest tag git tag is lower than the version defined in version.yaml", slog.String("version.yaml", v.Version), slog.String("latest-tag", latestTag))
-		output, err := runGitCommand("tag", "-a", v.Version, "-m", v.Version)
+		output, err := bumper.RunGitCommand("tag", "-a", v.Version, "-m", v.Version)
 		if err != nil {
 			return fmt.Errorf("error creating new tag %w", err)
 		}
 		fmt.Println(output)
-		pushOutput, err := runGitCommand("push", "--tags")
+		pushOutput, err := bumper.RunGitCommand("push", "--tags")
 		if err != nil {
 			return fmt.Errorf("error pusing new tag %w", err)
 		}
@@ -71,7 +71,7 @@ func (v *VersionInfo) CheckMatchesGitAndBump(bumpType string) error {
 		// implement git describe --exact-match --tags HEAD
 		//git describe --exact-match --tags HEAD
 		bumpedVer, err := bumper.BumpVersion(latestTag, bumper.Patch)
-		runGitCommand()
+		bumper.RunGitCommand()
 		fmt.Println(bumpedVer)
 		return err
 	case result == 1:
@@ -79,7 +79,7 @@ func (v *VersionInfo) CheckMatchesGitAndBump(bumpType string) error {
 		return err
 	default:
 		bumpedVer, err := bumper.BumpVersion(latestTag, bumper.Patch)
-		runGitCommand()
+		bumper.RunGitCommand()
 		fmt.Println(bumpedVer)
 		return err
 		//

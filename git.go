@@ -9,55 +9,56 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-func pushNewTag(newTag string) error {
+func (v *VersionInfo) pushNewTag(newTag string) error {
 	output, err := bumper.RunGitCommand("tag", "-a", newTag, "-m", newTag)
+	if err != nil {
+		fmt.Println(output)
+		return fmt.Errorf("error pushing new tags %w", err)
+	}
 	fmt.Println(output)
+	v.writeToYAML(bumper.VersionYamlFile)
+	v.Version = newTag
 	return err
 }
 
-func BumpVersionAndCreateTag(currentVersion string, bumpType string) error {
+func (v *VersionInfo) BumpVersionAndCreateTag(currentVersion string, bumpType string) error {
 	switch {
 	case bumpType == bumper.Major || bumpType == bumper.Minor || bumpType == bumper.Patch:
 		newTag, err := bumper.BumpVersion(currentVersion, bumpType)
 		if err != nil {
 			return fmt.Errorf("error bumping version err: %w", err)
 		}
-		return pushNewTag(newTag)
+		return v.pushNewTag(newTag)
 	default:
 		slog.Warn("Invalid bumpType specifified, using patch", slog.String("bumpType", bumpType))
 		newTag, err := bumper.BumpVersion(currentVersion, bumper.Patch)
 		if err != nil {
 			return fmt.Errorf("error bumping version err: %w", err)
 		}
-		return pushNewTag(newTag)
-
+		return v.pushNewTag(newTag)
 	}
 }
 
 // writeToYAML writes a key-value pair to a YAML file.
-func writeToYAML(filename, key, value string) {
-	data := make(map[string]string)
-
-	// Read existing file if it exists
-	if file, err := os.ReadFile(filename); err == nil {
-		yaml.Unmarshal(file, &data)
-	}
-
-	// Update or add the key-value pair
-	data[key] = value
-
-	// Write back to file
+func (v *VersionInfo) writeToYAML(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
-		fmt.Println("Error writing to YAML file:", err)
-		return
+		slog.Error("Error creating YAML file", "error", err.Error())
+		return err
 	}
 	defer file.Close()
 
-	encoder := yaml.NewEncoder(file)
-	defer encoder.Close()
-
-	if err := encoder.Encode(data); err != nil {
-		fmt.Println("Error encoding YAML:", err)
+	verInfoBytes, err := yaml.Marshal(v)
+	if err != nil {
+		slog.Error("Error marshalling yaml")
+		return fmt.Errorf("error marshaling yaml %w", err)
 	}
+
+	bytesWritten, err := file.Write(verInfoBytes)
+	if err != nil {
+		slog.Error("Error writing bytes to new version fileyaml")
+		return fmt.Errorf("error marshawriting file %s %w", filename, err)
+	}
+	slog.Info("New version file created", slog.String("filename", filename), slog.Int("BytesWritten", bytesWritten))
+	return nil
 }
