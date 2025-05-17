@@ -5,11 +5,8 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/babbage88/go-infra/internal/bumper"
 	"github.com/goccy/go-yaml"
-)
-
-const (
-	versionYamlFile string = "version.yaml"
 )
 
 type VersionInfo struct {
@@ -19,9 +16,9 @@ type VersionInfo struct {
 }
 
 func marshalVersionInfo() VersionInfo {
-	f, err := os.ReadFile(versionYamlFile)
+	f, err := os.ReadFile(VersionYamlFile)
 	if err != nil {
-		slog.Error("error reading the version.yaml file", slog.String("filename", versionYamlFile), slog.String("error", err.Error()))
+		slog.Error("error reading the version.yaml file", slog.String("filename", VersionYamlFile), slog.String("error", err.Error()))
 	}
 
 	var versionInfo VersionInfo
@@ -41,4 +38,51 @@ func (v *VersionInfo) PrintVersion() string {
 
 func (v *VersionInfo) LogVersionInfo() {
 	slog.Info("Verion Info", slog.String("Name", v.Name), slog.String("Version", v.Version), slog.String("Author", v.Author))
+}
+
+func (v *VersionInfo) CheckMatchesGitAndBump(bumpType string) error {
+	err := bumper.FetchTags()
+	if err != nil {
+		slog.Error("error fetching remote tag", "error", err.Error())
+		return fmt.Errorf("error fetching remote tags from origin %w", err)
+	}
+	latestTag, err := bumper.GetLatestSemverTag()
+	if err != nil {
+		slog.Error("error getting latest git tags from remote", slog.String("error", err.Error()))
+		return fmt.Errorf("error getting latest tags")
+	}
+
+	result := bumper.CompareSemver(latestTag, v.Version)
+	switch {
+	case result == -1:
+		slog.Warn("The latest tag git tag is lower than the version defined in version.yaml", slog.String("version.yaml", v.Version), slog.String("latest-tag", latestTag))
+		output, err := runGitCommand("tag", "-a", v.Version, "-m", v.Version)
+		if err != nil {
+			return fmt.Errorf("error creating new tag %w", err)
+		}
+		fmt.Println(output)
+		pushOutput, err := runGitCommand("push", "--tags")
+		if err != nil {
+			return fmt.Errorf("error pusing new tag %w", err)
+		}
+		fmt.Println(pushOutput)
+		return err
+	case result == 0:
+		// implement git describe --exact-match --tags HEAD
+		//git describe --exact-match --tags HEAD
+		bumpedVer, err := bumper.BumpVersion(latestTag, Patch)
+		runGitCommand()
+		fmt.Println(bumpedVer)
+		return err
+	case result == 1:
+		//update version.yaml if HEAD matches tag
+		return err
+	default:
+		bumpedVer, err := bumper.BumpVersion(latestTag, Patch)
+		runGitCommand()
+		fmt.Println(bumpedVer)
+		return err
+		//
+	}
+
 }
