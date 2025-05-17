@@ -43,9 +43,12 @@ import (
 
 //go:embed swagger.yaml
 var swaggerSpec []byte
+var versionInfo VersionInfo
 
 func main() {
 	configureDefaultLogger(slog.LevelInfo)
+	versionInfo = marshalVersionInfo()
+	versionInfo.LogVersionInfo()
 	var isLocalDevelopment bool
 	var envFile string
 	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
@@ -76,7 +79,7 @@ func main() {
 	}
 
 	if *version {
-		showVersion()
+		versionInfo.PrintVersion()
 		return
 	}
 
