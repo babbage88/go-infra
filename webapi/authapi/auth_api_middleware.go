@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -56,22 +57,17 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string, next http.HandlerFunc) http.HandlerFunc {
+func AuthMiddlewareRequirePermission(ua AuthService, permissionName string, next http.HandlerFunc) http.HandlerFunc {
 	slog.Info("Starting AuthMiddlewareRequirePermissions", slog.String("Required Perm", permissionName))
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if authHeader == nil {
-			slog.Error("Auth Header is nil")
+		if authHeader == nil || len(authHeader) != 2 {
+			slog.Error("Malformed or missing Authorization header")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Auth Header is nil"})
-			return
-		}
-		if len(authHeader) != 2 {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Malformed Token"})
-			w.Write([]byte(`{"error": "Malformed Token"}`))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
 			return
 		}
 
@@ -90,47 +86,65 @@ func AuthMiddlewareRequirePermission(ua *UserAuthService, permissionName string,
 		if err != nil || !token.Valid {
 			slog.Error("Error validating token", slog.String("Error", err.Error()))
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Unauthorized"}`))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Invalid claims"}`))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid claims"})
 			return
 		}
 
 		roleIDsInterface, ok := claims["role_ids"].([]interface{})
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Role IDs missing"}`))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Role IDs missing"})
 			return
 		}
 
-		var roleIDs []int32
+		var roleIDs uuid.UUIDs
 		for _, roleID := range roleIDsInterface {
-			if id, ok := roleID.(float64); ok { // JWT encodes numbers as float64
-				roleIDs = append(roleIDs, int32(id))
+			roleIDStr, ok := roleID.(string)
+			if !ok {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Invalid role ID format"})
+				return
 			}
+
+			parsedUUID, err := uuid.Parse(roleIDStr)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Invalid UUID format"})
+				return
+			}
+
+			roleIDs = append(roleIDs, parsedUUID)
 		}
 
-		slog.Info("Verifying permission for role id", slog.String("roleID", fmt.Sprint(roleIDs)), slog.String("PermName", permissionName))
+		slog.Info("Verifying permission for role IDs",
+			slog.Any("roleIDs", roleIDs),
+			slog.String("PermName", permissionName))
+
 		hasPermission, err := ua.VerifyUserRolesForPermission(roleIDs, permissionName)
 		if err != nil {
 			slog.Error("Error verifying user permission", slog.String("Error", err.Error()))
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "Internal Server Error"}`))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error"})
 			return
 		}
 
 		if !hasPermission {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Permission Denied"}`))
+			json.NewEncoder(w).Encode(map[string]string{"error": "Permission Denied"})
 			return
 		}
 
-		slog.Info("User permission verified successfully.", slog.Any("RoleIDs", roleIDs), slog.String("Permission", permissionName))
+		slog.Info("User permission verified successfully.",
+			slog.Any("RoleIDs", roleIDs),
+			slog.String("Permission", permissionName))
+
 		next.ServeHTTP(w, r)
 	}
 }

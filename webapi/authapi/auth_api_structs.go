@@ -5,6 +5,7 @@ import (
 
 	"github.com/babbage88/go-infra/services"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type ParsedCertbotOutput struct {
@@ -48,7 +49,7 @@ type InfraJWTClaim struct {
 // This text will appear as description of your response body.
 type AuthToken struct {
 	// in:body
-	UserID       int32     `json:"user_id"`
+	UserID       uuid.UUID `json:"user_id"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refreshToken"`
 	Expiration   time.Time `json:"expiration"`
@@ -59,6 +60,6 @@ type TokenRefreshReq struct {
 }
 
 type UserPermission struct {
-	Id   int32  `json:"id"`
-	Name string `json:"name"`
+	Id   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }

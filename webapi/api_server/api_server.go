@@ -13,7 +13,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartWebApiServer(healthCheckService *services.HealthCheckService, authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
+func StartWebApiServer(healthCheckService *services.HealthCheckService, authService authapi.AuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
 	mux := http.NewServeMux()
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))

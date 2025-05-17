@@ -2,17 +2,13 @@ package authapi
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/babbage88/go-infra/webutils/cert_renew"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,22 +84,21 @@ func Renewcert_renew() http.HandlerFunc {
 	}
 }
 
-// swagger:route POST /login login idOfloginEndpoint
-// Login a user and return token.
-// responses:
-//   200: AuthToken
+type LoginHandler struct {
+	Service AuthService `json:"authService"`
+}
 
-func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *http.Request) {
+func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		// Username and Pasword in request body as json.
 		// in:body
 		var loginReq *UserLoginRequest
 		json.NewDecoder(r.Body).Decode(&loginReq)
-		LoginResult := loginReq.Login(ua_service.DbConn)
+		LoginResult := auth_svc.Login(loginReq)
 
 		if LoginResult.Result.Success {
-			token, err := ua_service.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.RoleIds, LoginResult.UserInfo.Email)
+			token, err := auth_svc.CreateAuthTokenOnLogin(LoginResult.UserInfo.Id, LoginResult.UserInfo.RoleIds, LoginResult.UserInfo.Email)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
@@ -117,6 +112,15 @@ func LoginHandler(ua_service *UserAuthService) func(w http.ResponseWriter, r *ht
 			fmt.Fprint(w, "Invalid credentials", LoginResult.Result.Error)
 		}
 	}
+}
+
+// swagger:route POST /login login idOfloginEndpoint
+// Login a user and return token.
+// responses:
+//   200: AuthToken
+
+func (l *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	LoginHandleFunc(l.Service)
 }
 
 func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, error) {
@@ -137,74 +141,21 @@ func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, 
 // responses:
 //
 //	200: AuthToken
-func RefreshAuthTokens(ua *UserAuthService) http.HandlerFunc {
+func RefreshAuthTokens(ua AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		jwtKey := os.Getenv("JWT_KEY")
 		req, err := parseAuthHeader(w, r)
 		if err != nil {
 			slog.Error("Error parsing Bearer token from Authorization Header", slog.String("Error", err.Error()))
 		}
-		token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
-			// Don't forget to validate the alg is what you expect:
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(jwtKey), nil
-		})
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if sub, ok := claims["sub"].(float64); ok {
-				uid := int32(sub)
-				newtokens := &AuthToken{UserID: uid, RefreshToken: req.RefreshToken}
-				err := newtokens.RefreshAccessTokens(ua.DbConn)
-				if err != nil {
-					slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
-					w.WriteHeader(http.StatusUnauthorized)
-					w.Write([]byte("Unauthorized, please login."))
-				}
-				jsonResponse, _ := json.Marshal(newtokens)
-				w.WriteHeader(http.StatusOK)
-				w.Write(jsonResponse)
-			}
+		newtokens, err := ua.RefreshAccessToken(req.RefreshToken)
+		if err != nil {
+			slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized, please login."))
 		}
+		jsonResponse, _ := json.Marshal(newtokens)
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
 	}
-}
-
-func setCookieHandler(w http.ResponseWriter, token string) {
-	// Initialize a new cookie containing the string "Hello world!" and some
-	// non-default attributes.
-	cookie := http.Cookie{
-		Name:     "token",
-		Value:    token,
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	// Use the http.SetCookie() function to send the cookie to the client.
-	// Behind the scenes this adds a `Set-Cookie` header to the response
-	// containing the necessary cookie data.
-	http.SetCookie(w, &cookie)
-
-	// Write a HTTP response as normal.
-	w.Write([]byte("cookie set!"))
-}
-
-func getCookieHandler(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		switch {
-		case errors.Is(err, http.ErrNoCookie):
-			http.Error(w, "cookie not found", http.StatusBadRequest)
-		default:
-			log.Println(err)
-			http.Error(w, "server error", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Echo out the cookie value in the response body.
-	w.Write([]byte(cookie.Value))
 }

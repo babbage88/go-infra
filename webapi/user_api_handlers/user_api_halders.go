@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/babbage88/go-infra/internal/type_helper"
 	"github.com/babbage88/go-infra/services"
+	"github.com/google/uuid"
 )
 
 // swagger:route POST /create/user createuser idOfcreateUserEndpoint
@@ -143,7 +143,7 @@ func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.Respon
 func GetUserByIdHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlId := r.PathValue("ID")
-		id, err := type_helper.ParseInt32(urlId)
+		id, err := uuid.Parse(urlId)
 		if err != nil {
 			slog.Error("Error Parsing user id from URL path", slog.String("Error", err.Error()))
 			http.Error(w, "Error Parsing user id from URL path "+err.Error(), http.StatusInternalServerError)
