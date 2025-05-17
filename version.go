@@ -10,13 +10,16 @@ import (
 )
 
 const (
-	pushCmd              string = "push"
-	pushTagsCmdFlag      string = "--tags"
-	gitTagCmd            string = "tag"
-	gitTagCmdAddFlag     string = "-a"
-	gitTagCmdMessageFlag string = "-m"
-	gitFetchCmd          string = "fetch"
-	gitPullCmd           string = "pull"
+	pushCmd               string = "push"
+	pushTagsCmdFlag       string = "--tags"
+	gitTagCmd             string = "tag"
+	gitTagCmdAddFlag      string = "-a"
+	gitTagCmdMessageFlag  string = "-m"
+	gitFetchCmd           string = "fetch"
+	gitPullCmd            string = "pull"
+	gitFetchPruneFlag     string = "--prune"
+	gitFetchPruneTagsFlag string = "--prune-tags"
+	gitFetchTagsFlag      string = "--tags"
 )
 
 type VersionInfo struct {
@@ -56,6 +59,7 @@ func (v *VersionInfo) PullAndCompare(bumpType string) error {
 		slog.Error("error fetching remote tag", "error", err.Error())
 		return fmt.Errorf("error fetching remote tags from origin %w", err)
 	}
+
 	latestTag, err := bumper.GetLatestSemverTag()
 	if err != nil {
 		slog.Error("error getting latest git tags from remote", slog.String("error", err.Error()))
@@ -120,6 +124,12 @@ func (v *VersionInfo) FetchTagsAndBumpVersion(bumpType string) error {
 		slog.Error("error fetching remote tag", "error", err.Error())
 		return fmt.Errorf("error fetching remote tags from origin %w", err)
 	}
+	pruneFlagsOutput, err := bumper.RunGitCommand(gitFetchCmd, gitFetchPruneFlag, gitFetchPruneTagsFlag, gitFetchTagsFlag)
+	if err != nil {
+		fmt.Println(pruneFlagsOutput)
+		return fmt.Errorf("error pruning tags %w", err)
+	}
+	fmt.Println(pruneFlagsOutput)
 	latestTag, err := bumper.GetLatestSemverTag()
 	if err != nil {
 		slog.Error("error getting latest git tags from remote", slog.String("error", err.Error()))
