@@ -231,7 +231,7 @@ WHERE "role_name" = $1;
 
 -- name: InsertOrUpdateUserRole :one
 INSERT INTO user_roles (id, role_name, role_description, created_at, last_modified, "enabled", "is_deleted")
-VALUES(nextval('user_roles_id_seq'::regclass), $1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE, false)
+VALUES(gen_random_uuid(), $1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE, false)
 ON CONFLICT (role_name)
 DO UPDATE SET
 	role_description = EXCLUDED.role_description,
@@ -261,7 +261,7 @@ WHERE id = $1;
 
 -- name: InsertOrUpdateAppPermission :one
 INSERT INTO app_permissions(id, permission_name, permission_description)
-VALUES(nextval('app_permissions_id_seq'::regclass), $1, $2)
+VALUES(gen_random_uuid(), $1, $2)
 ON CONFLICT (permission_name)
 DO UPDATE SET
 	permission_description = EXCLUDED.permission_description
@@ -269,7 +269,7 @@ RETURNING *;
 
 -- name: InsertOrUpdateRolePermissionMapping :one
 INSERT INTO role_permission_mapping(id, role_id, permission_id, "enabled", created_at, last_modified)
-VALUES(nextval('role_permission_mapping_id_seq'::regclass), $1, $2, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+VALUES(gen_random_uuid(), $1, $2, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT(role_id, permission_id)
 DO UPDATE SET
   role_id = EXCLUDED.role_id,

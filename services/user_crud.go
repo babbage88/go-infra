@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/babbage88/go-infra/auth/hashing"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
-	"github.com/babbage88/go-infra/utils/env_helper"
+	"github.com/babbage88/go-infra/internal/hashing"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserCRUDService struct {
 	DbConn *pgxpool.Pool
-	Envars *env_helper.EnvVars
 }
 
 type UserCRUD interface {
@@ -23,36 +22,36 @@ type UserCRUD interface {
 	GetAllActiveRoles([]UserRoleDao, error)
 	GetAllAppPermissions([]AppPermissionDao, error)
 	GetUserByName(username string) (UserDao, error)
-	GetUserById(id int32) (UserDao, error)
-	updateUserPasswordById(id int32, password string) error
-	UpdateUserPasswordById(targetUserId int32, newPassword string) error
-	UpdateUserEmailById(id int32, email string)
+	GetUserById(id uuid.UUID) (UserDao, error)
+	updateUserPasswordById(id uuid.UUID, password string) error
+	UpdateUserPasswordById(targetUserId uuid.UUID, newPassword string) error
+	UpdateUserEmailById(id uuid.UUID, email string)
 	InsertAuthToken(token AuthTokenDao)
-	VerifyAlterUser(executionUserId int32) (bool, error)
-	UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error
-	EnableUserById(targetUserId int32) (UserDao, error)
-	DisableUserById(targetUserId int32) (UserDao, error)
-	SoftDeleteUserById(targetUserId int32) (UserDao, error)
-	UpdateUserRoleMapping(targetUserId int32, roleId int32) error
-	DisableUserRoleMapping(targetUserId int32, roleId int32) error
+	VerifyAlterUser(executionUserId uuid.UUID) (bool, error)
+	UpdateUserPasswordWithAuth(execUserId uuid.UUID, targetUserId uuid.UUID, newPassword string) error
+	EnableUserById(targetUserId uuid.UUID) (UserDao, error)
+	DisableUserById(targetUserId uuid.UUID) (UserDao, error)
+	SoftDeleteUserById(targetUserId uuid.UUID) (UserDao, error)
+	UpdateUserRoleMapping(targetUserId uuid.UUID, roleId uuid.UUID) error
+	DisableUserRoleMapping(targetUserId uuid.UUID, roleId uuid.UUID) error
 	CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error)
 	CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error)
-	CreateOrUpdateRolePermisssionMapping(roleId int32, permId int32) (*RolePermissionMappingDao, error)
-	EnableRoleById(id int32) error
-	DisableRoleById(id int32) error
-	SoftDeleteRoleById(id int32) error
+	CreateOrUpdateRolePermisssionMapping(roleId uuid.UUID, permId uuid.UUID) (*RolePermissionMappingDao, error)
+	EnableRoleById(id uuid.UUID) error
+	DisableRoleById(id uuid.UUID) error
+	SoftDeleteRoleById(id uuid.UUID) error
 }
 
-func (us *UserCRUDService) UpdateUserPasswordById(targetUserId int32, newPassword string) error {
-	slog.Info("attempting updating user password", slog.String("targetUser", fmt.Sprint(targetUserId)))
-	err := us.updateUserPasswordById(targetUserId, newPassword)
+func (us *UserCRUDService) UpdateUserPasswordById(targetUserid uuid.UUID, newPassword string) error {
+	slog.Info("attempting updating user password", slog.String("targetUser", fmt.Sprint(targetUserid)))
+	err := us.updateUserPasswordById(targetUserid, newPassword)
 	if err != nil {
 		slog.Error("error when attempting to update password", slog.String("error", err.Error()))
 	}
 	return err
 }
 
-func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId int32, targetUserId int32, newPassword string) error {
+func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId uuid.UUID, targetUserId uuid.UUID, newPassword string) error {
 	isAdmin, err := us.VerifyAlterUser(execUserId)
 	if err != nil {
 		slog.Error("Error Verifying user permissions.", slog.String("ID", fmt.Sprint(execUserId)), slog.String("Error", err.Error()))
@@ -67,9 +66,9 @@ func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId int32, targetUs
 	return retVal
 }
 
-func (us *UserCRUDService) VerifyAlterUser(ueid int32) (bool, error) {
+func (us *UserCRUDService) VerifyAlterUser(ueid uuid.UUID) (bool, error) {
 	params := infra_db_pg.VerifyUserPermissionByIdParams{
-		UserId:     pgtype.Int4{Int32: ueid, Valid: true},
+		UserId:     pgtype.UUID{Bytes: ueid, Valid: true},
 		Permission: pgtype.Text{String: "AlterUser", Valid: true},
 	}
 	queries := infra_db_pg.New(us.DbConn)
@@ -100,7 +99,7 @@ func (us *UserCRUDService) NewUser(username string, password string, email strin
 func (us *UserCRUDService) GetUserByName(username string) (*UserDao, error) {
 	user := &UserDao{UserName: username}
 	queries := infra_db_pg.New(us.DbConn)
-	dbuser, err := queries.GetUserByName(context.Background(), pgtype.Text{username, true})
+	dbuser, err := queries.GetUserByName(context.Background(), pgtype.Text{String: username, Valid: true})
 	if err != nil {
 		slog.Error("error running query for username %s", username, err)
 		return user, err
@@ -109,7 +108,7 @@ func (us *UserCRUDService) GetUserByName(username string) (*UserDao, error) {
 	return user, nil
 }
 
-func (us *UserCRUDService) updateUserPasswordById(id int32, password string) error {
+func (us *UserCRUDService) updateUserPasswordById(id uuid.UUID, password string) error {
 	hashed_pw, _ := hashing.HashPassword(password)
 	params := &infra_db_pg.UpdateUserPasswordByIdParams{ID: id, Password: pgtype.Text{String: hashed_pw, Valid: true}}
 	queries := infra_db_pg.New(us.DbConn)
@@ -120,7 +119,7 @@ func (us *UserCRUDService) updateUserPasswordById(id int32, password string) err
 	return err
 }
 
-func (us *UserCRUDService) GetUserById(id int32) (*UserDao, error) {
+func (us *UserCRUDService) GetUserById(id uuid.UUID) (*UserDao, error) {
 	user := &UserDao{Id: id}
 
 	queries := infra_db_pg.New(us.DbConn)
@@ -133,7 +132,7 @@ func (us *UserCRUDService) GetUserById(id int32) (*UserDao, error) {
 	return user, nil
 }
 
-func (us *UserCRUDService) UpdateUserEmailById(id int32, email string) (*UserDao, error) {
+func (us *UserCRUDService) UpdateUserEmailById(id uuid.UUID, email string) (*UserDao, error) {
 	user := &UserDao{Id: id, Email: email}
 	params := infra_db_pg.UpdateUserEmailByIdParams{ID: id, Email: pgtype.Text{String: email, Valid: true}}
 
@@ -149,7 +148,7 @@ func (us *UserCRUDService) UpdateUserEmailById(id int32, email string) (*UserDao
 
 func (us *UserCRUDService) InsertAuthToken(t *AuthTokenDao) error {
 	params := infra_db_pg.InsertAuthTokenParams{
-		UserID:     pgtype.Int4{Int32: t.UserID, Valid: true},
+		UserID:     t.UserID,
 		Token:      pgtype.Text{String: t.Token, Valid: true},
 		Expiration: pgtype.Timestamp{Time: t.Expiration, InfinityModifier: 1, Valid: true},
 	}
@@ -226,48 +225,48 @@ func (us *UserCRUDService) GetAllAppPermissions() ([]AppPermissionDao, error) {
 	return appPermissionDaos, nil
 }
 
-func (us *UserCRUDService) EnableUserById(targetUserId int32) (*UserDao, error) {
-	user := &UserDao{Id: targetUserId}
+func (us *UserCRUDService) EnableUserById(targetUserid uuid.UUID) (*UserDao, error) {
+	user := &UserDao{Id: targetUserid}
 
-	params := infra_db_pg.EnableUserByIdParams{ID: targetUserId, Enabled: true}
+	params := infra_db_pg.EnableUserByIdParams{ID: targetUserid, Enabled: true}
 	queries := infra_db_pg.New(us.DbConn)
 	rows, err := queries.EnableUserById(context.Background(), params)
 	if err != nil {
 		user.ParseUserFromDb(rows)
-		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserId)))
+		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserid)))
 		return user, err
 	}
 	user.ParseUserFromDb(rows)
 	return user, err
 }
 
-func (us *UserCRUDService) DisableUserById(targetUserId int32) (*UserDao, error) {
-	user := &UserDao{Id: targetUserId}
+func (us *UserCRUDService) DisableUserById(targetUserid uuid.UUID) (*UserDao, error) {
+	user := &UserDao{Id: targetUserid}
 
-	params := infra_db_pg.DisableUserByIdParams{ID: targetUserId, Enabled: false}
+	params := infra_db_pg.DisableUserByIdParams{ID: targetUserid, Enabled: false}
 	queries := infra_db_pg.New(us.DbConn)
 	rows, err := queries.DisableUserById(context.Background(), params)
 	if err != nil {
 		user.ParseUserFromDb(rows)
-		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserId)))
+		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserid)))
 		return user, err
 	}
 	user.ParseUserFromDb(rows)
 	return user, err
 }
 
-func (us *UserCRUDService) UpdateUserRoleMapping(targetUserId int32, roleId int32) error {
-	params := infra_db_pg.InsertOrUpdateUserRoleMappingByIdParams{UserID: targetUserId, RoleID: roleId}
+func (us *UserCRUDService) UpdateUserRoleMapping(targetUserid uuid.UUID, roleId uuid.UUID) error {
+	params := infra_db_pg.InsertOrUpdateUserRoleMappingByIdParams{UserID: targetUserid, RoleID: roleId}
 	queries := infra_db_pg.New(us.DbConn)
 	_, err := queries.InsertOrUpdateUserRoleMappingById(context.Background(), params)
 	if err != nil {
-		slog.Error("error modifying user group mappings", slog.String("targetUser", fmt.Sprint(targetUserId)))
+		slog.Error("error modifying user group mappings", slog.String("targetUser", fmt.Sprint(targetUserid)))
 		return err
 	}
 	return err
 }
 
-func (us *UserCRUDService) DisableUserRoleMapping(targetUserId int32, roleId int32) error {
+func (us *UserCRUDService) DisableUserRoleMapping(targetUserId uuid.UUID, roleId uuid.UUID) error {
 	params := infra_db_pg.DisableUserRoleMappingByIdParams{UserID: targetUserId, RoleID: roleId}
 	queries := infra_db_pg.New(us.DbConn)
 	_, err := queries.DisableUserRoleMappingById(context.Background(), params)
@@ -293,7 +292,7 @@ func (us *UserCRUDService) CreateOrUpdateUserRole(roleName string, roleDescr str
 	return retVal, err
 }
 
-func (us *UserCRUDService) EnableRoleById(id int32) error {
+func (us *UserCRUDService) EnableRoleById(id uuid.UUID) error {
 	queries := infra_db_pg.New(us.DbConn)
 	slog.Info("Executing EnableUserRoleById Query", slog.String("id", fmt.Sprint(id)))
 	err := queries.EnableUserRoleById(context.Background(), id)
@@ -304,7 +303,7 @@ func (us *UserCRUDService) EnableRoleById(id int32) error {
 	return err
 }
 
-func (us *UserCRUDService) DisableRoleById(id int32) error {
+func (us *UserCRUDService) DisableRoleById(id uuid.UUID) error {
 	queries := infra_db_pg.New(us.DbConn)
 	slog.Info("Executing DisableUserRoleById Query", slog.String("id", fmt.Sprint(id)))
 	err := queries.DisableUserRoleById(context.Background(), id)
@@ -315,7 +314,7 @@ func (us *UserCRUDService) DisableRoleById(id int32) error {
 	return err
 }
 
-func (us *UserCRUDService) SoftDeleteRoleById(id int32) error {
+func (us *UserCRUDService) SoftDeleteRoleById(id uuid.UUID) error {
 	queries := infra_db_pg.New(us.DbConn)
 	slog.Info("Executing SoftDeleteUserRoleById Query", slog.String("id", fmt.Sprint(id)))
 	err := queries.SoftDeleteUserRoleById(context.Background(), id)
@@ -342,7 +341,7 @@ func (us *UserCRUDService) CreateOrUpdateAppPermission(name string, desc string)
 	return retVal, err
 }
 
-func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId int32, permId int32) (*RolePermissionMappingDao, error) {
+func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId uuid.UUID, permId uuid.UUID) (*RolePermissionMappingDao, error) {
 	retVal := &RolePermissionMappingDao{RoleId: roleId, PermissionId: permId}
 	params := infra_db_pg.InsertOrUpdateRolePermissionMappingParams{RoleID: roleId, PermissionID: permId}
 	queries := infra_db_pg.New(us.DbConn)
@@ -358,7 +357,7 @@ func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId int32, pe
 	return retVal, err
 }
 
-func (us *UserCRUDService) SoftDeleteUserById(targetUserId int32) (*UserDao, error) {
+func (us *UserCRUDService) SoftDeleteUserById(targetUserId uuid.UUID) (*UserDao, error) {
 	retVal := &UserDao{Id: targetUserId}
 	queries := infra_db_pg.New(us.DbConn)
 

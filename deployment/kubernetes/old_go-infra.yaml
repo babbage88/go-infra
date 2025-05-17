@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-infra
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-infra
+  template:
+    metadata:
+      labels:
+        app: go-infra
+    spec:
+      containers:
+        - name: go-infra
+          image: ghcr.io/babbage88/go-infra:v1.1.2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8993
+          command: ["/app/server"]
+          volumeMounts:
+            - name: cf-token-ini
+              mountPath: "/run/secrets/cf_token.ini"
+              subPath: cf_token.ini
+            - name: k3s-env
+              mountPath: "/app/.env"
+              subPath: k3s.env
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+      volumes:
+        - name: cf-token-ini
+          secret:
+            secretName: cf-token-ini
+        - name: k3s-env
+          secret:
+            secretName: k3s-env
+      imagePullSecrets:
+        - name: ghcr

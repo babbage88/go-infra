@@ -1,6 +1,7 @@
-DOCKER_HUB:=ghcr.io/babbage88/go-infra:
-DOCKER_HUB_TEST:=jtrahan88/goinfra-test:
+GHCR_REPO:=ghcr.io/babbage88/go-infra:
+GHCR_REPO_TEST:=jtrahan88/goinfra-test:
 ENV_FILE:=.env
+BUILDER := infrabuilder
 MIG:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
 
@@ -29,7 +30,7 @@ k3local-swagger: check-swagger
 	rm k3local-swagger.json && rm k3local-swagger.yaml
 
 run-local: local-swagger
-	go run .
+	go run . --local-development
 
 embed-swagger:
 	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json
@@ -37,13 +38,22 @@ embed-swagger:
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443
 
+
+check-builder:
+	@if ! docker buildx inspect $(BUILDER) > /dev/null 2>&1; then \
+		echo "Builder $(BUILDER) does not exist. Creating..."; \
+		docker buildx create --name $(BUILDER) --bootstrap; \
+	fi
+
+create-builder: check-builder
+
 buildandpushdev: dev-swagger
 	docker buildx use infrabuilder
-	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB)$(tag) . --push
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(GHCR_REPO)$(tag) . --push
 
 buildandpushlocalk3: k3local-swagger
 	docker buildx use infrabuilder
-	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_HUB_TEST)$(tag) . --push
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(GHCR_REPO_TEST)$(tag) . --push
 
 deploydev: buildandpushdev
 	kubectl apply -f deployment/kubernetes/go-infra.yaml

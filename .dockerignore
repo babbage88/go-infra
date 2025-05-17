@@ -1,5 +1,8 @@
 # env exports
 devtest.sh
+k8s.env
+response_renew.json
+
 
 # ---> Go
 # If you prefer the allow list template instead of the deny list, see community template:

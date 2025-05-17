@@ -6,12 +6,13 @@ import (
 	"net/http"
 )
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Authorization ,origin, content-type, accept, x-requested-with")
-	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+func VerifyRequestPost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		slog.Error("Invalid request method", slog.String("Method", r.Method))
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 }
-
 func EnableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Authorization, origin, content-type, accept, x-requested-with")

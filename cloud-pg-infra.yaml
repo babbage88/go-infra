@@ -3,7 +3,19 @@ kind: Cluster
 metadata:
   name: infra-db
 spec:
-  instances: 3
+  backup:
+    barmanObjectStore:
+      destinationPath: "postgres-backups/infradb_bakups"
+      endpointURL: minio.trahan.dev
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-minio-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-minio-creds
+          key: ACCESS_SECRET_KEY
+
+  instances: 1
   bootstrap:
     initdb:
       database: infradb

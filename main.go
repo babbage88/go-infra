@@ -4,7 +4,7 @@
 //
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
-//		Version: v1.0.7
+//		Version: v1.1.0
 //		License: N/A
 //		Contact: Justin Trahan<test@trahan.dev>
 //
@@ -29,6 +29,7 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"log/slog"
 	"os"
 
 	"github.com/babbage88/go-infra/database/bootstrap"
@@ -36,20 +37,31 @@ import (
 	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
+	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 //go:embed swagger.yaml
 var swaggerSpec []byte
 
 func main() {
+	var isLocalDevelopment bool
+	var envFile string
+	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
+	flag.StringVar(&envFile, "env-file", ".env", "Path to .env file to load Environment Variables.")
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	envFilePath := flag.String("envfile", ".env", "Path to .env file to load Environment Variables.")
 	bootstrapNewDb := flag.Bool("db-bootstrap", false, "Create new dev database.")
 	initDevUser := flag.Bool("devuser", false, "Update the devuser password")
 	version := flag.Bool("version", false, "Show the current version.")
 	flag.Parse()
 
-	envars := initEnvironment(*envFilePath)
+	if isLocalDevelopment {
+		slog.Info("Local Development mode configure, loading envars from env-file", slog.String("env-file", envFile))
+		err := godotenv.Load(envFile)
+		if err != nil {
+			slog.Error("error loading .env file", slog.String("error", err.Error()))
+		}
+	}
 
 	if *bootstrapNewDb {
 		bootstrap.NewDb()
@@ -68,11 +80,11 @@ func main() {
 	}
 
 	connPool := initPgConnPool()
-	userService := &services.UserCRUDService{DbConn: connPool, Envars: envars}
-	authService := &authapi.UserAuthService{DbConn: connPool, Envars: envars}
-	healthCheckService := &services.HealthCheckService{DbConn: connPool, Envars: envars}
+	userService := &services.UserCRUDService{DbConn: connPool}
+	authService := &authapi.LocalAuthService{DbConn: connPool}
+	healthCheckService := &services.HealthCheckService{DbConn: connPool}
 	if *initDevUser {
-		userService.UpdateUserPasswordById(1, envars.GetVarMapValue("DEV_APP_PASS"))
+		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}
 
 	api_server.StartWebApiServer(healthCheckService, authService, userService, swaggerSpec, srvport)

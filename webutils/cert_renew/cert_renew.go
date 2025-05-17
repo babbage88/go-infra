@@ -38,7 +38,6 @@ type CertDnsRenewReq struct {
 	DomainNames          []string      `json:"domainName"`
 	AcmeEmail            string        `json:"acmeEmail"`
 	AcmeUrl              string        `json:"acmeUrl"`
-	SaveZip              bool          `json:"saveZip"`
 	ZipDir               string        `json:"zipDir"`
 	PushS3               bool          `json:"pushS3"`
 	Token                string        `json:"token"`
@@ -51,7 +50,6 @@ func (c *CertDnsRenewReq) InitAcmeRenewRequest() *cf_acme.CertificateRenewalRequ
 		DomainNames:          c.DomainNames,
 		AcmeEmail:            c.AcmeEmail,
 		AcmeUrl:              c.AcmeUrl,
-		SaveZip:              c.SaveZip,
 		PushS3:               c.PushS3,
 		ZipDir:               c.ZipDir,
 		Token:                c.Token,
@@ -98,6 +96,28 @@ type CertRenewReq interface {
 	GetDomainName() string
 }
 
+func (c *CertDnsRenewReq) ZipFileName() string {
+	var retVal strings.Builder
+	retVal.WriteString("__certs__")
+	if c.ZipDir == "" {
+		retVal.WriteString(strings.TrimPrefix(c.DomainNames[0], "*"))
+		retVal.WriteString(".zip")
+		slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
+		return retVal.String()
+	} else {
+		retVal.WriteString(c.ZipDir)
+		slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
+		return retVal.String()
+	}
+}
+
+func (c *CertDnsRenewReq) KubeSecretName() string {
+	var retVal strings.Builder
+	retVal.WriteString(strings.TrimPrefix(strings.ReplaceAll(c.DomainNames[0], ".", "-"), "*-"))
+	slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
+	return retVal.String()
+}
+
 func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	certData := &CertificateData{}
 	acmeRenewal := c.InitAcmeRenewRequest()
@@ -105,11 +125,11 @@ func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
 	if err != nil {
 		slog.Error("error renewing certificate")
 	}
-	err = certificates.SaveToZip(c.ZipDir)
-	if err != nil {
-		slog.Error("error creating zip file", slog.String("error", err.Error()))
-	}
-	err = certificates.PushCertBufferToS3(c.ZipDir)
+	manifest := NewKubeTlsSecretManifest(certificates.CertPEM, certificates.PrivKey, c.KubeSecretName())
+	out, _ := manifest.ToYaml()
+	files := make(map[string][]byte)
+	files["kube_secret.yaml"] = out
+	certificates.PushCertBufferToS3WithFiles(c.ZipFileName(), files)
 	if err != nil {
 		slog.Error("error pushing zip file to S3", slog.String("error", err.Error()))
 	}

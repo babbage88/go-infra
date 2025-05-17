@@ -8,3 +8,19 @@ sql:
         package: "infra_db_pg"
         out: "database/infra_db_pg/"
         sql_package: "pgx/v5"
+        overrides:
+          - column: "users_with_roles.roles"
+            go_type:
+              type: "[]string"
+          - column: "users_with_roles.role_ids"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUIDs"
+          - column: "auth_tokens.user_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"

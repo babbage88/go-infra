@@ -4,20 +4,19 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
-	"github.com/babbage88/go-infra/webutils/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartWebApiServer(healthCheckService *services.HealthCheckService, authService *authapi.UserAuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
-	envars := authService.Envars
+func StartWebApiServer(healthCheckService *services.HealthCheckService, authService authapi.AuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
 	mux := http.NewServeMux()
-	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(envars, authapi.Renewcert_renew())))
-	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandler(authService))))
+	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
+	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateUser", userapi.CreateUserHandler(userCRUDService))))
@@ -30,12 +29,12 @@ func StartWebApiServer(healthCheckService *services.HealthCheckService, authServ
 	mux.Handle("/create/role", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateRole", userapi.CreateUserRoleHandler(userCRUDService))))
 	mux.Handle("/create/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreatePermission", userapi.CreateAppPermissionHandler(userCRUDService))))
 	mux.Handle("/roles/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterRole", userapi.CreateRolePermissionMappingHandler(userCRUDService))))
-	mux.Handle("/roles", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadRole", userapi.GetAllRolesHandler(userCRUDService))))
-	mux.Handle("/users/{ID}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadUser", userapi.GetUserByIdHandler(userCRUDService))))
-	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermission", userapi.GetAllAppPermissionsHandler(userCRUDService))))
-	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(envars, userapi.GetAllUsersHandler(userCRUDService))))
+	mux.Handle("/roles", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadRoles", userapi.GetAllRolesHandler(userCRUDService))))
+	mux.Handle("/users/{ID}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadUsers", userapi.GetUserByIdHandler(userCRUDService))))
+	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermissions", userapi.GetAllAppPermissionsHandler(userCRUDService))))
+	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(userapi.GetAllUsersHandler(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
-	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(envars, http.HandlerFunc(authapi.HealthCheckHandler))))
+	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	// Add Swagger UI handler
@@ -45,7 +44,7 @@ func StartWebApiServer(healthCheckService *services.HealthCheckService, authServ
 	clog := customlogger.SetupLogger(config)
 
 	clog.Info("Starting http server.")
-	err := http.ListenAndServe(*srvadr, mux)
+	err := http.ListenAndServe(*srvadr, cors.HandleCORSPreflightMiddleware(mux))
 	if err != nil {
 		slog.Error("Failed to start server", slog.String("Error", err.Error()))
 	}

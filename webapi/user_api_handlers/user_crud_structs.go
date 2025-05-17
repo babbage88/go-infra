@@ -2,6 +2,7 @@ package userapi
 
 import (
 	"github.com/babbage88/go-infra/services"
+	"github.com/google/uuid"
 )
 
 // Create User Request takes  in Username, Password, Email, and Role fo the new user.
@@ -15,7 +16,6 @@ type CreateNewUserRequest struct {
 	NewUsername     string `json:"newUsername"`
 	NewUserPassword string `json:"newPassword"`
 	NewUserEmail    string `json:"newEmail"`
-	NewUserRole     string `json:"newUserRole"`
 }
 
 type GetAllUsersResponse struct {
@@ -50,14 +50,14 @@ type UpdatePasswordRequestWrapper struct {
 }
 
 type UpdateUserPasswordRequest struct {
-	TargetUserId int32  `json:"targetUserId"`
-	NewPassword  string `json:"newPassword"`
+	TargetUserId uuid.UUID `json:"targetUserId"`
+	NewPassword  string    `json:"newPassword"`
 }
 
 type UserPasswordUpdateResponse struct {
-	Success      bool  `json:"success"`
-	Error        error `json:"error"`
-	TargetUserId int32 `json:"targetUserId"`
+	Success      bool      `json:"success"`
+	Error        error     `json:"error"`
+	TargetUserId uuid.UUID `json:"targetUserId"`
 }
 
 // User Id of the executing and target users
@@ -75,11 +75,11 @@ type DisableUserRequestWrapper struct {
 }
 
 type DisableUserRequest struct {
-	TargetUserId int32 `json:"targetUserId"`
+	TargetUserId uuid.UUID `json:"targetUserId"`
 }
 
 type EnableUserRequest struct {
-	TargetUserId int32 `json:"targetUserId"`
+	TargetUserId uuid.UUID `json:"targetUserId"`
 }
 
 type EnableDisableUserResponse struct {
@@ -95,8 +95,8 @@ type UpdateUserRoleMappingRequestWrapper struct {
 }
 
 type UpdateUserRoleMappingRequest struct {
-	TargetUserId int32 `json:"targetUserId"`
-	RoleId       int32 `json:"roleId"`
+	TargetUserId uuid.UUID `json:"targetUserId"`
+	RoleId       uuid.UUID `json:"roleId"`
 }
 
 type UpdateUserRoleMappingResponse struct {
@@ -145,8 +145,8 @@ type CreateRolePermissionMappingRequestWrapper struct {
 }
 
 type CreateRolePermissionMappingRequest struct {
-	RoleId       int32 `json:"roleId"`
-	PermissionId int32 `json:"permId"`
+	RoleId       uuid.UUID `json:"roleId"`
+	PermissionId uuid.UUID `json:"permId"`
 }
 
 type CreateRolePermissionMappingResponse struct {
@@ -162,7 +162,7 @@ type SoftDeleteUserByIdRequestWrapper struct {
 }
 
 type SoftDeleteUserByIdRequest struct {
-	TargetUserId int32 `json:"targetUserId"`
+	TargetUserId uuid.UUID `json:"targetUserId"`
 }
 
 type SoftDeleteUserByIdResponse struct {

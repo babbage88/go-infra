@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	type_helper "github.com/babbage88/go-infra/utils/type_helper"
+	type_helper "github.com/babbage88/go-infra/internal/type_helper"
 )
 
 type DatabaseConnection struct {

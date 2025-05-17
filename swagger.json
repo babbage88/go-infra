@@ -20,7 +20,7 @@
     "license": {
       "name": "N/A"
     },
-    "version": "v1.0.7"
+    "version": "v1.1.0"
   },
   "host": "localhost:8993",
   "paths": {
@@ -496,10 +496,6 @@
           },
           "x-go-name": "RecursiveNameServers"
         },
-        "saveZip": {
-          "type": "boolean",
-          "x-go-name": "SaveZip"
-        },
         "timeout": {
           "$ref": "#/definitions/Duration"
         },
@@ -539,10 +535,6 @@
           "type": "string",
           "x-go-name": "NewUserPassword"
         },
-        "newUserRole": {
-          "type": "string",
-          "x-go-name": "NewUserRole"
-        },
         "newUsername": {
           "type": "string",
           "x-go-name": "NewUsername"
@@ -554,13 +546,13 @@
       "type": "object",
       "properties": {
         "permId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "PermissionId"
         },
         "roleId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "RoleId"
         }
       },
@@ -584,8 +576,8 @@
       "type": "object",
       "properties": {
         "targetUserId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "TargetUserId"
         }
       },
@@ -601,8 +593,8 @@
       "type": "object",
       "properties": {
         "targetUserId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "TargetUserId"
         }
       },
@@ -612,12 +604,21 @@
       "type": "object",
       "properties": {
         "targetUserId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "TargetUserId"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "UUIDs": {
+      "type": "array",
+      "title": "UUIDs is a slice of UUID types.",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "x-go-package": "github.com/google/uuid"
     },
     "UpdateUserPasswordRequest": {
       "type": "object",
@@ -627,8 +628,8 @@
           "x-go-name": "NewPassword"
         },
         "targetUserId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "TargetUserId"
         }
       },
@@ -638,13 +639,13 @@
       "type": "object",
       "properties": {
         "roleId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "RoleId"
         },
         "targetUserId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uuid",
           "x-go-name": "TargetUserId"
         }
       },
@@ -683,6 +684,9 @@
     },
     "UserDao": {
       "description": "Respose will return login result and the user info.",
+      "schema": {
+        "$ref": "#/definitions/UUIDs"
+      },
       "headers": {
         "createdAt": {
           "type": "string",
@@ -701,13 +705,7 @@
           "type": "string",
           "format": "date-time"
         },
-        "role_ids": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
+        "role_ids": {},
         "roles": {
           "type": "array",
           "items": {
