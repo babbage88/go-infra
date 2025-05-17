@@ -6,7 +6,7 @@ GOOSEY_PROJ_DIR:=../infra-db
 ENV_FILE:=.env
 BUILDER := infrabuilder
 CUR_DUR := $(shell pwd)
-MIG:=$(shell date '+%m%d%Y.%H%M%S')
+mig:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
 
 check-swagger:
@@ -69,7 +69,7 @@ deploylocalk3: buildandpushlocalk3
 
 new-sqlmigration:
 	@set -o allexport && source .env && set +o allexport  && \
-		goose create -s $(MIG) sql
+		goose create -s $(mig) sql
 
 apply-migration:
 	@set -o allexport && source .env && set +o allexport && \
