@@ -29,6 +29,11 @@ func runGitCommand(args ...string) (string, error) {
 	return strings.TrimSpace(stdout.String()), nil
 }
 
+func RunGitCommand(args ...string) (string, error) {
+	output, err := runGitCommand(args...)
+	return output, err
+}
+
 func FetchTags() error {
 	// Step 1: Ensure we're on the MAIN_BRANCH
 	branch, err := runGitCommand("rev-parse", "--abbrev-ref", "HEAD")

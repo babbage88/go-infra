@@ -16,9 +16,9 @@ type VersionInfo struct {
 }
 
 func marshalVersionInfo() VersionInfo {
-	f, err := os.ReadFile(VersionYamlFile)
+	f, err := os.ReadFile(bumper.VersionYamlFile)
 	if err != nil {
-		slog.Error("error reading the version.yaml file", slog.String("filename", VersionYamlFile), slog.String("error", err.Error()))
+		slog.Error("error reading the version.yaml file", slog.String("filename", bumper.VersionYamlFile), slog.String("error", err.Error()))
 	}
 
 	var versionInfo VersionInfo
@@ -70,7 +70,7 @@ func (v *VersionInfo) CheckMatchesGitAndBump(bumpType string) error {
 	case result == 0:
 		// implement git describe --exact-match --tags HEAD
 		//git describe --exact-match --tags HEAD
-		bumpedVer, err := bumper.BumpVersion(latestTag, Patch)
+		bumpedVer, err := bumper.BumpVersion(latestTag, bumper.Patch)
 		runGitCommand()
 		fmt.Println(bumpedVer)
 		return err
@@ -78,7 +78,7 @@ func (v *VersionInfo) CheckMatchesGitAndBump(bumpType string) error {
 		//update version.yaml if HEAD matches tag
 		return err
 	default:
-		bumpedVer, err := bumper.BumpVersion(latestTag, Patch)
+		bumpedVer, err := bumper.BumpVersion(latestTag, bumper.Patch)
 		runGitCommand()
 		fmt.Println(bumpedVer)
 		return err
