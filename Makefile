@@ -1,7 +1,11 @@
 GHCR_REPO:=ghcr.io/babbage88/go-infra:
 GHCR_REPO_TEST:=jtrahan88/goinfra-test:
+GOINFRA_SRC_DIR:=$$HOME/projects/go-infra
+GOOSEY_ENV_FILE:=.env
+GOOSEY_PROJ_DIR:=../infra-db
 ENV_FILE:=.env
 BUILDER := infrabuilder
+CUR_DUR := $(shell pwd)
 MIG:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
 
@@ -64,7 +68,16 @@ deploylocalk3: buildandpushlocalk3
 	kubelocal rollout restart deployment go-infra
 
 new-sqlmigration:
-	@source $(ENV_FILE) && \
-		export GOOSE_DBSTRING GOOSE_MIGRATION_DIR GOOSE_DRIVER && \
+	@set -o allexport && source .env && set +o allexport  && \
 		goose create -s $(MIG) sql
 
+apply-migration:
+	@set -o allexport && source .env && set +o allexport && \
+		goose up -v
+
+build-goosey:
+	@echo building goosey binary in $(GOOSEY_PROJ_DIR)
+	@cd $(GOOSEY_PROJ_DIR) && set -o allexport && source .env && set +o allexport && \
+		go build -v -o goosey . && cd $(CUR_DUR)
+	@echo copying goosey binary from $(GOOSEY_PROJ_DIR) to current directory
+	@cp $(GOOSEY_PROJ_DIR)/goosey ./goosey
