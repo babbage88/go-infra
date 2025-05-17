@@ -329,9 +329,6 @@ definitions:
             newPassword:
                 type: string
                 x-go-name: NewUserPassword
-            newUserRole:
-                type: string
-                x-go-name: NewUserRole
             newUsername:
                 type: string
                 x-go-name: NewUsername
@@ -340,12 +337,12 @@ definitions:
     CreateRolePermissionMappingRequest:
         properties:
             permId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: PermissionId
             roleId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: RoleId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
@@ -362,8 +359,8 @@ definitions:
     DisableUserRequest:
         properties:
             targetUserId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
@@ -378,39 +375,46 @@ definitions:
     EnableUserRequest:
         properties:
             targetUserId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UUIDs:
+        items:
+            format: uuid
+            type: string
+        title: UUIDs is a slice of UUID types.
+        type: array
+        x-go-package: github.com/google/uuid
     UpdateUserPasswordRequest:
         properties:
             newPassword:
                 type: string
                 x-go-name: NewPassword
             targetUserId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UpdateUserRoleMappingRequest:
         properties:
             roleId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: RoleId
             targetUserId:
-                format: int32
-                type: integer
+                format: uuid
+                type: string
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
@@ -450,17 +454,15 @@ responses:
             lastModified:
                 format: date-time
                 type: string
-            role_ids:
-                items:
-                    format: int32
-                    type: integer
-                type: array
+            role_ids: {}
             roles:
                 items:
                     type: string
                 type: array
             username:
                 type: string
+        schema:
+            $ref: '#/definitions/UUIDs'
 securityDefinitions:
     bearer:
         in: header

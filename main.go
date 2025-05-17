@@ -37,6 +37,7 @@ import (
 	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -80,10 +81,10 @@ func main() {
 
 	connPool := initPgConnPool()
 	userService := &services.UserCRUDService{DbConn: connPool}
-	authService := &authapi.UserAuthService{DbConn: connPool}
+	authService := &authapi.LocalAuthService{DbConn: connPool}
 	healthCheckService := &services.HealthCheckService{DbConn: connPool}
 	if *initDevUser {
-		userService.UpdateUserPasswordById(1, os.Getenv("DEV_APP_PASS"))
+		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}
 
 	api_server.StartWebApiServer(healthCheckService, authService, userService, swaggerSpec, srvport)

@@ -14,5 +14,5 @@ type AuthService interface {
 	VerifyUserRolesForPermission(roleIds uuid.UUIDs, permissionName string) (bool, error)
 	VerifyUserPermissionByRole(roleId uuid.UUID, permissionName string) (bool, error)
 	RefreshAccessToken(refreshToken string) (AuthToken, error)
-	GetUserById(id uuid.UUID) services.UserDao
+	GetUserById(id uuid.UUID) (*services.UserDao, error)
 }
