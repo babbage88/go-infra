@@ -94,8 +94,8 @@ func (v *VersionInfo) pushNewTag(newTag string) error {
 		return fmt.Errorf("error pushing new tags %w", err)
 	}
 	fmt.Println(output)
-	v.writeToYAML(bumper.VersionYamlFile)
 	v.Version = newTag
+	v.writeToYAML(bumper.VersionYamlFile)
 	return err
 }
 
@@ -115,7 +115,6 @@ func (v *VersionInfo) FetchTagsAndBumpVersion(bumpType string) error {
 }
 
 func (v *VersionInfo) BumpVersionAndCreateTag(currentVersion string, bumpType string) error {
-
 	switch {
 	case bumpType == bumper.Major || bumpType == bumper.Minor || bumpType == bumper.Patch:
 		newTag, err := bumper.BumpVersion(currentVersion, bumpType)
