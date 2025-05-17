@@ -81,6 +81,7 @@ func main() {
 			slog.Error("Error bumping version", slog.String("error", bumpErr.Error()))
 			os.Exit(1)
 		}
+		slog.Info("Bumped verion number", "NewVersion", versionInfo.Version)
 
 	}
 
