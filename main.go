@@ -33,6 +33,7 @@ import (
 	"os"
 
 	"github.com/babbage88/go-infra/database/bootstrap"
+	"github.com/babbage88/go-infra/internal/bumper"
 	"github.com/babbage88/go-infra/internal/pretty"
 	"github.com/babbage88/go-infra/services"
 	"github.com/babbage88/go-infra/webapi/api_server"
@@ -43,17 +44,45 @@ import (
 
 //go:embed swagger.yaml
 var swaggerSpec []byte
+var versionInfo VersionInfo
 
 func main() {
+	configureDefaultLogger(slog.LevelInfo)
+	versionInfo = marshalVersionInfo()
+	versionInfo.LogVersionInfo()
 	var isLocalDevelopment bool
 	var envFile string
+	var bumpVersion bool
+	var minor bool
+	var major bool
+
 	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
 	flag.StringVar(&envFile, "env-file", ".env", "Path to .env file to load Environment Variables.")
 	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	bootstrapNewDb := flag.Bool("db-bootstrap", false, "Create new dev database.")
 	initDevUser := flag.Bool("devuser", false, "Update the devuser password")
 	version := flag.Bool("version", false, "Show the current version.")
+	flag.BoolVar(&bumpVersion, "bump-version", false, "Bumps version tag, push to remote repo and update version.yaml")
+	flag.BoolVar(&minor, "minor", false, "Bumps Minor version number")
+	flag.BoolVar(&major, "major", false, "Bumps Major version number")
 	flag.Parse()
+
+	if bumpVersion {
+		var bumpErr error
+		switch {
+		case minor:
+			bumpErr = versionInfo.FetchTagsAndBumpVersion(bumper.Minor)
+		case major:
+			bumpErr = versionInfo.FetchTagsAndBumpVersion(bumper.Major)
+		default:
+			bumpErr = versionInfo.FetchTagsAndBumpVersion(bumper.Patch)
+		}
+		if bumpErr != nil {
+			slog.Error("Error bumping version", slog.String("error", bumpErr.Error()))
+			os.Exit(1)
+		}
+
+	}
 
 	if isLocalDevelopment {
 		slog.Info("Local Development mode configure, loading envars from env-file", slog.String("env-file", envFile))
@@ -75,7 +104,7 @@ func main() {
 	}
 
 	if *version {
-		showVersion()
+		versionInfo.PrintVersion()
 		return
 	}
 
