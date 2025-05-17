@@ -1,5 +1,7 @@
 github.com/babbage88/go-acme-cli v1.0.26 h1:A0IvhaMFhXFG0seOuDPt3SeuEyotJijepg5N6AQuSEY=
 github.com/babbage88/go-acme-cli v1.0.26/go.mod h1:U7sLz2iFS2upjA25oJYn3uMGP+v6I7/bEYuW516tAqw=
+github.com/babbage88/tint v0.0.1 h1:azaiqvCOeOl5/rmp2dUAi+INxWr/McCbPEHbco1JukY=
+github.com/babbage88/tint v0.0.1/go.mod h1:pnzbF1QYSNSKlb3QWPPht1ulP4qGLjGHqh1oHDJg4yI=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=

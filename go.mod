@@ -1,6 +1,8 @@
 module github.com/babbage88/go-infra
 
-go 1.24.0
+go 1.24.2
+
+toolchain go1.24.3
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
@@ -22,6 +24,7 @@ require (
 )
 
 require (
+	github.com/babbage88/tint v0.0.1
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

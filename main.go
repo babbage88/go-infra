@@ -45,6 +45,7 @@ import (
 var swaggerSpec []byte
 
 func main() {
+	configureDefaultLogger(slog.LevelInfo)
 	var isLocalDevelopment bool
 	var envFile string
 	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
