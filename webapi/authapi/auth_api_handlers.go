@@ -16,26 +16,6 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 }
 
-func parseCertbotOutput(output []string) ParsedCertbotOutput {
-	var certInfo, warnings, debugLog string
-
-	for _, line := range output {
-		if strings.Contains(line, "Saving debug log") {
-			debugLog += line + "\n"
-		} else if strings.Contains(line, "Unsafe permissions on credentials configuration file") {
-			warnings += line + "\n"
-		} else {
-			certInfo += line + "\n"
-		}
-	}
-
-	return ParsedCertbotOutput{
-		CertificateInfo: certInfo,
-		Warnings:        warnings,
-		DebugLog:        debugLog,
-	}
-}
-
 // swagger:route POST /renew renew idOfrenewEndpoint
 // Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
 // responses:

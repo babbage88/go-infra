@@ -30,7 +30,7 @@ k3local-swagger: check-swagger
 	rm k3local-swagger.json && rm k3local-swagger.yaml
 
 run-local: local-swagger
-	go run .
+	go run . --local-development
 
 embed-swagger:
 	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json

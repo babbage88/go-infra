@@ -76,11 +76,13 @@ func (a *LocalAuthService) CreateAuthTokenOnLogin(id uuid.UUID, roleIds uuid.UUI
 	claims["sub"] = id
 	claims["name"] = email
 	claims["role_ids"] = roleIds
-	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	expiration := time.Now().Add(time.Minute * 15)
+	claims["exp"] = expiration.Unix()
 
 	// Generate encoded token and send it as response.
 	// The signing string should be secret (a generated UUID works too)
 	t, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
+	tokens.Expiration = expiration
 	if err != nil {
 		return tokens, err
 	}
