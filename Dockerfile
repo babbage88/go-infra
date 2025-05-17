@@ -44,4 +44,4 @@ COPY --from=build /bin/server /app/
 EXPOSE 8080
 
 #ENTRYPOINT [ "/app/server" ]
-ENTRYPOINT [ "/app/server", "--devuser" ]
+ENTRYPOINT [ "/app/server"]
