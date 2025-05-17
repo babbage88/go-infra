@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/golang-jwt/jwt/v5"
@@ -64,9 +65,11 @@ func (a *LocalAuthService) CreateAuthTokenOnLogin(id uuid.UUID, roleIds uuid.UUI
 	tokens := AuthToken{UserID: id}
 
 	signingMethod := getJwtSigningMenthodFromEnv()
+	expTime := time.Now().Add(time.Minute * 15)
+	tokens.Expiration = expTime
 
 	// Create access accessToken
-	accessToken, err := NewAccessToken(id, roleIds, email, signingMethod)
+	accessToken, err := NewAccessTokenWithExp(id, roleIds, email, signingMethod, expTime)
 
 	if err != nil {
 		return tokens, err

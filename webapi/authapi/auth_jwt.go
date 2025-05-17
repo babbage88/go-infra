@@ -15,6 +15,39 @@ import (
 	"github.com/google/uuid"
 )
 
+func NewAccessTokenWithExp(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMethod jwt.SigningMethod, expTime time.Time) (string, error) {
+	// Create token
+	token := jwt.New(signingMethod)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["sub"] = id
+	claims["name"] = email
+	claims["role_ids"] = roleIds
+	claims["exp"] = expTime.Unix()
+
+	t, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
+	if err != nil {
+		return "", err
+	}
+
+	return t, err
+}
+
+func NewRefreshTokenWithExp(id uuid.UUID, signingMethod jwt.SigningMethod, expTime time.Time) (string, error) {
+	refreshToken := jwt.New(signingMethod)
+
+	rtClaims := refreshToken.Claims.(jwt.MapClaims)
+	rtClaims["sub"] = id
+	rtClaims["exp"] = expTime.Unix()
+
+	rt, err := refreshToken.SignedString([]byte(os.Getenv("JWT_KEY")))
+	if err != nil {
+		return "", err
+	}
+
+	return rt, err
+}
+
 func NewAccessToken(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMethod jwt.SigningMethod) (string, error) {
 	// Create token
 	token := jwt.New(signingMethod)
