@@ -120,17 +120,18 @@ func (v *VersionInfo) pushNewTag(newTag string) error {
 }
 
 func (v *VersionInfo) FetchTagsAndBumpVersion(bumpType string) error {
-	err := bumper.FetchTags()
-	if err != nil {
-		slog.Error("error fetching remote tag", "error", err.Error())
-		return fmt.Errorf("error fetching remote tags from origin %w", err)
-	}
 	pruneFlagsOutput, err := bumper.RunGitCommand(gitFetchCmd, gitFetchPruneFlag, gitFetchPruneTagsFlag, gitFetchTagsFlag)
 	if err != nil {
 		fmt.Println(pruneFlagsOutput)
 		return fmt.Errorf("error pruning tags %w", err)
 	}
 	fmt.Println(pruneFlagsOutput)
+	err = bumper.FetchTags()
+	if err != nil {
+		slog.Error("error fetching remote tag", "error", err.Error())
+		return fmt.Errorf("error fetching remote tags from origin %w", err)
+	}
+
 	latestTag, err := bumper.GetLatestSemverTag()
 	if err != nil {
 		slog.Error("error getting latest git tags from remote", slog.String("error", err.Error()))
