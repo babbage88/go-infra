@@ -9,6 +9,16 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+const (
+	pushCmd              string = "push"
+	pushTagsCmdFlag      string = "--tags"
+	gitTagCmd            string = "tag"
+	gitTagCmdAddFlag     string = "-a"
+	gitTagCmdMessageFlag string = "-m"
+	gitFetchCmd          string = "fetch"
+	gitPullCmd           string = "pull"
+)
+
 type VersionInfo struct {
 	Name    string `json:"name" yaml:"name"`
 	Version string `json:"version" yaml:"version"`
@@ -56,12 +66,12 @@ func (v *VersionInfo) PullAndCompare(bumpType string) error {
 	switch {
 	case result == -1:
 		slog.Warn("The latest tag git tag is lower than the version defined in version.yaml", slog.String("version.yaml", v.Version), slog.String("latest-tag", latestTag))
-		output, err := bumper.RunGitCommand("tag", "-a", v.Version, "-m", v.Version)
+		output, err := bumper.RunGitCommand(gitTagCmd, gitTagCmdAddFlag, v.Version, gitTagCmdMessageFlag, v.Version)
 		if err != nil {
 			return fmt.Errorf("error creating new tag %w", err)
 		}
 		fmt.Println(output)
-		pushOutput, err := bumper.RunGitCommand("push", "--tags")
+		pushOutput, err := bumper.RunGitCommand(pushCmd, pushTagsCmdFlag)
 		if err != nil {
 			return fmt.Errorf("error pusing new tag %w", err)
 		}
@@ -88,12 +98,17 @@ func (v *VersionInfo) PullAndCompare(bumpType string) error {
 }
 
 func (v *VersionInfo) pushNewTag(newTag string) error {
-	output, err := bumper.RunGitCommand("tag", "-a", newTag, "-m", newTag)
+	output, err := bumper.RunGitCommand(gitTagCmd, gitTagCmdAddFlag, newTag, gitTagCmdMessageFlag, newTag)
 	if err != nil {
 		fmt.Println(output)
 		return fmt.Errorf("error pushing new tags %w", err)
 	}
 	fmt.Println(output)
+	pushTagsOutput, err := bumper.RunGitCommand(pushCmd, pushTagsCmdFlag)
+	if err != nil {
+		return fmt.Errorf("error pushing new tags %w", err)
+	}
+	fmt.Println(pushTagsOutput)
 	v.Version = newTag
 	v.writeToYAML(bumper.VersionYamlFile)
 	return err
