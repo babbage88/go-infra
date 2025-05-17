@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/babbage88/go-infra/internal/bumper"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 func pushNewTag(newTag string) error {
