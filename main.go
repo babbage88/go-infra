@@ -86,7 +86,7 @@ func main() {
 	}
 
 	if testEncryption {
-		usrSecret, err := user_secrets.Encrypt("This should be encrypted")
+		usrSecret, err := user_secrets.Encrypt("Secret to be encrypted")
 		if err != nil {
 			slog.Error("Error testing Encryption", slog.String("Error", err.Error()))
 			os.Exit(1)
@@ -99,6 +99,16 @@ func main() {
 
 		}
 		slog.Info("Decrytion", slog.String("Decrypted Value", string(plaintext)))
+		connPool := initPgConnPool()
+		pgSecretStore := user_secrets.PgUserSecretStore{DbConn: connPool}
+		devuserUUID := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
+		appUUID := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")
+		err = pgSecretStore.StoreSecret("TestPgSecretStoreExample", devuserUUID, appUUID)
+		if err != nil {
+			slog.Error("Error storing secret", "error", err.Error())
+			os.Exit(1)
+		}
+
 		os.Exit(0)
 	}
 

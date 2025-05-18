@@ -35,14 +35,22 @@ type PgEncrytpedAuthToken struct {
 }
 
 func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID) error {
-	userSecret, err := Encrypt(plaintextSecret)
+	userCipherText, err := Encrypt(plaintextSecret)
 	if err != nil {
 		slog.Error("Error encrypting user secret", slog.String("Error", err.Error()))
 		return err
 	}
 
+	userSecret := PgEncrytpedAuthToken{UserId: userId, ApplicationId: appId, UserSecret: &userCipherText}
+
+	jsonData, err := json.Marshal(userSecret)
+	if err != nil {
+		slog.Error("Failed to marshal encrypted secret to JSON", slog.String("error", err.Error()))
+		return err
+	}
+
 	qry := infra_db_pg.New(p.DbConn)
-	params := infra_db_pg.InsertExternalAuthTokenParams{UserID: userId, ExternalAppID: appId, Token: userSecret.UserSecret}
+	params := infra_db_pg.InsertExternalAuthTokenParams{UserID: userId, ExternalAppID: appId, Token: jsonData}
 	return qry.InsertExternalAuthToken(context.Background(), params)
 }
 
