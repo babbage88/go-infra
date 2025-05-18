@@ -26,7 +26,6 @@ type UserCRUD interface {
 	updateUserPasswordById(id uuid.UUID, password string) error
 	UpdateUserPasswordById(targetUserId uuid.UUID, newPassword string) error
 	UpdateUserEmailById(id uuid.UUID, email string)
-	InsertAuthToken(token AuthTokenDao)
 	VerifyAlterUser(executionUserId uuid.UUID) (bool, error)
 	UpdateUserPasswordWithAuth(execUserId uuid.UUID, targetUserId uuid.UUID, newPassword string) error
 	EnableUserById(targetUserId uuid.UUID) (UserDao, error)
@@ -144,22 +143,6 @@ func (us *UserCRUDService) UpdateUserEmailById(id uuid.UUID, email string) (*Use
 	}
 	user.ParseUserFromDb(dbuser)
 	return user, nil
-}
-
-func (us *UserCRUDService) InsertAuthToken(t *AuthTokenDao) error {
-	params := infra_db_pg.InsertAuthTokenParams{
-		UserID:     t.UserID,
-		Token:      pgtype.Text{String: t.Token, Valid: true},
-		Expiration: pgtype.Timestamp{Time: t.Expiration, InfinityModifier: 1, Valid: true},
-	}
-
-	queries := infra_db_pg.New(us.DbConn)
-	err := queries.InsertAuthToken(context.Background(), params)
-	if err != nil {
-		slog.Error("Error inserting token.", slog.String("UserID", fmt.Sprintf("%d", t.UserID)), slog.String("Error", err.Error()))
-		return err
-	}
-	return err
 }
 
 func (us *UserCRUDService) GetAllActiveUsersDao() ([]UserDao, error) {
