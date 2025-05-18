@@ -55,6 +55,11 @@ func (t *ExternalApplicationAuthToken) ParseAuthTokenFromDb(token infra_db_pg.Ex
 	t.LastModified = token.LastModified.Time
 }
 
+func (t *ExternalApplication) ParseExternalApplicationFromDb(extApp infra_db_pg.ExternalIntegrationApp) {
+	t.Id = extApp.ID
+	t.Name = extApp.Name
+}
+
 func (ur *UserRoleDao) ParseUserRoleFromDb(dbRow infra_db_pg.UserRole) {
 	ur.Id = dbRow.ID
 	ur.RoleName = dbRow.RoleName

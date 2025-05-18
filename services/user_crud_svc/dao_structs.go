@@ -42,6 +42,11 @@ type ExternalApplicationAuthToken struct {
 	LastModified          time.Time `json:"last_modified"`
 }
 
+type ExternalApplication struct {
+	Id   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
 type HostServer struct {
 	ID               int32
 	Hostname         string
