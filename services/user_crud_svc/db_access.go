@@ -8,10 +8,11 @@ type DbParser interface {
 	ParseUserFromDb(dbuser infra_db_pg.User)
 	ParseUserWithRoleFromDb(dbuser infra_db_pg.UsersWithRole)
 	ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow)
-	ParseAuthTokenFromDb(token infra_db_pg.ExternalAuthToken)
+	ParseExternalAuthTokenFromDb(token infra_db_pg.ExternalAuthToken)
 	ParseUserRoleFromDb(dbRow infra_db_pg.UserRole)
 	ParseAppPermissionFromDb(dbRow infra_db_pg.AppPermission)
 	ParseRolePermissionMappingFromDb(dbRow infra_db_pg.RolePermissionMapping)
+	ParseExternalApplicationFromDb(extApp infra_db_pg.ExternalIntegrationApp)
 }
 
 func (u *UserDao) ParseUserRowFromDb(dbRow infra_db_pg.GetUserLoginRow) {
