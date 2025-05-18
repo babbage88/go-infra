@@ -17,15 +17,6 @@ type AppPermission struct {
 	PermissionDescription pgtype.Text
 }
 
-type AuthToken struct {
-	ID           uuid.UUID
-	UserID       uuid.UUID
-	Token        pgtype.Text
-	Expiration   pgtype.Timestamp
-	CreatedAt    pgtype.Timestamptz
-	LastModified pgtype.Timestamptz
-}
-
 type DnsRecord struct {
 	ID           int32
 	DnsRecordID  string
@@ -37,6 +28,23 @@ type DnsRecord struct {
 	Type         pgtype.Text
 	Comment      pgtype.Text
 	Ttl          pgtype.Int4
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+type ExternalAuthToken struct {
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	ExternalAppID uuid.UUID
+	Token         []byte
+	Expiration    pgtype.Timestamp
+	CreatedAt     pgtype.Timestamptz
+	LastModified  pgtype.Timestamptz
+}
+
+type ExternalIntegrationApp struct {
+	ID           uuid.UUID
+	Name         string
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 }
@@ -101,6 +109,17 @@ type User struct {
 	LastModified pgtype.Timestamptz
 	Enabled      bool
 	IsDeleted    bool
+}
+
+type UserAuthAppMapping struct {
+	UserID          uuid.UUID
+	Username        pgtype.Text
+	Email           pgtype.Text
+	ApplicationID   uuid.UUID
+	ApplicationName string
+	AuthTokenID     uuid.UUID
+	TokenCreatedAt  pgtype.Timestamptz
+	Expiration      pgtype.Timestamp
 }
 
 type UserHostedDb struct {

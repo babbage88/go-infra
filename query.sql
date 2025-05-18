@@ -124,24 +124,6 @@ INSERT INTO public.user_hosted_db (
 VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 RETURNING *;
 
--- name: InsertAuthToken :exec
-INSERT INTO auth_tokens (user_id, token, expiration)
-VALUES ($1, $2, $3);
-
--- name: GetAuthTokenFromDb :one
-SELECT
-		id, user_id, token, expiration, created_at, last_modified
- FROM
-  	public.auth_tokens WHERE id = $1;
-
--- name: DeleteAuthTokenById :exec
-DELETE FROM auth_tokens
-WHERE id = $1;
-
--- name: DeleteExpiredAuthTokens :exec
-DELETE FROM auth_tokens
-WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC';
-
 -- name: GetAllActiveUsers :many
 SELECT
     "id",
@@ -291,3 +273,52 @@ FROM public.app_permissions;
 SELECT id, status, check_type
 FROM public.health_check WHERE check_type = 'Read'
 LIMIT 1;
+
+
+-- name: InsertExternalAuthToken :exec
+INSERT INTO public.external_auth_tokens (
+    id,
+    user_id,
+    external_app_id,
+    token,
+    expiration
+)
+VALUES (
+  gen_random_uuid(),  $1, $2, $3, $4
+);
+
+-- name: GetAuthTokenFromDb :one
+SELECT
+		id, user_id, token, expiration, created_at, last_modified
+ FROM
+  	public.external_auth_tokens WHERE id = $1;
+
+-- name: DeleteAuthTokenById :exec
+DELETE FROM external_auth_tokens
+WHERE id = $1;
+
+-- name: DeleteExpiredAuthTokens :exec
+DELETE FROM external_auth_tokens
+WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC';
+
+-- name: InsertExternalAppIntegrationByName :one
+INSERT INTO public.external_integration_apps (id, "name") 
+VALUES ($1, $2)
+RETURNING *;
+
+-- name: DeleteExternalApplicationByName :exec
+DELETE FROM external_integration_apps
+WHERE "name" = $1;
+
+-- name: DeleteExternalApplicationById :exec
+DELETE FROM external_integration_apps
+WHERE id = $1;
+
+-- name: GetExternalAppIdByName :one
+SELECT id FROM external_integration_apps WHERE "name" = $1;
+
+-- name: GetExternalAppNameById :one
+SELECT "name" FROM external_integration_apps WHERE id = $1;
+
+-- name: GetAllExternalApps :many
+SELECT id, "name" FROM external_integration_apps;
