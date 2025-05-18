@@ -65,16 +65,6 @@ func (q *Queries) DbHealthCheckRead(ctx context.Context) (DbHealthCheckReadRow, 
 	return i, err
 }
 
-const deleteAuthTokenById = `-- name: DeleteAuthTokenById :exec
-DELETE FROM external_auth_tokens
-WHERE id = $1
-`
-
-func (q *Queries) DeleteAuthTokenById(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteAuthTokenById, id)
-	return err
-}
-
 const deleteExpiredAuthTokens = `-- name: DeleteExpiredAuthTokens :exec
 DELETE FROM external_auth_tokens
 WHERE expiration < CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
@@ -102,6 +92,16 @@ WHERE "name" = $1
 
 func (q *Queries) DeleteExternalApplicationByName(ctx context.Context, name string) error {
 	_, err := q.db.Exec(ctx, deleteExternalApplicationByName, name)
+	return err
+}
+
+const deleteExternalAuthTokenById = `-- name: DeleteExternalAuthTokenById :exec
+DELETE FROM external_auth_tokens
+WHERE id = $1
+`
+
+func (q *Queries) DeleteExternalAuthTokenById(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteExternalAuthTokenById, id)
 	return err
 }
 
@@ -352,36 +352,6 @@ func (q *Queries) GetAllUserRoles(ctx context.Context) ([]UserRolesActive, error
 	return items, nil
 }
 
-const getAuthTokenFromDb = `-- name: GetAuthTokenFromDb :one
-SELECT
-		id, user_id, token, expiration, created_at, last_modified
- FROM
-  	public.external_auth_tokens WHERE id = $1
-`
-
-type GetAuthTokenFromDbRow struct {
-	ID           uuid.UUID
-	UserID       uuid.UUID
-	Token        []byte
-	Expiration   pgtype.Timestamp
-	CreatedAt    pgtype.Timestamptz
-	LastModified pgtype.Timestamptz
-}
-
-func (q *Queries) GetAuthTokenFromDb(ctx context.Context, id uuid.UUID) (GetAuthTokenFromDbRow, error) {
-	row := q.db.QueryRow(ctx, getAuthTokenFromDb, id)
-	var i GetAuthTokenFromDbRow
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.Token,
-		&i.Expiration,
-		&i.CreatedAt,
-		&i.LastModified,
-	)
-	return i, err
-}
-
 const getExternalAppIdByName = `-- name: GetExternalAppIdByName :one
 SELECT id FROM external_integration_apps WHERE "name" = $1
 `
@@ -402,6 +372,105 @@ func (q *Queries) GetExternalAppNameById(ctx context.Context, id uuid.UUID) (str
 	var name string
 	err := row.Scan(&name)
 	return name, err
+}
+
+const getExternalAuthTokenById = `-- name: GetExternalAuthTokenById :one
+SELECT
+		id, user_id, external_app_id, token, expiration, created_at, last_modified
+ FROM
+  	public.external_auth_tokens WHERE id = $1
+`
+
+func (q *Queries) GetExternalAuthTokenById(ctx context.Context, id uuid.UUID) (ExternalAuthToken, error) {
+	row := q.db.QueryRow(ctx, getExternalAuthTokenById, id)
+	var i ExternalAuthToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExternalAppID,
+		&i.Token,
+		&i.Expiration,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getExternalAuthTokensByUserId = `-- name: GetExternalAuthTokensByUserId :many
+SELECT
+		id, user_id, external_app_id, token, expiration, created_at, last_modified
+ FROM
+  	public.external_auth_tokens 
+WHERE user_id = $1
+`
+
+func (q *Queries) GetExternalAuthTokensByUserId(ctx context.Context, userID uuid.UUID) ([]ExternalAuthToken, error) {
+	rows, err := q.db.Query(ctx, getExternalAuthTokensByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExternalAuthToken
+	for rows.Next() {
+		var i ExternalAuthToken
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ExternalAppID,
+			&i.Token,
+			&i.Expiration,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getExternalAuthTokensByUserIdAndAppId = `-- name: GetExternalAuthTokensByUserIdAndAppId :many
+SELECT
+		id, user_id, external_app_id, token, expiration, created_at, last_modified
+ FROM
+  	public.external_auth_tokens 
+WHERE user_id = $1 AND external_app_id = $2
+`
+
+type GetExternalAuthTokensByUserIdAndAppIdParams struct {
+	UserID        uuid.UUID
+	ExternalAppID uuid.UUID
+}
+
+func (q *Queries) GetExternalAuthTokensByUserIdAndAppId(ctx context.Context, arg GetExternalAuthTokensByUserIdAndAppIdParams) ([]ExternalAuthToken, error) {
+	rows, err := q.db.Query(ctx, getExternalAuthTokensByUserIdAndAppId, arg.UserID, arg.ExternalAppID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExternalAuthToken
+	for rows.Next() {
+		var i ExternalAuthToken
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ExternalAppID,
+			&i.Token,
+			&i.Expiration,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRoleIdByName = `-- name: GetRoleIdByName :one
@@ -636,7 +705,7 @@ type InsertExternalAuthTokenParams struct {
 	UserID        uuid.UUID
 	ExternalAppID uuid.UUID
 	Token         []byte
-	Expiration    pgtype.Timestamp
+	Expiration    pgtype.Timestamptz
 }
 
 func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExternalAuthTokenParams) error {

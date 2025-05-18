@@ -37,7 +37,7 @@ type ExternalAuthToken struct {
 	UserID        uuid.UUID
 	ExternalAppID uuid.UUID
 	Token         []byte
-	Expiration    pgtype.Timestamp
+	Expiration    pgtype.Timestamptz
 	CreatedAt     pgtype.Timestamptz
 	LastModified  pgtype.Timestamptz
 }
@@ -119,7 +119,7 @@ type UserAuthAppMapping struct {
 	ApplicationName string
 	AuthTokenID     uuid.UUID
 	TokenCreatedAt  pgtype.Timestamptz
-	Expiration      pgtype.Timestamp
+	Expiration      pgtype.Timestamptz
 }
 
 type UserHostedDb struct {

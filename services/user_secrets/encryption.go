@@ -63,7 +63,7 @@ func Encrypt(plaintext string) (EncryptedUserSecretsAES256GCM, error) {
 	return encryptedSecret, nil
 }
 
-func (s *EncryptedUserSecretsAES256GCM) Decrypt() (string, error) {
+func (s *EncryptedUserSecretsAES256GCM) Decrypt() ([]byte, error) {
 	plaintext, err := decrypt(s.String())
 	if err != nil {
 		slog.Error("Error decrypting secret", slog.String("error", err.Error()))
@@ -72,19 +72,19 @@ func (s *EncryptedUserSecretsAES256GCM) Decrypt() (string, error) {
 	return plaintext, err
 }
 
-func decrypt(ciphertext string) (string, error) {
+func decrypt(ciphertext string) ([]byte, error) {
 	secretKey := os.Getenv("USER_SEC_KEY")
 
 	aes, err := aes.NewCipher([]byte(secretKey))
 	if err != nil {
 		slog.Error("Error creating new cipher", "error", err.Error())
-		return "", err
+		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(aes)
 	if err != nil {
 		slog.Error("Error while attempting encrytion", "error", err.Error())
-		return "", err
+		return nil, err
 	}
 
 	nonce, ciphertext := ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():]
@@ -94,5 +94,5 @@ func decrypt(ciphertext string) (string, error) {
 		panic(err)
 	}
 
-	return string(plaintext), err
+	return plaintext, err
 }

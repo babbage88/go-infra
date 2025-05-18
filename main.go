@@ -98,7 +98,7 @@ func main() {
 			slog.Error("Error testing Decryption", slog.String("Error", err.Error()))
 
 		}
-		slog.Info("Decrytion", slog.String("Decrypted Value", plaintext))
+		slog.Info("Decrytion", slog.String("Decrypted Value", string(plaintext)))
 		os.Exit(0)
 	}
 

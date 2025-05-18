@@ -287,13 +287,27 @@ VALUES (
   gen_random_uuid(),  $1, $2, $3, $4
 );
 
--- name: GetAuthTokenFromDb :one
+-- name: GetExternalAuthTokenById :one
 SELECT
-		id, user_id, token, expiration, created_at, last_modified
+		id, user_id, external_app_id, token, expiration, created_at, last_modified
  FROM
   	public.external_auth_tokens WHERE id = $1;
 
--- name: DeleteAuthTokenById :exec
+-- name: GetExternalAuthTokensByUserIdAndAppId :many
+SELECT
+		id, user_id, external_app_id, token, expiration, created_at, last_modified
+ FROM
+  	public.external_auth_tokens 
+WHERE user_id = $1 AND external_app_id = $2;
+
+-- name: GetExternalAuthTokensByUserId :many
+SELECT
+		id, user_id, external_app_id, token, expiration, created_at, last_modified
+ FROM
+  	public.external_auth_tokens 
+WHERE user_id = $1;
+
+-- name: DeleteExternalAuthTokenById :exec
 DELETE FROM external_auth_tokens
 WHERE id = $1;
 
