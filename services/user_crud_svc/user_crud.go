@@ -1,4 +1,4 @@
-package services
+package user_crud_svc
 
 import (
 	"context"

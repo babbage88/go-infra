@@ -1,7 +1,7 @@
 package authapi
 
 import (
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/google/uuid"
 )
 
@@ -14,5 +14,5 @@ type AuthService interface {
 	VerifyUserRolesForPermission(roleIds uuid.UUIDs, permissionName string) (bool, error)
 	VerifyUserPermissionByRole(roleId uuid.UUID, permissionName string) (bool, error)
 	RefreshAccessToken(refreshToken string) (AuthToken, error)
-	GetUserById(id uuid.UUID) (*services.UserDao, error)
+	GetUserById(id uuid.UUID) (*user_crud_svc.UserDao, error)
 }

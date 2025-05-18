@@ -3,7 +3,7 @@ package authapi
 import (
 	"time"
 
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -35,8 +35,8 @@ type UserLoginRequest struct {
 }
 
 type UserLoginResponse struct {
-	Result   LoginResult      `json:"result"`
-	UserInfo services.UserDao `json:"UserDao"`
+	Result   LoginResult           `json:"result"`
+	UserInfo user_crud_svc.UserDao `json:"UserDao"`
 }
 
 type InfraJWTClaim struct {

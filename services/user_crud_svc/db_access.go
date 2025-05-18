@@ -1,4 +1,4 @@
-package services
+package user_crud_svc
 
 import (
 	"github.com/babbage88/go-infra/database/infra_db_pg"

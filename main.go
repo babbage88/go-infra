@@ -35,7 +35,8 @@ import (
 	"github.com/babbage88/go-infra/database/bootstrap"
 	"github.com/babbage88/go-infra/internal/bumper"
 	"github.com/babbage88/go-infra/internal/pretty"
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
+	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/google/uuid"
@@ -58,6 +59,7 @@ func main() {
 	var bumpVersion bool
 	var minor bool
 	var major bool
+	var testEncryption bool
 
 	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
 	flag.StringVar(&envFile, "env-file", ".env", "Path to .env file to load Environment Variables.")
@@ -68,7 +70,33 @@ func main() {
 	flag.BoolVar(&bumpVersion, "bump-version", false, "Bumps version tag, push to remote repo and update version.yaml")
 	flag.BoolVar(&minor, "minor", false, "Bumps Minor version number")
 	flag.BoolVar(&major, "major", false, "Bumps Major version number")
+	flag.BoolVar(&testEncryption, "test-enc", false, "testing/debugging encrytion package")
 	flag.Parse()
+
+	if isLocalDevelopment {
+		slog.Info("Local Development mode configure, loading envars from env-file", slog.String("env-file", envFile))
+		err := godotenv.Load(envFile)
+		if err != nil {
+			slog.Error("error loading .env file", slog.String("error", err.Error()))
+		}
+	}
+
+	if testEncryption {
+		usrSecret, err := user_secrets.Encrypt("This should be encrypted")
+		if err != nil {
+			slog.Error("Error testing Encryption", slog.String("Error", err.Error()))
+			os.Exit(1)
+		}
+		usrSecret.PrintSecretInfo()
+
+		plaintext, err := usrSecret.Decrypt()
+		if err != nil {
+			slog.Error("Error testing Decryption", slog.String("Error", err.Error()))
+
+		}
+		slog.Info("Decrytion", slog.String("Decrypted Value", plaintext))
+		os.Exit(0)
+	}
 
 	if bumpVersion {
 		var bumpErr error
@@ -89,14 +117,6 @@ func main() {
 
 	}
 
-	if isLocalDevelopment {
-		slog.Info("Local Development mode configure, loading envars from env-file", slog.String("env-file", envFile))
-		err := godotenv.Load(envFile)
-		if err != nil {
-			slog.Error("error loading .env file", slog.String("error", err.Error()))
-		}
-	}
-
 	if *bootstrapNewDb {
 		bootstrap.NewDb()
 		pretty.Print("test")
@@ -114,9 +134,9 @@ func main() {
 	}
 
 	connPool := initPgConnPool()
-	userService := &services.UserCRUDService{DbConn: connPool}
+	userService := &user_crud_svc.UserCRUDService{DbConn: connPool}
 	authService := &authapi.LocalAuthService{DbConn: connPool}
-	healthCheckService := &services.HealthCheckService{DbConn: connPool}
+	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
 	if *initDevUser {
 		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}

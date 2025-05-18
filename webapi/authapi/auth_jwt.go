@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -97,9 +97,9 @@ func ParseRefreshToken(refreshToken string) *jwt.RegisteredClaims {
 	return parsedRefreshToken.Claims.(*jwt.RegisteredClaims)
 }
 
-func (a *LocalAuthService) GetUserById(id uuid.UUID) (*services.UserDao, error) {
+func (a *LocalAuthService) GetUserById(id uuid.UUID) (*user_crud_svc.UserDao, error) {
 	qry := infra_db_pg.New(a.DbConn)
-	usrInfo := &services.UserDao{Id: id}
+	usrInfo := &user_crud_svc.UserDao{Id: id}
 
 	user, err := qry.GetUserById(context.Background(), id)
 	if err != nil {

@@ -1,7 +1,7 @@
 package userapi
 
 import (
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +19,7 @@ type CreateNewUserRequest struct {
 }
 
 type GetAllUsersResponse struct {
-	Users []services.UserDao `json:"users"`
+	Users []user_crud_svc.UserDao `json:"users"`
 }
 
 // swagger:parameters idOfgetUserByIdEndpoint
@@ -31,15 +31,15 @@ type GetUserByIdRequest struct {
 }
 
 type GetUserByIdResponse struct {
-	User services.UserDao `json:"user"`
+	User user_crud_svc.UserDao `json:"user"`
 }
 
 type GetAllRolesResponse struct {
-	UserRoles []services.UserRoleDao `json:"userRoles"`
+	UserRoles []user_crud_svc.UserRoleDao `json:"userRoles"`
 }
 
 type GetAllAppPermissionsResponse struct {
-	AppPermissions []services.AppPermissionDao `json:"appPermissions"`
+	AppPermissions []user_crud_svc.AppPermissionDao `json:"appPermissions"`
 }
 
 // Allows and Admin user to update another user's password.
@@ -83,8 +83,8 @@ type EnableUserRequest struct {
 }
 
 type EnableDisableUserResponse struct {
-	ModifiedUserInfo *services.UserDao `json:"modifiedUserInfo"`
-	Error            error             `json:"error"`
+	ModifiedUserInfo *user_crud_svc.UserDao `json:"modifiedUserInfo"`
+	Error            error                  `json:"error"`
 }
 
 // User Id of the executing and target users
@@ -117,8 +117,8 @@ type CreateUserRoleRequest struct {
 }
 
 type CreateUserRoleResponse struct {
-	Error           error                 `json:"error"`
-	NewUserRoleInfo *services.UserRoleDao `json:"newUserRoleInfo"`
+	Error           error                      `json:"error"`
+	NewUserRoleInfo *user_crud_svc.UserRoleDao `json:"newUserRoleInfo"`
 }
 
 // Name and Description for new App Permission
@@ -133,8 +133,8 @@ type CreateAppPermissionRequest struct {
 }
 
 type CreateAppPermissionResponse struct {
-	NewAppPermissionInfo *services.AppPermissionDao `json:"newPermissionInfo"`
-	Error                error                      `json:"error"`
+	NewAppPermissionInfo *user_crud_svc.AppPermissionDao `json:"newPermissionInfo"`
+	Error                error                           `json:"error"`
 }
 
 // Name and Description for new App Permission
@@ -150,8 +150,8 @@ type CreateRolePermissionMappingRequest struct {
 }
 
 type CreateRolePermissionMappingResponse struct {
-	NewMappingInfo *services.RolePermissionMappingDao `json:"newMappingInfo"`
-	Error          error                              `json:"error"`
+	NewMappingInfo *user_crud_svc.RolePermissionMappingDao `json:"newMappingInfo"`
+	Error          error                                   `json:"error"`
 }
 
 // Mark user as deleted in Database. Will no longer show in UI unless explicityly restored
@@ -166,6 +166,6 @@ type SoftDeleteUserByIdRequest struct {
 }
 
 type SoftDeleteUserByIdResponse struct {
-	DeletedUserInfo *services.UserDao `json:"deletedUserInfo"`
-	Error           error             `json:"error"`
+	DeletedUserInfo *user_crud_svc.UserDao `json:"deletedUserInfo"`
+	Error           error                  `json:"error"`
 }

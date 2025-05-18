@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/google/uuid"
 )
 
@@ -18,7 +18,7 @@ import (
 // responses:
 //   200: UserDao
 
-func CreateUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			slog.Error("Invalid request method", slog.String("Method", r.Method))
@@ -66,7 +66,7 @@ func CreateUserHandler(uc_service *services.UserCRUDService) func(w http.Respons
 // responses:
 //
 //	200: UserPasswordUpdateResponse
-func UpdateUserPasswordHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -110,7 +110,7 @@ func UpdateUserPasswordHandler(uc_service *services.UserCRUDService) func(w http
 // responses:
 //   200: GetAllUsersResponse
 
-func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetAllUsersHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		users, err := uc_service.GetAllActiveUsersDao()
@@ -140,7 +140,7 @@ func GetAllUsersHandler(uc_service *services.UserCRUDService) func(w http.Respon
 // responses:
 //   200: GetUserByIdResponse
 
-func GetUserByIdHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetUserByIdHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlId := r.PathValue("ID")
 		id, err := uuid.Parse(urlId)
@@ -179,7 +179,7 @@ func GetUserByIdHandler(uc_service *services.UserCRUDService) func(w http.Respon
 // responses:
 //   200: GetAllRolesResponse
 
-func GetAllRolesHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetAllRolesHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		roles, err := uc_service.GetAllActiveRoles()
@@ -209,7 +209,7 @@ func GetAllRolesHandler(uc_service *services.UserCRUDService) func(w http.Respon
 // responses:
 //   200: GetAllAppPermissionsResponse
 
-func GetAllAppPermissionsHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		appPermissions, err := uc_service.GetAllAppPermissions()
@@ -239,7 +239,7 @@ func GetAllAppPermissionsHandler(uc_service *services.UserCRUDService) func(w ht
 // responses:
 //
 //	200: EnableDisableUserResponse
-func EnableUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -251,7 +251,7 @@ func EnableUserHandler(uc_service *services.UserCRUDService) func(w http.Respons
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		modifiedUserInfo := &services.UserDao{Id: request.TargetUserId}
+		modifiedUserInfo := &user_crud_svc.UserDao{Id: request.TargetUserId}
 		response := EnableDisableUserResponse{
 			ModifiedUserInfo: modifiedUserInfo,
 			Error:            err,
@@ -283,7 +283,7 @@ func EnableUserHandler(uc_service *services.UserCRUDService) func(w http.Respons
 // responses:
 //
 //	200: UpdateUserRoleResponse
-func DisableUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -295,7 +295,7 @@ func DisableUserHandler(uc_service *services.UserCRUDService) func(w http.Respon
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		modifiedUserInfo := &services.UserDao{Id: request.TargetUserId}
+		modifiedUserInfo := &user_crud_svc.UserDao{Id: request.TargetUserId}
 		response := EnableDisableUserResponse{
 			ModifiedUserInfo: modifiedUserInfo,
 			Error:            err,
@@ -327,7 +327,7 @@ func DisableUserHandler(uc_service *services.UserCRUDService) func(w http.Respon
 // responses:
 //
 //	200: UpdateUserRoleMappingResponse
-func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -373,7 +373,7 @@ func UpdateUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w h
 // responses:
 //
 //	200: EnableDisableUserResponse
-func DisableUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -419,7 +419,7 @@ func DisableUserRoleMappingHandler(uc_service *services.UserCRUDService) func(w 
 // responses:
 //
 //	200: CreateUserRoleResponse
-func CreateUserRoleHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -431,7 +431,7 @@ func CreateUserRoleHandler(uc_service *services.UserCRUDService) func(w http.Res
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		newUserRoleInfo := &services.UserRoleDao{RoleName: request.RoleName, RoleDescription: request.RoleDescription}
+		newUserRoleInfo := &user_crud_svc.UserRoleDao{RoleName: request.RoleName, RoleDescription: request.RoleDescription}
 		response := CreateUserRoleResponse{
 			NewUserRoleInfo: newUserRoleInfo,
 			Error:           err,
@@ -464,7 +464,7 @@ func CreateUserRoleHandler(uc_service *services.UserCRUDService) func(w http.Res
 // responses:
 //
 //	200: CreateAppPermissionResponse
-func CreateAppPermissionHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -476,7 +476,7 @@ func CreateAppPermissionHandler(uc_service *services.UserCRUDService) func(w htt
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		newAppPermissionInfo := &services.AppPermissionDao{PermissionName: request.PermissionName, PermissionDescription: request.PermissionDescription}
+		newAppPermissionInfo := &user_crud_svc.AppPermissionDao{PermissionName: request.PermissionName, PermissionDescription: request.PermissionDescription}
 		response := CreateAppPermissionResponse{
 			NewAppPermissionInfo: newAppPermissionInfo,
 			Error:                err,
@@ -508,7 +508,7 @@ func CreateAppPermissionHandler(uc_service *services.UserCRUDService) func(w htt
 // responses:
 //
 //	200: CreateRolePermissionMapptingResponse
-func CreateRolePermissionMappingHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -520,7 +520,7 @@ func CreateRolePermissionMappingHandler(uc_service *services.UserCRUDService) fu
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		newRolePermissionMappingInfo := &services.RolePermissionMappingDao{RoleId: request.RoleId, PermissionId: request.PermissionId}
+		newRolePermissionMappingInfo := &user_crud_svc.RolePermissionMappingDao{RoleId: request.RoleId, PermissionId: request.PermissionId}
 		response := CreateRolePermissionMappingResponse{
 			NewMappingInfo: newRolePermissionMappingInfo,
 			Error:          err,
@@ -552,7 +552,7 @@ func CreateRolePermissionMappingHandler(uc_service *services.UserCRUDService) fu
 // responses:
 //
 //	200: SoftDeleteUserByIdResponse
-func SoftDeleteUserHandler(uc_service *services.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func SoftDeleteUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -564,7 +564,7 @@ func SoftDeleteUserHandler(uc_service *services.UserCRUDService) func(w http.Res
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		deletedUserInfo := &services.UserDao{Id: request.TargetUserId}
+		deletedUserInfo := &user_crud_svc.UserDao{Id: request.TargetUserId}
 		response := SoftDeleteUserByIdResponse{
 			DeletedUserInfo: deletedUserInfo,
 			Error:           err,

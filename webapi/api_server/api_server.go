@@ -6,14 +6,14 @@ import (
 
 	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/swaggerui"
-	"github.com/babbage88/go-infra/services"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartWebApiServer(healthCheckService *services.HealthCheckService, authService authapi.AuthService, userCRUDService *services.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
+func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
 	mux := http.NewServeMux()
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
