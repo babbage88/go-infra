@@ -55,18 +55,22 @@ func main() {
 	versionInfo = marshalVersionInfo(versionInfoBytes)
 	versionInfo.LogVersionInfo()
 	var isLocalDevelopment bool
+	var srvport string
 	var envFile string
 	var bumpVersion bool
+	var bootstrapNewDb bool
 	var minor bool
 	var major bool
 	var testEncryption bool
+	var initDevUser bool
+	var version bool
 
 	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
 	flag.StringVar(&envFile, "env-file", ".env", "Path to .env file to load Environment Variables.")
-	srvport := flag.String("srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
-	bootstrapNewDb := flag.Bool("db-bootstrap", false, "Create new dev database.")
-	initDevUser := flag.Bool("devuser", false, "Update the devuser password")
-	version := flag.Bool("version", false, "Show the current version.")
+	flag.StringVar(&srvport, "srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
+	flag.BoolVar(&bootstrapNewDb, "db-bootstrap", false, "Create new dev database.")
+	flag.BoolVar(&initDevUser, "devuser", false, "Update the devuser password")
+	flag.BoolVar(&version, "version", false, "Show the current version.")
 	flag.BoolVar(&bumpVersion, "bump-version", false, "Bumps version tag, push to remote repo and update version.yaml")
 	flag.BoolVar(&minor, "minor", false, "Bumps Minor version number")
 	flag.BoolVar(&major, "major", false, "Bumps Major version number")
@@ -117,7 +121,7 @@ func main() {
 
 	}
 
-	if *bootstrapNewDb {
+	if bootstrapNewDb {
 		bootstrap.NewDb()
 		pretty.Print("test")
 		err := bootstrap.CreateInfradbUser(os.Getenv("DB_USER"))
@@ -128,7 +132,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *version {
+	if version {
 		versionInfo.PrintVersion()
 		return
 	}
@@ -137,9 +141,9 @@ func main() {
 	userService := &user_crud_svc.UserCRUDService{DbConn: connPool}
 	authService := &authapi.LocalAuthService{DbConn: connPool}
 	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
-	if *initDevUser {
+	if initDevUser {
 		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}
 
-	api_server.StartWebApiServer(healthCheckService, authService, userService, swaggerSpec, srvport)
+	api_server.StartWebApiServer(healthCheckService, authService, userService, swaggerSpec, &srvport)
 }
