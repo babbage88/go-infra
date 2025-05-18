@@ -10,22 +10,22 @@ import (
 )
 
 type EncryptedUserSecretsAES256GCM struct {
-	Ciphertext []byte `json:"ciphertext"`
+	UserSecret []byte `json:"userSecret"`
 }
 
 func (s *EncryptedUserSecretsAES256GCM) PrintSecretInfo() {
-	nonce, ciphertext := s.Ciphertext[:12], s.Ciphertext[12:]
+	nonce, ciphertext := s.UserSecret[:12], s.UserSecret[12:]
 	slog.Info("EncryptedUserSecrets Info", slog.String("ciphertext", string(ciphertext)), slog.String("nonce", string(nonce)))
-	fmt.Println("Raw Bytes:", s.Ciphertext)
+	fmt.Println("Raw Bytes:", s.UserSecret)
 	fmt.Printf("Raw Full String: %s", s.String())
 }
 
 func (s *EncryptedUserSecretsAES256GCM) String() string {
-	return string(s.Ciphertext)
+	return string(s.UserSecret)
 }
 
 func (s *EncryptedUserSecretsAES256GCM) NonceString() string {
-	nonce, _ := s.Ciphertext[:12], s.Ciphertext[12:]
+	nonce, _ := s.UserSecret[:12], s.UserSecret[12:]
 	return string(nonce)
 }
 
@@ -58,7 +58,7 @@ func Encrypt(plaintext string) (EncryptedUserSecretsAES256GCM, error) {
 	// So that when we decrypt, just knowing the nonce size
 	// is enough to separate it from the ciphertext.
 	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
-	encryptedSecret.Ciphertext = ciphertext
+	encryptedSecret.UserSecret = ciphertext
 
 	return encryptedSecret, nil
 }
