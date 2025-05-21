@@ -20,6 +20,7 @@ type RetrievedUserSecret struct {
 type UserSecretProvider interface {
 	StoreSecret(plaintextSecret string, userId, appId uuid.UUID) error
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
+	DeleteSecret(secretId uuid.UUID) error
 }
 
 // Implementing UserSecretProvider for scenarios where the user supplied secret has only one value that needs to be encrypted
@@ -95,4 +96,10 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 		Reader:   bytes.NewReader(plaintext),
 		Metadata: &daoExtSecret,
 	}, nil
+}
+
+func (p *PgUserSecretStore) DeleteSecret(secretId uuid.UUID) error {
+	qry := infra_db_pg.New(p.DbConn)
+	result := qry.DeleteExternalAuthTokenById(context.Background(), secretId)
+	return result
 }

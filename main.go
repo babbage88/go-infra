@@ -32,6 +32,7 @@ import (
 	"os"
 
 	"github.com/babbage88/go-infra/services/user_crud_svc"
+	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/babbage88/go-infra/webapi/api_server"
 	"github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/google/uuid"
@@ -60,11 +61,12 @@ func main() {
 	userService := &user_crud_svc.UserCRUDService{DbConn: connPool}
 	authService := &authapi.LocalAuthService{DbConn: connPool}
 	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
+	secretProvider := &user_secrets.PgUserSecretStore{DbConn: connPool}
 
 	switch {
 	case initDevUser:
 		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}
 
-	api_server.StartWebApiServer(healthCheckService, authService, userService, swaggerSpec, &srvport)
+	api_server.StartWebApiServer(healthCheckService, authService, userService, secretProvider, swaggerSpec, &srvport)
 }

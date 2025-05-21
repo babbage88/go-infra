@@ -140,6 +140,62 @@ paths:
             summary: Map App Permission to User Role.
             tags:
                 - createRolePermissionMapping
+    /secrets:
+        post:
+            operationId: createUserSecret
+            parameters:
+                - description: The application ID the token is for
+                  format: uuid
+                  in: query
+                  name: application_id
+                  required: true
+                  type: string
+                  x-go-name: ApplicationID
+                - description: The secret string, such as a bearer token
+                  in: query
+                  name: secret
+                  required: true
+                  type: string
+                  x-go-name: Secret
+            responses:
+                "200":
+                    description: Secret stored successfully
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+            summary: Create a new external application secret.
+            tags:
+                - secrets
+    /secrets/{id}:
+        delete:
+            operationId: deleteUserSecretByID
+            responses:
+                "200":
+                    description: Secret deleted successfully
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Delete a user secret by ID.
+            tags:
+                - secrets
+        get:
+            operationId: getUserSecretByID
+            responses:
+                "200":
+                    $ref: '#/responses/RetrievedSecretResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by ID.
+            tags:
+                - secrets
     /token/refresh:
         post:
             operationId: idOftokenRefreshEndpoint
@@ -439,6 +495,30 @@ responses:
                 type: string
             token:
                 type: string
+    RetrievedSecretResponse:
+        description: (empty)
+        schema:
+            properties:
+                expiration:
+                    format: date-time
+                    type: string
+                    x-go-name: Expiration
+                external_application_id:
+                    format: uuid
+                    type: string
+                    x-go-name: ExternalApplication
+                id:
+                    format: uuid
+                    type: string
+                    x-go-name: ID
+                token:
+                    type: string
+                    x-go-name: Token
+                user_id:
+                    format: uuid
+                    type: string
+                    x-go-name: UserID
+            type: object
     UserDao:
         description: Respose will return login result and the user info.
         headers:

@@ -7,13 +7,19 @@ import (
 	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
+	"github.com/babbage88/go-infra/services/user_secrets"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService, swaggerSpec []byte, srvadr *string) error {
+func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
+	authService authapi.AuthService,
+	userCRUDService *user_crud_svc.UserCRUDService,
+	userSecretStore user_secrets.UserSecretProvider,
+	swaggerSpec []byte, srvadr *string) error {
+
 	mux := http.NewServeMux()
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
@@ -34,6 +40,9 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService, aut
 	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermissions", userapi.GetAllAppPermissionsHandler(userCRUDService))))
 	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(userapi.GetAllUsersHandler(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
+	mux.Handle("/secrets", cors.CORSWithPOST(user_secrets.CreateSecretHandler(userSecretStore)))
+	mux.Handle("/secrets/", cors.CORSWithGET(user_secrets.GetSecretHandler(userSecretStore))) // expects /secrets/{id}
+	mux.Handle("/secrets/", cors.CORSWithDELETE(user_secrets.DeleteSecretHandler(userSecretStore)))
 	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())
 
