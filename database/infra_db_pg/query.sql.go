@@ -473,6 +473,33 @@ func (q *Queries) GetExternalAuthTokensByUserIdAndAppId(ctx context.Context, arg
 	return items, nil
 }
 
+const getLatestExternalAuthToken = `-- name: GetLatestExternalAuthToken :one
+SELECT id, user_id, external_app_id, token, expiration, created_at, last_modified FROM external_auth_tokens
+WHERE user_id = $1 AND external_app_id = $2
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetLatestExternalAuthTokenParams struct {
+	UserID        uuid.UUID
+	ExternalAppID uuid.UUID
+}
+
+func (q *Queries) GetLatestExternalAuthToken(ctx context.Context, arg GetLatestExternalAuthTokenParams) (ExternalAuthToken, error) {
+	row := q.db.QueryRow(ctx, getLatestExternalAuthToken, arg.UserID, arg.ExternalAppID)
+	var i ExternalAuthToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExternalAppID,
+		&i.Token,
+		&i.Expiration,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const getRoleIdByName = `-- name: GetRoleIdByName :one
 SELECT
   "id" AS "RoleId"

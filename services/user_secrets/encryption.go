@@ -4,6 +4,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,6 +13,31 @@ import (
 
 type EncryptedUserSecretsAES256GCM struct {
 	UserSecret []byte `json:"userSecret"`
+}
+
+func (e *EncryptedUserSecretsAES256GCM) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		UserSecret string `json:"userSecret"`
+	}
+	return json.Marshal(&alias{
+		UserSecret: base64.StdEncoding.EncodeToString(e.UserSecret),
+	})
+}
+
+func (e *EncryptedUserSecretsAES256GCM) UnmarshalJSON(data []byte) error {
+	type alias struct {
+		UserSecret string `json:"userSecret"`
+	}
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	decoded, err := base64.StdEncoding.DecodeString(a.UserSecret)
+	if err != nil {
+		return err
+	}
+	e.UserSecret = decoded
+	return nil
 }
 
 func (s *EncryptedUserSecretsAES256GCM) PrintSecretInfo() {

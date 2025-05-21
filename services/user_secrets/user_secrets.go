@@ -41,7 +41,11 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 		return err
 	}
 
-	userSecret := PgEncrytpedAuthToken{UserId: userId, ApplicationId: appId, UserSecret: &userCipherText}
+	userSecret := PgEncrytpedAuthToken{
+		UserId:        userId,
+		ApplicationId: appId,
+		UserSecret:    &userCipherText,
+	}
 
 	jsonData, err := json.Marshal(userSecret)
 	if err != nil {
@@ -50,7 +54,11 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 	}
 
 	qry := infra_db_pg.New(p.DbConn)
-	params := infra_db_pg.InsertExternalAuthTokenParams{UserID: userId, ExternalAppID: appId, Token: jsonData}
+	params := infra_db_pg.InsertExternalAuthTokenParams{
+		UserID:        userId,
+		ExternalAppID: appId,
+		Token:         jsonData,
+	}
 	return qry.InsertExternalAuthToken(context.Background(), params)
 }
 
@@ -62,14 +70,14 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 		return nil, err
 	}
 
-	var encSecret EncryptedUserSecretsAES256GCM
-	err = json.Unmarshal(record.Token, &encSecret)
+	var stored PgEncrytpedAuthToken
+	err = json.Unmarshal(record.Token, &stored)
 	if err != nil {
 		slog.Error("Failed to unmarshal encrypted secret", slog.String("error", err.Error()))
 		return nil, err
 	}
 
-	plaintext, err := encSecret.Decrypt()
+	plaintext, err := stored.UserSecret.Decrypt()
 	if err != nil {
 		slog.Error("Failed to decrypt secret", slog.String("error", err.Error()))
 		return nil, err
@@ -83,7 +91,8 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 		Token:                 plaintext,
 	}
 
-	retVal := &RetrievedUserSecret{Metadata: &daoExtSecret, Reader: bytes.NewReader(plaintext)}
-
-	return retVal, nil
+	return &RetrievedUserSecret{
+		Reader:   bytes.NewReader(plaintext),
+		Metadata: &daoExtSecret,
+	}, nil
 }

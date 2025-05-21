@@ -336,3 +336,10 @@ SELECT "name" FROM external_integration_apps WHERE id = $1;
 
 -- name: GetAllExternalApps :many
 SELECT id, "name" FROM external_integration_apps;
+
+-- name: GetLatestExternalAuthToken :one
+SELECT * FROM external_auth_tokens
+WHERE user_id = $1 AND external_app_id = $2
+ORDER BY created_at DESC
+LIMIT 1;
+

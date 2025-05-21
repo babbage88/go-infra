@@ -29,6 +29,7 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"io"
 	"log/slog"
 	"os"
 
@@ -103,12 +104,26 @@ func main() {
 		pgSecretStore := user_secrets.PgUserSecretStore{DbConn: connPool}
 		devuserUUID := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
 		appUUID := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")
+		secretUUID := uuid.MustParse("00d4fd03-d306-4436-9512-f5a0996d3be8")
 		err = pgSecretStore.StoreSecret("TestPgSecretStoreExample", devuserUUID, appUUID)
 		if err != nil {
 			slog.Error("Error storing secret", "error", err.Error())
 			os.Exit(1)
 		}
+		slog.Info("Secret successfully storeed in Pg Database")
 
+		retrievedSecret, err := pgSecretStore.RetrieveSecret(secretUUID)
+		if err != nil {
+			slog.Error("Error retrieving secret from database", "error", err.Error())
+			os.Exit(1)
+		}
+
+		secretBytes, err := io.ReadAll(retrievedSecret.Reader)
+		if err != nil {
+			slog.Error("Error reading secret from reader", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		slog.Info("Retrieved secret", slog.String("secret", string(secretBytes)))
 		os.Exit(0)
 	}
 
