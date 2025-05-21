@@ -43,8 +43,8 @@ func (e *EncryptedUserSecretsAES256GCM) UnmarshalJSON(data []byte) error {
 func (s *EncryptedUserSecretsAES256GCM) PrintSecretInfo() {
 	nonce, ciphertext := s.UserSecret[:12], s.UserSecret[12:]
 	slog.Info("EncryptedUserSecrets Info", slog.String("ciphertext", string(ciphertext)), slog.String("nonce", string(nonce)))
-	fmt.Println("Raw Bytes:", s.UserSecret)
-	fmt.Printf("Raw Full String: %s", s.String())
+	fmt.Printf("Raw Hex: %x\n", s.UserSecret)
+	fmt.Printf("Raw Full String: %s\n", s.String())
 }
 
 func (s *EncryptedUserSecretsAES256GCM) String() string {
