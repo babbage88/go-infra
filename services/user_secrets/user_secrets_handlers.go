@@ -2,13 +2,14 @@ package user_secrets
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/google/uuid"
 )
 
-// swagger:route POST /user/secrets/create secrets createUserSecret
+// swagger:route POST /secrets/create/{ID} secrets createUserSecret
 // Create a new external application secret.
 // responses:
 //
@@ -29,7 +30,7 @@ func CreateSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		err = provider.StoreSecret(req.Secret, userID, req.ApplicationID)
+		err = provider.StoreSecret(req.Secret, userID, req.ApplicationID, req.Expiration)
 		if err != nil {
 			http.Error(w, "Failed to store secret", http.StatusInternalServerError)
 			return
@@ -84,7 +85,7 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 	}))
 }
 
-// swagger:route DELETE /secrets/{id} secrets deleteUserSecretByID
+// swagger:route DELETE /secrets/delete/{ID} secrets deleteUserSecretByID
 // Delete a user secret by ID.
 // responses:
 //
@@ -95,6 +96,8 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		urlId := r.PathValue("ID")
+		fmt.Println(urlId)
+
 		secretId, err := uuid.Parse(urlId)
 		if err != nil {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)

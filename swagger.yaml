@@ -140,6 +140,45 @@ paths:
             summary: Map App Permission to User Role.
             tags:
                 - PermissionsCRUD
+    /secrets/create/{ID}:
+        post:
+            operationId: createUserSecret
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSecretRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    description: Secret stored successfully
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+            summary: Create a new external application secret.
+            tags:
+                - secrets
+    /secrets/delete/{ID}:
+        delete:
+            operationId: deleteUserSecretByID
+            parameters:
+                - in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    description: Secret deleted successfully
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Delete a user secret by ID.
+            tags:
+                - secrets
     /secrets/{ID}:
         get:
             operationId: getUserSecretByID
@@ -159,21 +198,6 @@ paths:
                 "404":
                     description: Not Found
             summary: Retrieve a user secret by ID.
-            tags:
-                - secrets
-    /secrets/{id}:
-        delete:
-            operationId: deleteUserSecretByID
-            responses:
-                "200":
-                    description: Secret deleted successfully
-                "401":
-                    description: Unauthorized
-                "403":
-                    description: Forbidden
-                "404":
-                    description: Not Found
-            summary: Delete a user secret by ID.
             tags:
                 - secrets
     /token/refresh:
@@ -287,25 +311,6 @@ paths:
                 - bearer: []
             tags:
                 - UserCRUD
-    /user/secrets/create:
-        post:
-            operationId: createUserSecret
-            parameters:
-                - in: body
-                  name: body
-                  schema:
-                    $ref: '#/definitions/CreateSecretRequest'
-                  x-go-name: Body
-            responses:
-                "200":
-                    description: Secret stored successfully
-                "400":
-                    description: Invalid request
-                "401":
-                    description: Unauthorized
-            summary: Create a new external application secret.
-            tags:
-                - secrets
     /users:
         get:
             operationId: GetAllUsers
@@ -407,6 +412,10 @@ definitions:
                 format: uuid
                 type: string
                 x-go-name: ApplicationID
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
             secret:
                 type: string
                 x-go-name: Secret

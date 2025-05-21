@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,7 +20,7 @@ type RetrievedUserSecret struct {
 }
 
 type UserSecretProvider interface {
-	StoreSecret(plaintextSecret string, userId, appId uuid.UUID) error
+	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
 	DeleteSecret(secretId uuid.UUID) error
 }
@@ -35,7 +37,7 @@ type PgEncrytpedAuthToken struct {
 	UserSecret    *EncryptedUserSecretsAES256GCM `json:"userSecret"`
 }
 
-func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID) error {
+func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error {
 	userCipherText, err := Encrypt(plaintextSecret)
 	if err != nil {
 		slog.Error("Error encrypting user secret", slog.String("Error", err.Error()))
@@ -54,11 +56,17 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 		return err
 	}
 
+	if expiry.IsZero() {
+		today := time.Now()
+		expiry = today.AddDate(0, 0, 31)
+	}
+
 	qry := infra_db_pg.New(p.DbConn)
 	params := infra_db_pg.InsertExternalAuthTokenParams{
 		UserID:        userId,
 		ExternalAppID: appId,
 		Token:         jsonData,
+		Expiration:    pgtype.Timestamptz{Time: expiry, Valid: true},
 	}
 	return qry.InsertExternalAuthToken(context.Background(), params)
 }

@@ -6,6 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// swagger:parameters deleteUserSecretByID
+type DeleteSecretByIdRequest struct {
+	// In: path
+	ID string `json:"ID"`
+}
+
 // swagger:parameters createUserSecret
 type CreateSecretRequestWrapper struct {
 	// in:body
@@ -15,6 +21,7 @@ type CreateSecretRequestWrapper struct {
 type CreateSecretRequest struct {
 	ApplicationID uuid.UUID `json:"application_id"`
 	Secret        string    `json:"secret"`
+	Expiration    time.Time `json:"expiration"`
 }
 
 // swagger:parameters getUserSecretByID

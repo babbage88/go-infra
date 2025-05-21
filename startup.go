@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/babbage88/go-infra/database/bootstrap"
 	"github.com/babbage88/go-infra/internal/bumper"
@@ -50,7 +51,7 @@ func testPgSecretStore() {
 	devuserUUID := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
 	appUUID := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")
 	secretUUID := uuid.MustParse("f7a62a3b-9680-441f-9fa2-6339bb419a47")
-	err := pgSecretStore.StoreSecret("TestPgSecretStoreExample", devuserUUID, appUUID)
+	err := pgSecretStore.StoreSecret("TestPgSecretStoreExample", devuserUUID, appUUID, time.Now().AddDate(0, 0, 1))
 	if err != nil {
 		slog.Error("Error storing secret", "error", err.Error())
 		os.Exit(1)

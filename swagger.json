@@ -230,6 +230,67 @@
         }
       }
     },
+    "/secrets/create/{ID}": {
+      "post": {
+        "tags": [
+          "secrets"
+        ],
+        "summary": "Create a new external application secret.",
+        "operationId": "createUserSecret",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateSecretRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret stored successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/secrets/delete/{ID}": {
+      "delete": {
+        "tags": [
+          "secrets"
+        ],
+        "summary": "Delete a user secret by ID.",
+        "operationId": "deleteUserSecretByID",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/secrets/{ID}": {
       "get": {
         "tags": [
@@ -249,29 +310,6 @@
         "responses": {
           "200": {
             "$ref": "#/responses/RetrievedSecretResponse"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/secrets/{id}": {
-      "delete": {
-        "tags": [
-          "secrets"
-        ],
-        "summary": "Delete a user secret by ID.",
-        "operationId": "deleteUserSecretByID",
-        "responses": {
-          "200": {
-            "description": "Secret deleted successfully"
           },
           "401": {
             "description": "Unauthorized"
@@ -473,36 +511,6 @@
         }
       }
     },
-    "/user/secrets/create": {
-      "post": {
-        "tags": [
-          "secrets"
-        ],
-        "summary": "Create a new external application secret.",
-        "operationId": "createUserSecret",
-        "parameters": [
-          {
-            "x-go-name": "Body",
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/CreateSecretRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Secret stored successfully"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
     "/users": {
       "get": {
         "security": [
@@ -650,6 +658,11 @@
           "type": "string",
           "format": "uuid",
           "x-go-name": "ApplicationID"
+        },
+        "expiration": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Expiration"
         },
         "secret": {
           "type": "string",
