@@ -32,10 +32,10 @@
           }
         ],
         "tags": [
-          "createAppPermission"
+          "PermissionsCRUD"
         ],
         "summary": "Create New App Permission.",
-        "operationId": "idOfCreateAppPermission",
+        "operationId": "CreateAppPermission",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -61,10 +61,10 @@
           }
         ],
         "tags": [
-          "createUserRole"
+          "RolesCRUD"
         ],
         "summary": "Create New User Role.",
-        "operationId": "idOfCreateUserRole",
+        "operationId": "CreateUserRole",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -90,10 +90,10 @@
           }
         ],
         "tags": [
-          "createuser"
+          "UserCRUD"
         ],
         "summary": "Create a new user.",
-        "operationId": "idOfcreateUserEndpoint",
+        "operationId": "CreateUser",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -114,10 +114,10 @@
     "/login": {
       "post": {
         "tags": [
-          "login"
+          "Authentication"
         ],
         "summary": "Login a user and return token.",
-        "operationId": "idOfloginEndpoint",
+        "operationId": "LocalLogin",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -144,9 +144,9 @@
         ],
         "description": "Returns all App Permissions",
         "tags": [
-          "getAllAppPermissions"
+          "PermissionsCRUD"
         ],
-        "operationId": "idOfgetAllAppPermissionsEndpoint",
+        "operationId": "GetAllAppPermissions",
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllAppPermissionsResponse"
@@ -162,9 +162,9 @@
           "application/zip"
         ],
         "tags": [
-          "renew"
+          "Certificates"
         ],
-        "operationId": "idOfrenewEndpoint",
+        "operationId": "Renew",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -190,10 +190,10 @@
           }
         ],
         "tags": [
-          "getAllUserRoles"
+          "RolesCRUD"
         ],
         "summary": "Returns all active User Roles.",
-        "operationId": "idOfgetAllRolesEndpoint",
+        "operationId": "GetAllUserRoles",
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllRolesResponse"
@@ -209,10 +209,10 @@
           }
         ],
         "tags": [
-          "createRolePermissionMapping"
+          "PermissionsCRUD"
         ],
         "summary": "Map App Permission to User Role.",
-        "operationId": "idOfCreateRolePermissionMapping",
+        "operationId": "CreateRolePermissionMapping",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -230,52 +230,22 @@
         }
       }
     },
-    "/secrets": {
-      "post": {
-        "tags": [
-          "secrets"
-        ],
-        "summary": "Create a new external application secret.",
-        "operationId": "createUserSecret",
-        "parameters": [
-          {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "ApplicationID",
-            "description": "The application ID the token is for",
-            "name": "application_id",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Secret",
-            "description": "The secret string, such as a bearer token",
-            "name": "secret",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Secret stored successfully"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
-    "/secrets/{id}": {
+    "/secrets/{ID}": {
       "get": {
         "tags": [
           "secrets"
         ],
         "summary": "Retrieve a user secret by ID.",
         "operationId": "getUserSecretByID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of secret",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/RetrievedSecretResponse"
@@ -290,7 +260,9 @@
             "description": "Not Found"
           }
         }
-      },
+      }
+    },
+    "/secrets/{id}": {
       "delete": {
         "tags": [
           "secrets"
@@ -316,10 +288,10 @@
     "/token/refresh": {
       "post": {
         "tags": [
-          "tokenRefresh"
+          "Authentication"
         ],
         "summary": "Refresh accessTokens andreturn to client.",
-        "operationId": "idOftokenRefreshEndpoint",
+        "operationId": "RefreshAccessToken",
         "responses": {
           "200": {
             "$ref": "#/responses/AuthToken"
@@ -335,10 +307,10 @@
           }
         ],
         "tags": [
-          "updateUserPw"
+          "UserCRUD"
         ],
         "summary": "Update user password.",
-        "operationId": "idOfUpdateUserPw",
+        "operationId": "UpdateUserPw",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -357,17 +329,17 @@
       }
     },
     "/user/delete": {
-      "post": {
+      "delete": {
         "security": [
           {
             "bearer": []
           }
         ],
         "tags": [
-          "SoftDeleteUserHandler"
+          "UserCRUD"
         ],
         "summary": "Soft Delete User by id.",
-        "operationId": "idOfSoftDeleteUserById",
+        "operationId": "SoftDeleteUserById",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -393,10 +365,10 @@
           }
         ],
         "tags": [
-          "disableUser"
+          "UserCRUD"
         ],
         "summary": "Disable specified target User Id.",
-        "operationId": "idOfDisableUser",
+        "operationId": "DisableUser",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -422,10 +394,10 @@
           }
         ],
         "tags": [
-          "enableUser"
+          "UserCRUD"
         ],
         "summary": "Enable specified target User Id.",
-        "operationId": "idOfEnableUser",
+        "operationId": "EnableUser",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -452,9 +424,9 @@
         ],
         "description": "Update User Role Mapping",
         "tags": [
-          "updateUserRole"
+          "RolesCRUD"
         ],
-        "operationId": "idOfUpdateUserRole",
+        "operationId": "UpdateUserRole",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -481,9 +453,9 @@
         ],
         "description": "Disable User Role Mapping",
         "tags": [
-          "disableUserRoleMapping"
+          "UserCRUD"
         ],
-        "operationId": "idOfdisableUserRoleMapping",
+        "operationId": "DisableUserRoleMapping",
         "parameters": [
           {
             "x-go-name": "Body",
@@ -501,6 +473,36 @@
         }
       }
     },
+    "/user/secrets/create": {
+      "post": {
+        "tags": [
+          "secrets"
+        ],
+        "summary": "Create a new external application secret.",
+        "operationId": "createUserSecret",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateSecretRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret stored successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "security": [
@@ -509,10 +511,10 @@
           }
         ],
         "tags": [
-          "getallusers"
+          "users"
         ],
         "summary": "Returns all active users.",
-        "operationId": "idOfgetAllUsersEndpoint",
+        "operationId": "GetAllUsers",
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllUsersResponse"
@@ -528,10 +530,10 @@
           }
         ],
         "tags": [
-          "getUserById"
+          "users"
         ],
         "summary": "Returns User Info for the user id specified in URL users.",
-        "operationId": "idOfgetUserByIdEndpoint",
+        "operationId": "getUserById",
         "parameters": [
           {
             "type": "string",
@@ -640,6 +642,21 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "CreateSecretRequest": {
+      "type": "object",
+      "properties": {
+        "application_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ApplicationID"
+        },
+        "secret": {
+          "type": "string",
+          "x-go-name": "Secret"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_secrets"
     },
     "CreateUserRoleRequest": {
       "type": "object",

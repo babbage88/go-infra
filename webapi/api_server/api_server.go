@@ -29,7 +29,7 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
 	mux.Handle("/update/userpass", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.UpdateUserPasswordHandler(userCRUDService))))
 	mux.Handle("/user/enable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.EnableUserHandler(userCRUDService))))
 	mux.Handle("/user/disable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.DisableUserHandler(userCRUDService))))
-	mux.Handle("/user/delete", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "DeleteUser", userapi.SoftDeleteUserHandler(userCRUDService))))
+	mux.Handle("/user/delete", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "DeleteUser", userapi.SoftDeleteUserHandler(userCRUDService))))
 	mux.Handle("/user/role", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.UpdateUserRoleMappingHandler(userCRUDService))))
 	mux.Handle("/user/role/remove", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.DisableUserRoleMappingHandler(userCRUDService))))
 	mux.Handle("/create/role", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateRole", userapi.CreateUserRoleHandler(userCRUDService))))
@@ -40,9 +40,9 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
 	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermissions", userapi.GetAllAppPermissionsHandler(userCRUDService))))
 	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(userapi.GetAllUsersHandler(userCRUDService))))
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
-	mux.Handle("/secrets", cors.CORSWithPOST(user_secrets.CreateSecretHandler(userSecretStore)))
-	mux.Handle("/secrets/", cors.CORSWithGET(user_secrets.GetSecretHandler(userSecretStore))) // expects /secrets/{id}
-	mux.Handle("/secrets/", cors.CORSWithDELETE(user_secrets.DeleteSecretHandler(userSecretStore)))
+	mux.Handle("/user/secrets/create", cors.CORSWithPOST(user_secrets.CreateSecretHandler(userSecretStore)))
+	mux.Handle("/secrets/{ID}", cors.CORSWithGET(user_secrets.GetSecretHandler(userSecretStore))) // expects /secrets/{id}
+	mux.Handle("/secrets/delete/{ID}", cors.CORSWithDELETE(user_secrets.DeleteSecretHandler(userSecretStore)))
 	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())
 

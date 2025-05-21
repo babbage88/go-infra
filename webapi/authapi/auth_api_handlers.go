@@ -16,7 +16,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 }
 
-// swagger:route POST /renew renew idOfrenewEndpoint
+// swagger:route POST /renew Certificates Renew
 // Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
 // responses:
 //   200: CertificateData
@@ -94,7 +94,7 @@ func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.R
 	}
 }
 
-// swagger:route POST /login login idOfloginEndpoint
+// swagger:route POST /login Authentication LocalLogin
 // Login a user and return token.
 // responses:
 //   200: AuthToken
@@ -116,7 +116,7 @@ func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, 
 	return retVal, nil
 }
 
-// swagger:route POST /token/refresh tokenRefresh idOftokenRefreshEndpoint
+// swagger:route POST /token/refresh Authentication RefreshAccessToken
 // Refresh accessTokens andreturn to client.
 // responses:
 //

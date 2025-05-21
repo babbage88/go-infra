@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/babbage88/go-infra/webapi/authapi"
+	"github.com/google/uuid"
 )
 
-// swagger:route POST /secrets secrets createUserSecret
+// swagger:route POST /user/secrets/create secrets createUserSecret
 // Create a new external application secret.
 // responses:
 //
@@ -37,7 +38,7 @@ func CreateSecretHandler(provider UserSecretProvider) http.Handler {
 	}))
 }
 
-// swagger:route GET /secrets/{id} secrets getUserSecretByID
+// swagger:route GET /secrets/{ID} secrets getUserSecretByID
 // Retrieve a user secret by ID.
 // responses:
 //
@@ -47,7 +48,8 @@ func CreateSecretHandler(provider UserSecretProvider) http.Handler {
 //	404: description:Not Found
 func GetSecretHandler(provider UserSecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		secretID, err := authapi.GetUUIDFromPathParam(r, "id")
+		urlId := r.PathValue("ID")
+		secretId, err := uuid.Parse(urlId)
 		if err != nil {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
@@ -59,7 +61,7 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		secret, err := provider.RetrieveSecret(secretID)
+		secret, err := provider.RetrieveSecret(secretId)
 		if err != nil || secret == nil {
 			http.Error(w, "Not found", http.StatusNotFound)
 			return
@@ -92,7 +94,8 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 //	404: description:Not Found
 func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		secretID, err := authapi.GetUUIDFromPathParam(r, "id")
+		urlId := r.PathValue("ID")
+		secretId, err := uuid.Parse(urlId)
 		if err != nil {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
@@ -104,7 +107,7 @@ func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		secret, err := provider.RetrieveSecret(secretID)
+		secret, err := provider.RetrieveSecret(secretId)
 		if err != nil || secret == nil {
 			http.Error(w, "Not found", http.StatusNotFound)
 			return
@@ -115,7 +118,7 @@ func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		if err := provider.DeleteSecret(secretID); err != nil {
+		if err := provider.DeleteSecret(secretId); err != nil {
 			http.Error(w, "Failed to delete secret", http.StatusInternalServerError)
 			return
 		}

@@ -3,20 +3,10 @@ package authapi
 import (
 	"context"
 	"errors"
-	"net/http"
-	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
-
-func GetUUIDFromPathParam(r *http.Request, param string) (uuid.UUID, error) {
-	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) < 3 {
-		return uuid.Nil, errors.New("invalid path")
-	}
-	return uuid.Parse(parts[2]) // assuming /secrets/{id}
-}
 
 func GetUserIDFromContext(ctx context.Context) (uuid.UUID, error) {
 	claims, ok := ctx.Value("props").(jwt.MapClaims)

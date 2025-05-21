@@ -23,7 +23,7 @@ type LoginResult struct {
 }
 
 // Login Request takes  in Username and Password.
-// swagger:parameters idOfloginEndpoint
+// swagger:parameters LocalLogin
 type UserLoginReqWrapper struct {
 	// in:body
 	Body UserLoginRequest `json:"body"`

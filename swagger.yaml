@@ -19,7 +19,7 @@ host: localhost:8993
 paths:
     /create/permission:
         post:
-            operationId: idOfCreateAppPermission
+            operationId: CreateAppPermission
             parameters:
                 - in: body
                   name: body
@@ -33,10 +33,10 @@ paths:
                 - bearer: []
             summary: Create New App Permission.
             tags:
-                - createAppPermission
+                - PermissionsCRUD
     /create/role:
         post:
-            operationId: idOfCreateUserRole
+            operationId: CreateUserRole
             parameters:
                 - in: body
                   name: body
@@ -50,10 +50,10 @@ paths:
                 - bearer: []
             summary: Create New User Role.
             tags:
-                - createUserRole
+                - RolesCRUD
     /create/user:
         post:
-            operationId: idOfcreateUserEndpoint
+            operationId: CreateUser
             parameters:
                 - in: body
                   name: body
@@ -67,10 +67,10 @@ paths:
                 - bearer: []
             summary: Create a new user.
             tags:
-                - createuser
+                - UserCRUD
     /login:
         post:
-            operationId: idOfloginEndpoint
+            operationId: LocalLogin
             parameters:
                 - in: body
                   name: body
@@ -82,22 +82,22 @@ paths:
                     $ref: '#/responses/AuthToken'
             summary: Login a user and return token.
             tags:
-                - login
+                - Authentication
     /permissions:
         get:
             description: Returns all App Permissions
-            operationId: idOfgetAllAppPermissionsEndpoint
+            operationId: GetAllAppPermissions
             responses:
                 "200":
                     $ref: '#/responses/GetAllAppPermissionsResponse'
             security:
                 - bearer: []
             tags:
-                - getAllAppPermissions
+                - PermissionsCRUD
     /renew:
         post:
             description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
-            operationId: idOfrenewEndpoint
+            operationId: Renew
             parameters:
                 - in: body
                   name: body
@@ -111,10 +111,10 @@ paths:
                 "200":
                     $ref: '#/responses/CertificateData'
             tags:
-                - renew
+                - Certificates
     /roles:
         get:
-            operationId: idOfgetAllRolesEndpoint
+            operationId: GetAllUserRoles
             responses:
                 "200":
                     $ref: '#/responses/GetAllRolesResponse'
@@ -122,10 +122,10 @@ paths:
                 - bearer: []
             summary: Returns all active User Roles.
             tags:
-                - getAllUserRoles
+                - RolesCRUD
     /roles/permission:
         post:
-            operationId: idOfCreateRolePermissionMapping
+            operationId: CreateRolePermissionMapping
             parameters:
                 - in: body
                   name: body
@@ -139,32 +139,26 @@ paths:
                 - bearer: []
             summary: Map App Permission to User Role.
             tags:
-                - createRolePermissionMapping
-    /secrets:
-        post:
-            operationId: createUserSecret
+                - PermissionsCRUD
+    /secrets/{ID}:
+        get:
+            operationId: getUserSecretByID
             parameters:
-                - description: The application ID the token is for
-                  format: uuid
-                  in: query
-                  name: application_id
+                - description: ID of secret
+                  in: path
+                  name: ID
                   required: true
                   type: string
-                  x-go-name: ApplicationID
-                - description: The secret string, such as a bearer token
-                  in: query
-                  name: secret
-                  required: true
-                  type: string
-                  x-go-name: Secret
             responses:
                 "200":
-                    description: Secret stored successfully
-                "400":
-                    description: Invalid request
+                    $ref: '#/responses/RetrievedSecretResponse'
                 "401":
                     description: Unauthorized
-            summary: Create a new external application secret.
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by ID.
             tags:
                 - secrets
     /secrets/{id}:
@@ -182,32 +176,18 @@ paths:
             summary: Delete a user secret by ID.
             tags:
                 - secrets
-        get:
-            operationId: getUserSecretByID
-            responses:
-                "200":
-                    $ref: '#/responses/RetrievedSecretResponse'
-                "401":
-                    description: Unauthorized
-                "403":
-                    description: Forbidden
-                "404":
-                    description: Not Found
-            summary: Retrieve a user secret by ID.
-            tags:
-                - secrets
     /token/refresh:
         post:
-            operationId: idOftokenRefreshEndpoint
+            operationId: RefreshAccessToken
             responses:
                 "200":
                     $ref: '#/responses/AuthToken'
             summary: Refresh accessTokens andreturn to client.
             tags:
-                - tokenRefresh
+                - Authentication
     /update/userpass:
         post:
-            operationId: idOfUpdateUserPw
+            operationId: UpdateUserPw
             parameters:
                 - in: body
                   name: body
@@ -221,10 +201,10 @@ paths:
                 - bearer: []
             summary: Update user password.
             tags:
-                - updateUserPw
+                - UserCRUD
     /user/delete:
-        post:
-            operationId: idOfSoftDeleteUserById
+        delete:
+            operationId: SoftDeleteUserById
             parameters:
                 - in: body
                   name: body
@@ -238,10 +218,10 @@ paths:
                 - bearer: []
             summary: Soft Delete User by id.
             tags:
-                - SoftDeleteUserHandler
+                - UserCRUD
     /user/disable:
         post:
-            operationId: idOfDisableUser
+            operationId: DisableUser
             parameters:
                 - in: body
                   name: body
@@ -255,10 +235,10 @@ paths:
                 - bearer: []
             summary: Disable specified target User Id.
             tags:
-                - disableUser
+                - UserCRUD
     /user/enable:
         post:
-            operationId: idOfEnableUser
+            operationId: EnableUser
             parameters:
                 - in: body
                   name: body
@@ -272,11 +252,11 @@ paths:
                 - bearer: []
             summary: Enable specified target User Id.
             tags:
-                - enableUser
+                - UserCRUD
     /user/role:
         post:
             description: Update User Role Mapping
-            operationId: idOfUpdateUserRole
+            operationId: UpdateUserRole
             parameters:
                 - in: body
                   name: body
@@ -289,11 +269,11 @@ paths:
             security:
                 - bearer: []
             tags:
-                - updateUserRole
+                - RolesCRUD
     /user/role/remove:
         post:
             description: Disable User Role Mapping
-            operationId: idOfdisableUserRoleMapping
+            operationId: DisableUserRoleMapping
             parameters:
                 - in: body
                   name: body
@@ -306,10 +286,29 @@ paths:
             security:
                 - bearer: []
             tags:
-                - disableUserRoleMapping
+                - UserCRUD
+    /user/secrets/create:
+        post:
+            operationId: createUserSecret
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSecretRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    description: Secret stored successfully
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+            summary: Create a new external application secret.
+            tags:
+                - secrets
     /users:
         get:
-            operationId: idOfgetAllUsersEndpoint
+            operationId: GetAllUsers
             responses:
                 "200":
                     $ref: '#/responses/GetAllUsersResponse'
@@ -317,10 +316,10 @@ paths:
                 - bearer: []
             summary: Returns all active users.
             tags:
-                - getallusers
+                - users
     /users/{ID}:
         get:
-            operationId: idOfgetUserByIdEndpoint
+            operationId: getUserById
             parameters:
                 - description: ID of user
                   in: path
@@ -334,7 +333,7 @@ paths:
                 - bearer: []
             summary: Returns User Info for the user id specified in URL users.
             tags:
-                - getUserById
+                - users
 definitions:
     CertDnsRenewReq:
         properties:
@@ -402,6 +401,17 @@ definitions:
                 x-go-name: RoleId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    CreateSecretRequest:
+        properties:
+            application_id:
+                format: uuid
+                type: string
+                x-go-name: ApplicationID
+            secret:
+                type: string
+                x-go-name: Secret
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
     CreateUserRoleRequest:
         properties:
             roleDesc:

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// swagger:route POST /create/user createuser idOfcreateUserEndpoint
+// swagger:route POST /create/user UserCRUD CreateUser
 // Create a new user.
 //
 // security:
@@ -58,7 +58,7 @@ func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 	}
 }
 
-// swagger:route POST /update/userpass updateUserPw idOfUpdateUserPw
+// swagger:route POST /update/userpass UserCRUD UpdateUserPw
 // Update user password.
 //
 // security:
@@ -102,7 +102,7 @@ func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) func(w
 	}
 }
 
-// swagger:route GET /users getallusers idOfgetAllUsersEndpoint
+// swagger:route GET /users users GetAllUsers
 // Returns all active users.
 //
 // security:
@@ -132,7 +132,7 @@ func GetAllUsersHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
-// swagger:route GET /users/{ID} getUserById idOfgetUserByIdEndpoint
+// swagger:route GET /users/{ID} users getUserById
 // Returns User Info for the user id specified in URL users.
 //
 // security:
@@ -171,7 +171,7 @@ func GetUserByIdHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
-// swagger:route GET /roles getAllUserRoles idOfgetAllRolesEndpoint
+// swagger:route GET /roles RolesCRUD GetAllUserRoles
 // Returns all active User Roles.
 //
 // security:
@@ -201,7 +201,7 @@ func GetAllRolesHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
-// swagger:route GET /permissions getAllAppPermissions idOfgetAllAppPermissionsEndpoint
+// swagger:route GET /permissions PermissionsCRUD GetAllAppPermissions
 // Returns all App Permissions
 //
 // security:
@@ -231,7 +231,7 @@ func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) func
 	}
 }
 
-// swagger:route POST /user/enable enableUser idOfEnableUser
+// swagger:route POST /user/enable UserCRUD EnableUser
 // Enable specified target User Id.
 //
 // security:
@@ -275,7 +275,7 @@ func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 	}
 }
 
-// swagger:route POST /user/disable disableUser idOfDisableUser
+// swagger:route POST /user/disable UserCRUD DisableUser
 // Disable specified target User Id.
 //
 // security:
@@ -319,7 +319,7 @@ func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
-// swagger:route POST /user/role updateUserRole idOfUpdateUserRole
+// swagger:route POST /user/role RolesCRUD UpdateUserRole
 // Update User Role Mapping
 //
 // security:
@@ -365,7 +365,7 @@ func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fun
 	}
 }
 
-// swagger:route POST /user/role/remove disableUserRoleMapping idOfdisableUserRoleMapping
+// swagger:route POST /user/role/remove UserCRUD DisableUserRoleMapping
 // Disable User Role Mapping
 //
 // security:
@@ -411,7 +411,7 @@ func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fu
 	}
 }
 
-// swagger:route POST /create/role createUserRole idOfCreateUserRole
+// swagger:route POST /create/role RolesCRUD CreateUserRole
 // Create New User Role.
 //
 // security:
@@ -456,7 +456,7 @@ func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 	}
 }
 
-// swagger:route POST /create/permission createAppPermission idOfCreateAppPermission
+// swagger:route POST /create/permission PermissionsCRUD CreateAppPermission
 // Create New App Permission.
 //
 // security:
@@ -500,7 +500,7 @@ func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) func(
 	}
 }
 
-// swagger:route POST /roles/permission createRolePermissionMapping idOfCreateRolePermissionMapping
+// swagger:route POST /roles/permission PermissionsCRUD CreateRolePermissionMapping
 // Map App Permission to User Role.
 //
 // security:
@@ -544,7 +544,7 @@ func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDServic
 	}
 }
 
-// swagger:route POST /user/delete SoftDeleteUserHandler idOfSoftDeleteUserById
+// swagger:route DELETE /user/delete UserCRUD SoftDeleteUserById
 // Soft Delete User by id.
 //
 // security:

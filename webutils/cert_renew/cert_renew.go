@@ -28,7 +28,7 @@ type CertificateData struct {
 }
 
 // Login Request takes  in Username and Password.
-// swagger:parameters idOfrenewEndpoint
+// swagger:parameters Renew
 type CertDnsRenewReqWrapper struct {
 	// in:body
 	Body CertDnsRenewReq `json:"body"`

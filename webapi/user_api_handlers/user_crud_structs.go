@@ -6,7 +6,7 @@ import (
 )
 
 // Create User Request takes  in Username, Password, Email, and Role fo the new user.
-// swagger:parameters idOfcreateUserEndpoint
+// swagger:parameters CreateUser
 type CreateNewUserReqWrapper struct {
 	// in:body
 	Body CreateNewUserRequest `json:"body"`
@@ -22,7 +22,7 @@ type GetAllUsersResponse struct {
 	Users []user_crud_svc.UserDao `json:"users"`
 }
 
-// swagger:parameters idOfgetUserByIdEndpoint
+// swagger:parameters getUserById
 type GetUserByIdRequest struct {
 	// ID of user
 	//
@@ -43,7 +43,7 @@ type GetAllAppPermissionsResponse struct {
 }
 
 // Allows and Admin user to update another user's password.
-// swagger:parameters idOfUpdateUserPw
+// swagger:parameters UpdateUserPw
 type UpdatePasswordRequestWrapper struct {
 	// in:body
 	Body UpdateUserPasswordRequest `json:"body"`
@@ -61,14 +61,14 @@ type UserPasswordUpdateResponse struct {
 }
 
 // User Id of the executing and target users
-// swagger:parameters idOfEnableUser
+// swagger:parameters EnableUser
 type EnableUserRequestWrapper struct {
 	//in:body
 	Body EnableUserRequest `json:"body"`
 }
 
 // User Id of the executing and target users
-// swagger:parameters idOfDisableUser
+// swagger:parameters DisableUser
 type DisableUserRequestWrapper struct {
 	//in:body
 	Body DisableUserRequest `json:"body"`
@@ -88,7 +88,7 @@ type EnableDisableUserResponse struct {
 }
 
 // User Id of the executing and target users
-// swagger:parameters idOfUpdateUserRole idOfdisableUserRoleMapping
+// swagger:parameters UpdateUserRole DisableUserRoleMapping
 type UpdateUserRoleMappingRequestWrapper struct {
 	//in:body
 	Body UpdateUserRoleMappingRequest `json:"body"`
@@ -105,7 +105,7 @@ type UpdateUserRoleMappingResponse struct {
 }
 
 // User Id of the executing and target users
-// swagger:parameters idOfCreateUserRole
+// swagger:parameters CreateUserRole
 type CreateUserRoleRequestWrapper struct {
 	//in:body
 	Body CreateUserRoleRequest `json:"body"`
@@ -122,7 +122,7 @@ type CreateUserRoleResponse struct {
 }
 
 // Name and Description for new App Permission
-// swagger:parameters idOfCreateAppPermission
+// swagger:parameters CreateAppPermission
 type CreateAppPermissionRequestWrapper struct {
 	//in: body
 	Body CreateAppPermissionRequest `json:"body"`
@@ -138,7 +138,7 @@ type CreateAppPermissionResponse struct {
 }
 
 // Name and Description for new App Permission
-// swagger:parameters idOfCreateRolePermissionMapping
+// swagger:parameters CreateRolePermissionMapping
 type CreateRolePermissionMappingRequestWrapper struct {
 	//in: body
 	Body CreateRolePermissionMappingRequest `json:"body"`
@@ -155,7 +155,7 @@ type CreateRolePermissionMappingResponse struct {
 }
 
 // Mark user as deleted in Database. Will no longer show in UI unless explicityly restored
-// swagger:parameters idOfSoftDeleteUserById
+// swagger:parameters SoftDeleteUserById
 type SoftDeleteUserByIdRequestWrapper struct {
 	//in: body
 	Body SoftDeleteUserByIdRequest `json:"body"`

@@ -7,14 +7,22 @@ import (
 )
 
 // swagger:parameters createUserSecret
-type CreateSecretRequest struct {
-	// The application ID the token is for
-	// required: true
-	ApplicationID uuid.UUID `json:"application_id"`
+type CreateSecretRequestWrapper struct {
+	// in:body
+	Body CreateSecretRequest `json:"body"`
+}
 
-	// The secret string, such as a bearer token
-	// required: true
-	Secret string `json:"secret"`
+type CreateSecretRequest struct {
+	ApplicationID uuid.UUID `json:"application_id"`
+	Secret        string    `json:"secret"`
+}
+
+// swagger:parameters getUserSecretByID
+type RetrievedSecretRequest struct {
+	// ID of secret
+	//
+	// In: path
+	ID string `json:"ID"`
 }
 
 // swagger:response RetrievedSecretResponse
