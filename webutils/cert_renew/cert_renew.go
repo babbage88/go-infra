@@ -17,6 +17,7 @@ var keyPrefix string = "-----BEGIN PRIVATE KEY-----\n"
 
 var keySuffix string = "\n-----END PRIVATE KEY-----\n"
 
+// swagger:response CertificateData
 type CertificateData struct {
 	DomainNames   []string `json:"domainName"`
 	CertPEM       string   `json:"cert_pem"`
@@ -69,6 +70,7 @@ func (c *CertificateData) ParseAcmeCertStruct(acmeCert *cf_acme.CertificateData)
 	c.ZipDir = acmeCert.ZipDir
 	c.S3DownloadUrl = acmeCert.S3DownloadUrl
 }
+
 func (c *CertificateData) TrimJsonCertificateData() {
 	certTrimmed, err := readAndTrimCert(c.CertPEM, certPrefix, certSuffix)
 	if err == nil {

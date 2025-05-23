@@ -6,62 +6,11 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"time"
-
-	"github.com/babbage88/go-infra/webutils/cert_renew"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
-}
-
-// swagger:route POST /renew Certificates Renew
-// Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
-// responses:
-//   200: CertificateData
-// produces:
-// - application/json
-// - application/zip
-
-func Renewcert_renew() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Received POST request for Cert Renewal")
-		var req cert_renew.CertDnsRenewReq
-		err := json.NewDecoder(r.Body).Decode(&req)
-		if err != nil {
-			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
-			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		slog.Info("Decoded request body", slog.String("DomainName", req.DomainNames[0]))
-
-		// Pass envars to the Renew method
-		req.Timeout = req.Timeout * time.Second
-		cert_info, err := req.Renew()
-		if err != nil {
-			slog.Error("error renewing cert", slog.String("error", err.Error()))
-		}
-
-		slog.Info("Renewal command executed")
-
-		// Prepare the response
-		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainNames[0]))
-		// Serialize response to JSON
-		jsonResponse, err := json.Marshal(cert_info)
-		if err != nil {
-			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
-			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Set response headers and write JSON response
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonResponse)
-		slog.Info("Response sent successfully")
-	}
 }
 
 type LoginHandler struct {

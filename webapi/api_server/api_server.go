@@ -11,6 +11,7 @@ import (
 	customlogger "github.com/babbage88/go-infra/utils/logger"
 	authapi "github.com/babbage88/go-infra/webapi/authapi"
 	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
+	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -18,10 +19,10 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
 	authService authapi.AuthService,
 	userCRUDService *user_crud_svc.UserCRUDService,
 	userSecretStore user_secrets.UserSecretProvider,
-	swaggerSpec []byte, srvadr *string) error {
-
+	swaggerSpec []byte, srvadr *string,
+) error {
 	mux := http.NewServeMux()
-	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(authapi.Renewcert_renew())))
+	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))

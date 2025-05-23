@@ -42,6 +42,8 @@ import (
 var swaggerSpec []byte
 var versionInfo VersionInfo
 
+//go:generate go tool oapi-codegen -config cfg.yaml swagger.yaml
+
 //go:embed version.yaml
 var versionInfoBytes []byte
 

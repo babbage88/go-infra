@@ -514,6 +514,25 @@ responses:
                 type: string
             token:
                 type: string
+    CertificateData:
+        description: (empty)
+        headers:
+            cert_pem:
+                type: string
+            chain_pem:
+                type: string
+            domainName:
+                items:
+                    type: string
+                type: array
+            fullchain_pem:
+                type: string
+            priv_key:
+                type: string
+            s3DownloadUrl:
+                type: string
+            zipDir:
+                type: string
     RetrievedSecretResponse:
         description: (empty)
         schema:
