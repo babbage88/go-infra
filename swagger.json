@@ -419,7 +419,7 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/UpdateUserRoleResponse"
+            "$ref": "#/responses/EnableDisableUserResponse"
           }
         }
       }
@@ -563,22 +563,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
     "AuthTokenDao": {
       "type": "object",
@@ -777,6 +771,32 @@
           "type": "string",
           "format": "uuid",
           "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "GetAllAppPermissionsResponse": {
+      "type": "object",
+      "properties": {
+        "appPermissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AppPermissionDao"
+          },
+          "x-go-name": "AppPermissions"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "GetAllRolesResponse": {
+      "type": "object",
+      "properties": {
+        "userRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserRoleDao"
+          },
+          "x-go-name": "UserRoles"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
@@ -1092,16 +1112,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     }
   },
   "responses": {
@@ -1179,15 +1223,22 @@
         "$ref": "#/definitions/EnableDisableUserResponse"
       }
     },
+    "GetAllAppPermissionsResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/GetAllAppPermissionsResponse"
+      },
+      "headers": {
+        "body": {}
+      }
+    },
     "GetAllRolesResponse": {
       "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/GetAllRolesResponse"
+      },
       "headers": {
-        "userRoles": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/UserRoleDao"
-          }
-        }
+        "body": {}
       }
     },
     "GetAllUsersResponse": {

@@ -254,7 +254,7 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/UpdateUserRoleResponse'
+                    $ref: '#/responses/EnableDisableUserResponse'
             security:
                 - bearer: []
             summary: Disable specified target User Id.
@@ -342,14 +342,19 @@ paths:
 definitions:
     AppPermissionDao:
         properties:
-            error:
+            id:
+                format: uuid
                 type: string
-                x-go-name: Error
-            newPermissionInfo:
-                $ref: '#/definitions/AppPermissionDao'
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     AuthTokenDao:
         properties:
             created_at:
@@ -499,6 +504,24 @@ definitions:
                 format: uuid
                 type: string
                 x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    GetAllAppPermissionsResponse:
+        properties:
+            appPermissions:
+                items:
+                    $ref: '#/definitions/AppPermissionDao'
+                type: array
+                x-go-name: AppPermissions
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    GetAllRolesResponse:
+        properties:
+            userRoles:
+                items:
+                    $ref: '#/definitions/UserRoleDao'
+                type: array
+                x-go-name: UserRoles
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     GetUserByIdResponse:
@@ -802,13 +825,18 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/EnableDisableUserResponse'
+    GetAllAppPermissionsResponse:
+        description: (empty)
+        headers:
+            body: {}
+        schema:
+            $ref: '#/definitions/GetAllAppPermissionsResponse'
     GetAllRolesResponse:
         description: (empty)
         headers:
-            userRoles:
-                items:
-                    $ref: '#/definitions/UserRoleDao'
-                type: array
+            body: {}
+        schema:
+            $ref: '#/definitions/GetAllRolesResponse'
     GetAllUsersResponse:
         description: (empty)
         headers:

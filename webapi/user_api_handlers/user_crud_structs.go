@@ -47,13 +47,18 @@ type GetUserByIdResponse struct {
 	User user_crud_svc.UserDao `json:"user"`
 }
 
+// swagger:response GetAllRolesResponse
 type GetAllRolesResponseWrapper struct {
 	Body GetAllRolesResponse `json:"body"`
 }
 
-// swagger:response GetAllRolesResponse
 type GetAllRolesResponse struct {
 	UserRoles []user_crud_svc.UserRoleDao `json:"userRoles"`
+}
+
+// swagger:response GetAllAppPermissionsResponse
+type GetAllAppPermissionsResponseWrapper struct {
+	Body GetAllAppPermissionsResponse `json:"body"`
 }
 
 type GetAllAppPermissionsResponse struct {

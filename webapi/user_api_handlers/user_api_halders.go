@@ -229,7 +229,8 @@ func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) func
 			http.Error(w, "Error retrieving app permissions from database "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		jsonResponse, err := json.Marshal(appPermissions)
+		response := GetAllAppPermissionsResponseWrapper{Body: GetAllAppPermissionsResponse{AppPermissions: appPermissions}}
+		jsonResponse, err := json.Marshal(response)
 		if err != nil {
 			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
 			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)
@@ -295,7 +296,7 @@ func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 // - bearer:
 // responses:
 //
-//	200: UpdateUserRoleResponse
+//	200: EnableDisableUserResponse
 func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -404,17 +405,19 @@ func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fu
 			return
 		}
 
-		response := UpdateUserRoleMappingResponse{
-			Error: err,
+		response := UpdateUserRoleMappingResponseWrapper{
+			Body: UpdateUserRoleMappingResponse{
+				Error: err,
+			},
 		}
 
 		slog.Info("Updating user role mapping", slog.String("targetUserID", fmt.Sprint(request.TargetUserId)), slog.String("roleID", fmt.Sprint(request.RoleId)))
-		response.Error = uc_service.DisableUserRoleMapping(request.TargetUserId, request.RoleId)
-		if response.Error != nil {
-			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.Error = uc_service.DisableUserRoleMapping(request.TargetUserId, request.RoleId)
+		if response.Body.Error != nil {
+			http.Error(w, "error updating user role "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		} else {
-			response.Success = true
+			response.Body.Success = true
 		}
 
 		jsonResponse, err := json.Marshal(response)
@@ -453,7 +456,8 @@ func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 		response := CreateUserRoleResponseWrapper{
 			CreateUserRoleResponse{
 				NewUserRoleInfo: newUserRoleInfo,
-				Error:           err},
+				Error:           err,
+			},
 		}
 
 		slog.Info("CreateorUpdate user role", slog.String("RoleName", request.RoleName))
@@ -588,14 +592,16 @@ func SoftDeleteUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 			return
 		}
 		deletedUserInfo := &user_crud_svc.UserDao{Id: request.TargetUserId}
-		response := SoftDeleteUserByIdResponse{
-			DeletedUserInfo: deletedUserInfo,
-			Error:           err,
+		response := SoftDeleteUserByIdResponseWrapper{
+			Body: SoftDeleteUserByIdResponse{
+				DeletedUserInfo: deletedUserInfo,
+				Error:           err,
+			},
 		}
 
-		response.DeletedUserInfo, response.Error = uc_service.SoftDeleteUserById(request.TargetUserId)
-		if response.Error != nil {
-			http.Error(w, "error deleting user "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.DeletedUserInfo, response.Body.Error = uc_service.SoftDeleteUserById(request.TargetUserId)
+		if response.Body.Error != nil {
+			http.Error(w, "error deleting user "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 
