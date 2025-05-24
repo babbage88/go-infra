@@ -133,6 +133,61 @@ func GetUserSecretEntriesByIdHandler(provider UserSecretProvider) http.Handler {
 	}))
 }
 
+// swagger:route GET /user/{APPID}/secrets/{USERID} secrets GetUserSecretEntriesByAppId
+// Retrieve a user secret by USERID.
+// responses:
+//
+//	200: GetUserSecretEntriesResponse
+//	401: description:Unauthorized
+//	403: description:Forbidden
+//	404: description:Not Found
+
+func GetUserSecretEntriesByAppIdHandler(provider UserSecretProvider) http.Handler {
+	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		urlappId := r.PathValue("APPID")
+		urlId := r.PathValue("USERID")
+		urlUserId, err := uuid.Parse(urlId)
+		if err != nil {
+			slog.Error("Error parsing USER UUID from url string")
+			http.Error(w, "Invalid USERID", http.StatusBadRequest)
+		}
+
+		urlAppId, err := uuid.Parse(urlappId)
+		if err != nil {
+			slog.Error("Error parsing APP UUID from url string")
+			http.Error(w, "Invalid USERID", http.StatusBadRequest)
+		}
+
+		userID, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		if urlUserId != userID {
+			http.Error(w, "unauthorized to access secrets for requested user id", http.StatusUnauthorized)
+
+		}
+
+		secrets, err := provider.GetUserSecretEntriesByAppId(urlUserId, urlAppId)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		if secrets == nil {
+			http.Error(w, "Not Found", http.StatusNotFound)
+		}
+
+		resp := GetUserSecretEntriesResponseWrapper{
+			Body: secrets,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp.Body)
+
+	}))
+}
+
 // swagger:route DELETE /secrets/delete/{ID} secrets deleteUserSecretByID
 // Delete a user secret by ID.
 // responses:

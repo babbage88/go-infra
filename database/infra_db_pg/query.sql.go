@@ -682,6 +682,68 @@ func (q *Queries) GetUserPermissionsById(ctx context.Context, userid pgtype.UUID
 	return items, nil
 }
 
+const getUserSecretsByAppId = `-- name: GetUserSecretsByAppId :many
+SELECT
+  auth_token_id,
+  user_id,
+  application_id,
+  username,
+  endpoint_url,
+  email,
+  application_name,
+  token_created_at,
+  expiration
+FROM public.user_auth_app_mappings
+WHERE user_id = $1 and application_id = $2
+`
+
+type GetUserSecretsByAppIdParams struct {
+	UserID        uuid.UUID
+	ApplicationID uuid.UUID
+}
+
+type GetUserSecretsByAppIdRow struct {
+	AuthTokenID     uuid.UUID
+	UserID          uuid.UUID
+	ApplicationID   uuid.UUID
+	Username        pgtype.Text
+	EndpointUrl     pgtype.Text
+	Email           pgtype.Text
+	ApplicationName string
+	TokenCreatedAt  pgtype.Timestamptz
+	Expiration      pgtype.Timestamptz
+}
+
+func (q *Queries) GetUserSecretsByAppId(ctx context.Context, arg GetUserSecretsByAppIdParams) ([]GetUserSecretsByAppIdRow, error) {
+	rows, err := q.db.Query(ctx, getUserSecretsByAppId, arg.UserID, arg.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserSecretsByAppIdRow
+	for rows.Next() {
+		var i GetUserSecretsByAppIdRow
+		if err := rows.Scan(
+			&i.AuthTokenID,
+			&i.UserID,
+			&i.ApplicationID,
+			&i.Username,
+			&i.EndpointUrl,
+			&i.Email,
+			&i.ApplicationName,
+			&i.TokenCreatedAt,
+			&i.Expiration,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserSecretsByUserId = `-- name: GetUserSecretsByUserId :many
 SELECT
   auth_token_id,

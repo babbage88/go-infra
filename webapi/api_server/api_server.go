@@ -43,7 +43,8 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
 	mux.Handle("/healthCheck", cors.CORSWithGET(http.HandlerFunc(authapi.HealthCheckHandler)))
 	mux.Handle("/secrets/create/{ID}", cors.CORSWithPOST(user_secrets.CreateSecretHandler(userSecretStore)))
 	mux.Handle("/secrets/{ID}", cors.CORSWithGET(user_secrets.GetSecretHandler(userSecretStore)))
-	mux.Handle("/user/secrets/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByIdHandler(userSecretStore))) // expects /secrets/{id}
+	mux.Handle("/user/secrets/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByIdHandler(userSecretStore)))
+	mux.Handle("/user/{APPID}/secrets/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByAppIdHandler(userSecretStore)))
 	mux.Handle("/secrets/delete/{ID}", cors.CORSWithDELETE(user_secrets.DeleteSecretHandler(userSecretStore)))
 	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())

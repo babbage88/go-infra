@@ -357,3 +357,17 @@ SELECT
 FROM public.user_auth_app_mappings
 WHERE user_id = $1;
 
+-- name: GetUserSecretsByAppId :many
+SELECT
+  auth_token_id,
+  user_id,
+  application_id,
+  username,
+  endpoint_url,
+  email,
+  application_name,
+  token_created_at,
+  expiration
+FROM public.user_auth_app_mappings
+WHERE user_id = $1 and application_id = $2;
+

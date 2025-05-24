@@ -332,6 +332,32 @@ paths:
             summary: Retrieve a user secret by USERID.
             tags:
                 - secrets
+    /user/{APPID}/secrets/{USERID}:
+        get:
+            operationId: GetUserSecretEntriesByAppId
+            parameters:
+                - format: uuid
+                  in: path
+                  name: USERID
+                  required: true
+                  type: string
+                - format: uuid
+                  in: path
+                  name: APPID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserSecretEntriesResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by USERID.
+            tags:
+                - secrets
     /users:
         get:
             operationId: GetAllUsers
@@ -363,19 +389,14 @@ paths:
 definitions:
     AppPermissionDao:
         properties:
-            id:
-                format: uuid
+            error:
                 type: string
-                x-go-name: Id
-            permissionDescription:
-                type: string
-                x-go-name: PermissionDescription
-            permissionName:
-                type: string
-                x-go-name: PermissionName
+                x-go-name: Error
+            newPermissionInfo:
+                $ref: '#/definitions/AppPermissionDao'
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     AuthTokenDao:
         properties:
             created_at:
@@ -634,14 +655,32 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     RolePermissionMappingDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newMappingInfo:
-                $ref: '#/definitions/RolePermissionMappingDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            permissionId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:

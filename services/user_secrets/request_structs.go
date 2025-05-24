@@ -55,3 +55,11 @@ type GetUserSecretEntriesResponseWrapper struct {
 	// in: body
 	Body []UserSecretEntry `json:"userSecretEntries"`
 }
+
+// swagger:parameters GetUserSecretEntriesByAppId
+type GetUserSecretEntriesByAppIdRequest struct {
+	// In: path
+	USERID uuid.UUID
+	// In: path
+	APPID uuid.UUID
+}

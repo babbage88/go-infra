@@ -37,3 +37,13 @@ func (t *UserSecretEntry) ParseExternalAppSecretMetadataFromDb(userSecretInfo in
 	t.AppInfo.Name = userSecretInfo.ApplicationName
 	t.AppInfo.UrlEndpoint = userSecretInfo.EndpointUrl.String
 }
+
+func (t *UserSecretEntry) ParseExternalAppSecretMetadataFromAppId(userSecretInfo infra_db_pg.GetUserSecretsByAppIdRow) {
+	t.SecretMetadata.Id = userSecretInfo.AuthTokenID
+	t.SecretMetadata.UserId = userSecretInfo.UserID
+	t.SecretMetadata.Expiration = userSecretInfo.Expiration.Time
+	t.SecretMetadata.CreatedAt = userSecretInfo.TokenCreatedAt.Time
+	t.AppInfo.Id = userSecretInfo.ApplicationID
+	t.AppInfo.Name = userSecretInfo.ApplicationName
+	t.AppInfo.UrlEndpoint = userSecretInfo.EndpointUrl.String
+}
