@@ -127,6 +127,7 @@ type CreateUserRoleResponseWrapper struct {
 	Body CreateUserRoleResponse `json:"body"`
 }
 
+// swagger:model UserRoleDao
 type CreateUserRoleResponse struct {
 	Error           error                      `json:"error"`
 	NewUserRoleInfo *user_crud_svc.UserRoleDao `json:"newUserRoleInfo"`
