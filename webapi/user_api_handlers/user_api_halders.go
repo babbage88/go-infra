@@ -164,7 +164,10 @@ func GetUserByIdHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 			http.Error(w, "Error getting user from database "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		jsonResponse, err := json.Marshal(user)
+
+		response := GetUserByIdResponseWrapper{Body: GetUserByIdResponse{User: *user}}
+
+		jsonResponse, err := json.Marshal(response)
 		if err != nil {
 			slog.Error("Error marshaling user into json", slog.String("Error", err.Error()))
 			http.Error(w, "Error marshaling user to json "+err.Error(), http.StatusInternalServerError)
@@ -194,7 +197,9 @@ func GetAllRolesHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 			http.Error(w, "Error getting user roles from database "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		jsonResponse, err := json.Marshal(roles)
+
+		response := GetAllRolesResponseWrapper{Body: GetAllRolesResponse{UserRoles: roles}}
+		jsonResponse, err := json.Marshal(response)
 		if err != nil {
 			slog.Error("Error marshaling users into json", slog.String("Error", err.Error()))
 			http.Error(w, "Error marshaling users to json "+err.Error(), http.StatusInternalServerError)

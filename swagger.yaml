@@ -342,19 +342,14 @@ paths:
 definitions:
     AppPermissionDao:
         properties:
-            id:
-                format: uuid
+            error:
                 type: string
-                x-go-name: Id
-            permissionDescription:
-                type: string
-                x-go-name: PermissionDescription
-            permissionName:
-                type: string
-                x-go-name: PermissionName
+                x-go-name: Error
+            newPermissionInfo:
+                $ref: '#/definitions/AppPermissionDao'
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     AuthTokenDao:
         properties:
             created_at:
@@ -504,6 +499,12 @@ definitions:
                 format: uuid
                 type: string
                 x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    GetUserByIdResponse:
+        properties:
+            user:
+                $ref: '#/definitions/UserDao'
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     HostServer:
@@ -724,14 +725,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
 responses:
     AuthToken:
         description: Respose will return login result and the user info.
@@ -798,10 +818,8 @@ responses:
                 type: array
     GetUserByIdResponse:
         description: (empty)
-        headers:
-            user: {}
         schema:
-            $ref: '#/definitions/UserDao'
+            $ref: '#/definitions/GetUserByIdResponse'
     RetrievedSecretResponse:
         description: (empty)
         schema:
