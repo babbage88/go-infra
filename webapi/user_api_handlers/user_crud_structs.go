@@ -18,6 +18,7 @@ type CreateNewUserRequest struct {
 	NewUserEmail    string `json:"newEmail"`
 }
 
+// swagger:response GetAllUsersResponse
 type GetAllUsersResponse struct {
 	Users []user_crud_svc.UserDao `json:"users"`
 }
@@ -34,6 +35,7 @@ type GetUserByIdResponse struct {
 	User user_crud_svc.UserDao `json:"user"`
 }
 
+// swagger:response GetAllRolesResponse
 type GetAllRolesResponse struct {
 	UserRoles []user_crud_svc.UserRoleDao `json:"userRoles"`
 }
@@ -54,6 +56,7 @@ type UpdateUserPasswordRequest struct {
 	NewPassword  string    `json:"newPassword"`
 }
 
+// swagger:model
 type UserPasswordUpdateResponse struct {
 	Success      bool      `json:"success"`
 	Error        error     `json:"error"`

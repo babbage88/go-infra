@@ -23,6 +23,7 @@ type UserDao struct {
 	IsDeleted    bool       `json:"isDeleted"`
 }
 
+// swagger:model
 type AuthTokenDao struct {
 	Id           uuid.UUID `json:"id"`
 	UserID       uuid.UUID `json:"user_id"`
@@ -32,6 +33,7 @@ type AuthTokenDao struct {
 	LastModified time.Time `json:"last_modified"`
 }
 
+// swagger:model
 type HostServer struct {
 	ID               int32
 	Hostname         string
@@ -48,12 +50,14 @@ type HostServer struct {
 	LastModified     time.Time
 }
 
+// swagger:model
 type HostedDbPlatform struct {
 	ID                int32
 	PlatformName      string
 	DefaultListenPort int32
 }
 
+// swagger:model
 type UserHostedDb struct {
 	ID                   int32
 	PriceTierCodeID      int32
@@ -70,6 +74,7 @@ type UserHostedDb struct {
 	LastModified         time.Time
 }
 
+// swagger:model
 type UserRoleDao struct {
 	Id              uuid.UUID `json:"id"`
 	RoleName        string    `json:"roleName"`
@@ -80,12 +85,14 @@ type UserRoleDao struct {
 	LastModified    time.Time `json:"lastModified"`
 }
 
+// swagger:model
 type AppPermissionDao struct {
 	Id                    uuid.UUID `json:"id"`
 	PermissionName        string    `json:"permissionName"`
 	PermissionDescription string    `json:"permissionDescription"`
 }
 
+// swagger:model
 type RolePermissionMappingDao struct {
 	Id           uuid.UUID `json:"id"`
 	RoleId       uuid.UUID `json:"roleId"`

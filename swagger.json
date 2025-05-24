@@ -361,7 +361,10 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/UserPasswordUpdateResponse"
+            "description": "UserPasswordUpdateResponse",
+            "schema": {
+              "$ref": "#/definitions/UserPasswordUpdateResponse"
+            }
           }
         }
       }
@@ -560,6 +563,60 @@
     }
   },
   "definitions": {
+    "AppPermissionDao": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "permissionDescription": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "permissionName": {
+          "type": "string",
+          "x-go-name": "PermissionName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
+    "AuthTokenDao": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "expiration": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Expiration"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "token": {
+          "type": "string",
+          "x-go-name": "Token"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
     "CertDnsRenewReq": {
       "type": "object",
       "properties": {
@@ -713,6 +770,109 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
+    "HostServer": {
+      "type": "object",
+      "properties": {
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "HostedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Hostname": {
+          "type": "string"
+        },
+        "ID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "IDDbHost": {
+          "type": "boolean"
+        },
+        "IpAddress": {
+          "type": "string"
+        },
+        "IsContainerHost": {
+          "type": "boolean"
+        },
+        "IsVirtualMachine": {
+          "type": "boolean"
+        },
+        "IsVmHost": {
+          "type": "boolean"
+        },
+        "LastModified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "PublicSshKeyname": {
+          "type": "string"
+        },
+        "SslKeyPath": {
+          "type": "string"
+        },
+        "Username": {
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
+    "HostedDbPlatform": {
+      "type": "object",
+      "properties": {
+        "DefaultListenPort": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "PlatformName": {
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
+    "RolePermissionMappingDao": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "permissionId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PermissionId"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "RoleId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
       "properties": {
@@ -764,6 +924,113 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
+    "UserDao": {
+      "type": "object",
+      "title": "Respose will return login result and the user info.",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "description": "in:body",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "role_ids": {
+          "$ref": "#/definitions/UUIDs"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Roles"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "UserName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
+    "UserHostedDb": {
+      "type": "object",
+      "properties": {
+        "CreatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "CurrentHostServerID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "CurrentKubeClusterID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "DbPlatformID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "Fqdn": {
+          "type": "string"
+        },
+        "ID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "LastModified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ListenPort": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "PriceTierCodeID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "PrivateIpAddress": {
+          "type": "string"
+        },
+        "PubIpAddress": {
+          "type": "string"
+        },
+        "UserApplicationIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "UserID": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
     "UserLoginRequest": {
       "type": "object",
       "properties": {
@@ -777,6 +1044,62 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/authapi"
+    },
+    "UserPasswordUpdateResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "success": {
+          "type": "boolean",
+          "x-go-name": "Success"
+        },
+        "targetUserId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "UserRoleDao": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     }
   },
   "responses": {
@@ -821,6 +1144,28 @@
         },
         "zipDir": {
           "type": "string"
+        }
+      }
+    },
+    "GetAllRolesResponse": {
+      "description": "(empty)",
+      "headers": {
+        "userRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserRoleDao"
+          }
+        }
+      }
+    },
+    "GetAllUsersResponse": {
+      "description": "(empty)",
+      "headers": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserDao"
+          }
         }
       }
     },

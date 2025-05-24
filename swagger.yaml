@@ -220,7 +220,9 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/UserPasswordUpdateResponse'
+                    description: UserPasswordUpdateResponse
+                    schema:
+                        $ref: '#/definitions/UserPasswordUpdateResponse'
             security:
                 - bearer: []
             summary: Update user password.
@@ -340,6 +342,47 @@ paths:
             tags:
                 - users
 definitions:
+    AppPermissionDao:
+        properties:
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    AuthTokenDao:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            last_modified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            token:
+                type: string
+                x-go-name: Token
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     CertDnsRenewReq:
         properties:
             acmeEmail:
@@ -455,6 +498,80 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    HostServer:
+        properties:
+            CreatedAt:
+                format: date-time
+                type: string
+            HostedDomains:
+                items:
+                    type: string
+                type: array
+            Hostname:
+                type: string
+            ID:
+                format: int32
+                type: integer
+            IDDbHost:
+                type: boolean
+            IpAddress:
+                type: string
+            IsContainerHost:
+                type: boolean
+            IsVirtualMachine:
+                type: boolean
+            IsVmHost:
+                type: boolean
+            LastModified:
+                format: date-time
+                type: string
+            PublicSshKeyname:
+                type: string
+            SslKeyPath:
+                type: string
+            Username:
+                type: string
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    HostedDbPlatform:
+        properties:
+            DefaultListenPort:
+                format: int32
+                type: integer
+            ID:
+                format: int32
+                type: integer
+            PlatformName:
+                type: string
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    RolePermissionMappingDao:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            permissionId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -493,6 +610,85 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UserDao:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            email:
+                type: string
+                x-go-name: Email
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                description: in:body
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            role_ids:
+                $ref: '#/definitions/UUIDs'
+            roles:
+                items:
+                    type: string
+                type: array
+                x-go-name: Roles
+            username:
+                type: string
+                x-go-name: UserName
+        title: Respose will return login result and the user info.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    UserHostedDb:
+        properties:
+            CreatedAt:
+                format: date-time
+                type: string
+            CurrentHostServerID:
+                format: int32
+                type: integer
+            CurrentKubeClusterID:
+                format: int32
+                type: integer
+            DbPlatformID:
+                format: int32
+                type: integer
+            Fqdn:
+                type: string
+            ID:
+                format: int32
+                type: integer
+            LastModified:
+                format: date-time
+                type: string
+            ListenPort:
+                format: int32
+                type: integer
+            PriceTierCodeID:
+                format: int32
+                type: integer
+            PrivateIpAddress:
+                type: string
+            PubIpAddress:
+                type: string
+            UserApplicationIds:
+                items:
+                    format: int32
+                    type: integer
+                type: array
+            UserID:
+                format: int32
+                type: integer
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserLoginRequest:
         properties:
             password:
@@ -503,6 +699,48 @@ definitions:
                 x-go-name: UserName
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/authapi
+    UserPasswordUpdateResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            success:
+                type: boolean
+                x-go-name: Success
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UserRoleDao:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
 responses:
     AuthToken:
         description: Respose will return login result and the user info.
@@ -533,6 +771,20 @@ responses:
                 type: string
             zipDir:
                 type: string
+    GetAllRolesResponse:
+        description: (empty)
+        headers:
+            userRoles:
+                items:
+                    $ref: '#/definitions/UserRoleDao'
+                type: array
+    GetAllUsersResponse:
+        description: (empty)
+        headers:
+            users:
+                items:
+                    $ref: '#/definitions/UserDao'
+                type: array
     RetrievedSecretResponse:
         description: (empty)
         schema:
