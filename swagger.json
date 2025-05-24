@@ -480,7 +480,10 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/UpdateUserRoleMappingResponse"
+            "description": "UpdateUserRoleMappingResponse",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRoleMappingResponse"
+            }
           }
         }
       }
@@ -924,6 +927,20 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
+    "UpdateUserRoleMappingResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "success": {
+          "type": "boolean",
+          "x-go-name": "Success"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
     "UserDao": {
       "type": "object",
       "title": "Respose will return login result and the user info.",
@@ -1167,6 +1184,15 @@
             "$ref": "#/definitions/UserDao"
           }
         }
+      }
+    },
+    "GetUserByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/UserDao"
+      },
+      "headers": {
+        "user": {}
       }
     },
     "RetrievedSecretResponse": {

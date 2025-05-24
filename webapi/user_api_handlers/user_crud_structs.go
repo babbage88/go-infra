@@ -31,6 +31,7 @@ type GetUserByIdRequest struct {
 	ID string `json:"ID"`
 }
 
+// swagger:response GetUserByIdResponse
 type GetUserByIdResponse struct {
 	User user_crud_svc.UserDao `json:"user"`
 }
@@ -102,6 +103,7 @@ type UpdateUserRoleMappingRequest struct {
 	RoleId       uuid.UUID `json:"roleId"`
 }
 
+// swagger:model
 type UpdateUserRoleMappingResponse struct {
 	Success bool  `json:"success"`
 	Error   error `json:"error"`

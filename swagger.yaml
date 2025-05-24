@@ -291,7 +291,9 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/UpdateUserRoleMappingResponse'
+                    description: UpdateUserRoleMappingResponse
+                    schema:
+                        $ref: '#/definitions/UpdateUserRoleMappingResponse'
             security:
                 - bearer: []
             tags:
@@ -610,6 +612,16 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UpdateUserRoleMappingResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            success:
+                type: boolean
+                x-go-name: Success
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UserDao:
         properties:
             createdAt:
@@ -785,6 +797,12 @@ responses:
                 items:
                     $ref: '#/definitions/UserDao'
                 type: array
+    GetUserByIdResponse:
+        description: (empty)
+        headers:
+            user: {}
+        schema:
+            $ref: '#/definitions/UserDao'
     RetrievedSecretResponse:
         description: (empty)
         schema:
