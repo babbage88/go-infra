@@ -106,7 +106,7 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/UserDao"
+            "$ref": "#/responses/CreateUserResponse"
           }
         }
       }
@@ -361,10 +361,7 @@
         ],
         "responses": {
           "200": {
-            "description": "UserPasswordUpdateResponse",
-            "schema": {
-              "$ref": "#/definitions/UserPasswordUpdateResponse"
-            }
+            "$ref": "#/responses/UserPasswordUpdateResponse"
           }
         }
       }
@@ -480,10 +477,7 @@
         ],
         "responses": {
           "200": {
-            "description": "UpdateUserRoleMappingResponse",
-            "schema": {
-              "$ref": "#/definitions/UpdateUserRoleMappingResponse"
-            }
+            "$ref": "#/responses/UpdateUserRoleMappingResponse"
           }
         }
       }
@@ -569,22 +563,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
     "AuthTokenDao": {
       "type": "object",
@@ -763,6 +751,19 @@
       "format": "int64",
       "x-go-package": "time"
     },
+    "EnableDisableUserResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "modifiedUserInfo": {
+          "$ref": "#/definitions/UserDao"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
     "EnableUserRequest": {
       "type": "object",
       "properties": {
@@ -845,16 +846,38 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newMappingInfo": {
-          "$ref": "#/definitions/RolePermissionMappingDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "permissionId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PermissionId"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "RoleId"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -863,6 +886,19 @@
           "type": "string",
           "format": "uuid",
           "x-go-name": "TargetUserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
+    "SoftDeleteUserByIdResponse": {
+      "type": "object",
+      "properties": {
+        "deletedUserInfo": {
+          "$ref": "#/definitions/UserDao"
+        },
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
@@ -939,7 +975,6 @@
           "x-go-name": "Enabled"
         },
         "id": {
-          "description": "in:body",
           "type": "string",
           "format": "uuid",
           "x-go-name": "Id"
@@ -1157,10 +1192,22 @@
         "$ref": "#/definitions/RolePermissionMappingDao"
       }
     },
+    "CreateUserResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/UserDao"
+      }
+    },
     "CreateUserRoleResponse": {
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserRoleDao"
+      }
+    },
+    "EnableDisableUserResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/EnableDisableUserResponse"
       }
     },
     "GetAllRolesResponse": {
@@ -1226,39 +1273,22 @@
         }
       }
     },
-    "UserDao": {
-      "description": "Respose will return login result and the user info.",
+    "SoftDeleteUserByIdResponse": {
+      "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/UUIDs"
-      },
-      "headers": {
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "email": {
-          "type": "string"
-        },
-        "enabled": {
-          "type": "boolean"
-        },
-        "isDeleted": {
-          "type": "boolean"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "role_ids": {},
-        "roles": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "username": {
-          "type": "string"
-        }
+        "$ref": "#/definitions/SoftDeleteUserByIdResponse"
+      }
+    },
+    "UpdateUserRoleMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/UpdateUserRoleMappingResponse"
+      }
+    },
+    "UserPasswordUpdateResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/UserPasswordUpdateResponse"
       }
     }
   },

@@ -16,7 +16,7 @@ import (
 // security:
 // - bearer:
 // responses:
-//   200: UserDao
+//   200: CreateUserResponse
 
 func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -45,13 +45,17 @@ func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 			slog.Error("Error creating new user", slog.String("Error", err.Error()))
 			http.Error(w, "Error createing new user "+err.Error(), http.StatusInternalServerError)
 		}
+		response := CreateUserResponseWrapper{
+			Body: newUser,
+		}
 
-		jsonResponse, err := json.Marshal(newUser)
+		jsonResponse, err := json.Marshal(response)
 		if err != nil {
 			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
 			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResponse)
@@ -79,16 +83,18 @@ func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) func(w
 			return
 		}
 
-		response := UserPasswordUpdateResponse{
-			TargetUserId: request.TargetUserId,
+		response := UserPasswordUpdateResponseWrapper{
+			Body: UserPasswordUpdateResponse{
+				TargetUserId: request.TargetUserId,
+			},
 		}
-		response.Error = uc_service.UpdateUserPasswordById(request.TargetUserId, request.NewPassword)
-		if response.Error != nil {
-			response.Success = false
+		response.Body.Error = uc_service.UpdateUserPasswordById(request.TargetUserId, request.NewPassword)
+		if response.Body.Error != nil {
+			response.Body.Success = false
 			http.Error(w, "error updating user password "+err.Error(), http.StatusUnauthorized)
 			return
 		}
-		response.Success = true
+		response.Body.Success = true
 
 		jsonResponse, err := json.Marshal(response)
 		if err != nil {
@@ -252,14 +258,16 @@ func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 			return
 		}
 		modifiedUserInfo := &user_crud_svc.UserDao{Id: request.TargetUserId}
-		response := EnableDisableUserResponse{
-			ModifiedUserInfo: modifiedUserInfo,
-			Error:            err,
+		response := EnableDisableUserResponseWrapper{
+			Body: EnableDisableUserResponse{
+				ModifiedUserInfo: modifiedUserInfo,
+				Error:            err,
+			},
 		}
 
-		response.ModifiedUserInfo, response.Error = uc_service.EnableUserById(request.TargetUserId)
-		if response.Error != nil {
-			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.ModifiedUserInfo, response.Body.Error = uc_service.EnableUserById(request.TargetUserId)
+		if response.Body.Error != nil {
+			http.Error(w, "error enabling user password "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 
@@ -296,14 +304,16 @@ func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 			return
 		}
 		modifiedUserInfo := &user_crud_svc.UserDao{Id: request.TargetUserId}
-		response := EnableDisableUserResponse{
-			ModifiedUserInfo: modifiedUserInfo,
-			Error:            err,
+		response := EnableDisableUserResponseWrapper{
+			Body: EnableDisableUserResponse{
+				ModifiedUserInfo: modifiedUserInfo,
+				Error:            err,
+			},
 		}
 
-		response.ModifiedUserInfo, response.Error = uc_service.DisableUserById(request.TargetUserId)
-		if response.Error != nil {
-			http.Error(w, "error enabling user password "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.ModifiedUserInfo, response.Body.Error = uc_service.DisableUserById(request.TargetUserId)
+		if response.Body.Error != nil {
+			http.Error(w, "error enabling user password "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 
@@ -340,17 +350,20 @@ func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fun
 			return
 		}
 
-		response := UpdateUserRoleMappingResponse{
-			Error: err,
+		response := UpdateUserRoleMappingResponseWrapper{
+			Body: UpdateUserRoleMappingResponse{
+				Error:   err,
+				Success: false,
+			},
 		}
 
 		slog.Info("Updating user role mapping", slog.String("targetUserID", fmt.Sprint(request.TargetUserId)), slog.String("roleID", fmt.Sprint(request.RoleId)))
-		response.Error = uc_service.UpdateUserRoleMapping(request.TargetUserId, request.RoleId)
-		if response.Error != nil {
-			http.Error(w, "error updating user role "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.Error = uc_service.UpdateUserRoleMapping(request.TargetUserId, request.RoleId)
+		if response.Body.Error != nil {
+			http.Error(w, "error updating user role "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		} else {
-			response.Success = true
+			response.Body.Success = true
 		}
 
 		jsonResponse, err := json.Marshal(response)

@@ -8,10 +8,9 @@ import (
 )
 
 // Respose will return login result and the user info.
-// swagger:response UserDao
+// swagger:model UserDao
 // This text will appear as description of your response body.
 type UserDao struct {
-	// in:body
 	Id           uuid.UUID  `json:"id"`
 	UserName     string     `json:"username"`
 	Email        string     `json:"email"`
@@ -23,7 +22,7 @@ type UserDao struct {
 	IsDeleted    bool       `json:"isDeleted"`
 }
 
-// swagger:model
+// swagger:model AuthTokenDao
 type AuthTokenDao struct {
 	Id           uuid.UUID `json:"id"`
 	UserID       uuid.UUID `json:"user_id"`
@@ -33,7 +32,7 @@ type AuthTokenDao struct {
 	LastModified time.Time `json:"last_modified"`
 }
 
-// swagger:model
+// swagger:model HostServer
 type HostServer struct {
 	ID               int32
 	Hostname         string
@@ -50,14 +49,14 @@ type HostServer struct {
 	LastModified     time.Time
 }
 
-// swagger:model
+// swagger:model HostedDbPlatform
 type HostedDbPlatform struct {
 	ID                int32
 	PlatformName      string
 	DefaultListenPort int32
 }
 
-// swagger:model
+// swagger:model UserHostedDb
 type UserHostedDb struct {
 	ID                   int32
 	PriceTierCodeID      int32
@@ -74,7 +73,7 @@ type UserHostedDb struct {
 	LastModified         time.Time
 }
 
-// swagger:model
+// swagger:model UserRoleDao
 type UserRoleDao struct {
 	Id              uuid.UUID `json:"id"`
 	RoleName        string    `json:"roleName"`
@@ -85,14 +84,14 @@ type UserRoleDao struct {
 	LastModified    time.Time `json:"lastModified"`
 }
 
-// swagger:model
+// swagger:model AppPermissionDao
 type AppPermissionDao struct {
 	Id                    uuid.UUID `json:"id"`
 	PermissionName        string    `json:"permissionName"`
 	PermissionDescription string    `json:"permissionDescription"`
 }
 
-// swagger:model
+// swagger:model RolePermissionMappingDao
 type RolePermissionMappingDao struct {
 	Id           uuid.UUID `json:"id"`
 	RoleId       uuid.UUID `json:"roleId"`

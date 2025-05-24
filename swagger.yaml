@@ -62,7 +62,7 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/UserDao'
+                    $ref: '#/responses/CreateUserResponse'
             security:
                 - bearer: []
             summary: Create a new user.
@@ -220,9 +220,7 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    description: UserPasswordUpdateResponse
-                    schema:
-                        $ref: '#/definitions/UserPasswordUpdateResponse'
+                    $ref: '#/responses/UserPasswordUpdateResponse'
             security:
                 - bearer: []
             summary: Update user password.
@@ -291,9 +289,7 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    description: UpdateUserRoleMappingResponse
-                    schema:
-                        $ref: '#/definitions/UpdateUserRoleMappingResponse'
+                    $ref: '#/responses/UpdateUserRoleMappingResponse'
             security:
                 - bearer: []
             tags:
@@ -346,14 +342,19 @@ paths:
 definitions:
     AppPermissionDao:
         properties:
-            error:
+            id:
+                format: uuid
                 type: string
-                x-go-name: Error
-            newPermissionInfo:
-                $ref: '#/definitions/AppPermissionDao'
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     AuthTokenDao:
         properties:
             created_at:
@@ -488,6 +489,15 @@ definitions:
         format: int64
         type: integer
         x-go-package: time
+    EnableDisableUserResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            modifiedUserInfo:
+                $ref: '#/definitions/UserDao'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     EnableUserRequest:
         properties:
             targetUserId:
@@ -561,6 +571,15 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    SoftDeleteUserByIdResponse:
+        properties:
+            deletedUserInfo:
+                $ref: '#/definitions/UserDao'
+            error:
+                type: string
+                x-go-name: Error
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     UUIDs:
         items:
             format: uuid
@@ -614,7 +633,6 @@ definitions:
                 type: boolean
                 x-go-name: Enabled
             id:
-                description: in:body
                 format: uuid
                 type: string
                 x-go-name: Id
@@ -752,10 +770,18 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/RolePermissionMappingDao'
+    CreateUserResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/UserDao'
     CreateUserRoleResponse:
         description: (empty)
         schema:
             $ref: '#/definitions/UserRoleDao'
+    EnableDisableUserResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/EnableDisableUserResponse'
     GetAllRolesResponse:
         description: (empty)
         headers:
@@ -800,30 +826,18 @@ responses:
                     type: string
                     x-go-name: UserID
             type: object
-    UserDao:
-        description: Respose will return login result and the user info.
-        headers:
-            createdAt:
-                format: date-time
-                type: string
-            email:
-                type: string
-            enabled:
-                type: boolean
-            isDeleted:
-                type: boolean
-            lastModified:
-                format: date-time
-                type: string
-            role_ids: {}
-            roles:
-                items:
-                    type: string
-                type: array
-            username:
-                type: string
+    SoftDeleteUserByIdResponse:
+        description: (empty)
         schema:
-            $ref: '#/definitions/UUIDs'
+            $ref: '#/definitions/SoftDeleteUserByIdResponse'
+    UpdateUserRoleMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/UpdateUserRoleMappingResponse'
+    UserPasswordUpdateResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/UserPasswordUpdateResponse'
 securityDefinitions:
     bearer:
         in: header

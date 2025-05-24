@@ -18,6 +18,12 @@ type CreateNewUserRequest struct {
 	NewUserEmail    string `json:"newEmail"`
 }
 
+// swagger:response CreateUserResponse
+type CreateUserResponseWrapper struct {
+	// in: body
+	Body user_crud_svc.UserDao `json:"body"`
+}
+
 // swagger:response GetAllUsersResponse
 type GetAllUsersResponse struct {
 	Users []user_crud_svc.UserDao `json:"users"`
@@ -48,7 +54,7 @@ type GetAllAppPermissionsResponse struct {
 // Allows and Admin user to update another user's password.
 // swagger:parameters UpdateUserPw
 type UpdatePasswordRequestWrapper struct {
-	// in:body
+	// in: body
 	Body UpdateUserPasswordRequest `json:"body"`
 }
 
@@ -57,7 +63,12 @@ type UpdateUserPasswordRequest struct {
 	NewPassword  string    `json:"newPassword"`
 }
 
-// swagger:model
+// swagger:response UserPasswordUpdateResponse
+type UserPasswordUpdateResponseWrapper struct {
+	// in: body
+	Body UserPasswordUpdateResponse `json:"body"`
+}
+
 type UserPasswordUpdateResponse struct {
 	Success      bool      `json:"success"`
 	Error        error     `json:"error"`
@@ -67,7 +78,7 @@ type UserPasswordUpdateResponse struct {
 // User Id of the executing and target users
 // swagger:parameters EnableUser
 type EnableUserRequestWrapper struct {
-	//in:body
+	//in: body
 	Body EnableUserRequest `json:"body"`
 }
 
@@ -86,6 +97,11 @@ type EnableUserRequest struct {
 	TargetUserId uuid.UUID `json:"targetUserId"`
 }
 
+// swagger:response EnableDisableUserResponse
+type EnableDisableUserResponseWrapper struct {
+	// in: body
+	Body EnableDisableUserResponse `json:"body"`
+}
 type EnableDisableUserResponse struct {
 	ModifiedUserInfo *user_crud_svc.UserDao `json:"modifiedUserInfo"`
 	Error            error                  `json:"error"`
@@ -94,7 +110,7 @@ type EnableDisableUserResponse struct {
 // User Id of the executing and target users
 // swagger:parameters UpdateUserRole DisableUserRoleMapping
 type UpdateUserRoleMappingRequestWrapper struct {
-	//in:body
+	// in: body
 	Body UpdateUserRoleMappingRequest `json:"body"`
 }
 
@@ -103,7 +119,13 @@ type UpdateUserRoleMappingRequest struct {
 	RoleId       uuid.UUID `json:"roleId"`
 }
 
-// swagger:model
+// swagger:response UpdateUserRoleMappingResponse
+type UpdateUserRoleMappingResponseWrapper struct {
+	// in: body
+	Body UpdateUserRoleMappingResponse `json:"body"`
+}
+
+// swagger:model UpdateUserRoleMappingResponse
 type UpdateUserRoleMappingResponse struct {
 	Success bool  `json:"success"`
 	Error   error `json:"error"`
@@ -123,7 +145,7 @@ type CreateUserRoleRequest struct {
 
 // swagger:response CreateUserRoleResponse
 type CreateUserRoleResponseWrapper struct {
-	// In:body
+	// in: body
 	Body CreateUserRoleResponse `json:"body"`
 }
 
@@ -189,6 +211,12 @@ type SoftDeleteUserByIdRequestWrapper struct {
 
 type SoftDeleteUserByIdRequest struct {
 	TargetUserId uuid.UUID `json:"targetUserId"`
+}
+
+// swagger:response SoftDeleteUserByIdResponse
+type SoftDeleteUserByIdResponseWrapper struct {
+	// in: body
+	Body SoftDeleteUserByIdResponse `json:"body"`
 }
 
 type SoftDeleteUserByIdResponse struct {
