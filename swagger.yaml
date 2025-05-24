@@ -311,6 +311,27 @@ paths:
                 - bearer: []
             tags:
                 - UserCRUD
+    /user/secrets/{USERID}:
+        get:
+            operationId: GetUserSecretEntries
+            parameters:
+                - format: uuid
+                  in: path
+                  name: USERID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserSecretEntriesResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by USERID.
+            tags:
+                - secrets
     /users:
         get:
             operationId: GetAllUsers
@@ -342,14 +363,19 @@ paths:
 definitions:
     AppPermissionDao:
         properties:
-            error:
+            id:
+                format: uuid
                 type: string
-                x-go-name: Error
-            newPermissionInfo:
-                $ref: '#/definitions/AppPermissionDao'
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     AuthTokenDao:
         properties:
             created_at:
@@ -501,6 +527,40 @@ definitions:
                 x-go-name: TargetUserId
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    ExternalAppSecretMetadata:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            expiry:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            userId:
+                format: uuid
+                type: string
+                x-go-name: UserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    ExternalApplicationInfo:
+        properties:
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            name:
+                type: string
+                x-go-name: Name
+            url:
+                type: string
+                x-go-name: UrlEndpoint
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
     GetAllAppPermissionsResponse:
         properties:
             appPermissions:
@@ -574,32 +634,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -769,6 +811,14 @@ definitions:
         type: object
         x-go-name: CreateUserRoleResponse
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    UserSecretEntry:
+        properties:
+            appInfo:
+                $ref: '#/definitions/ExternalApplicationInfo'
+            secretMetadata:
+                $ref: '#/definitions/ExternalAppSecretMetadata'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
 responses:
     AuthToken:
         description: Respose will return login result and the user info.
@@ -842,6 +892,12 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/GetUserByIdResponse'
+    GetUserSecretEntriesResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/UserSecretEntry'
+            type: array
     RetrievedSecretResponse:
         description: (empty)
         schema:
