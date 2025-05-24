@@ -682,6 +682,63 @@ func (q *Queries) GetUserPermissionsById(ctx context.Context, userid pgtype.UUID
 	return items, nil
 }
 
+const getUserSecretsByUserId = `-- name: GetUserSecretsByUserId :many
+SELECT
+  auth_token_id,
+  user_id,
+  application_id,
+  username,
+  endpoint_url,
+  email,
+  application_name,
+  token_created_at,
+  expiration
+FROM public.user_auth_app_mappings
+WHERE user_id = $1
+`
+
+type GetUserSecretsByUserIdRow struct {
+	AuthTokenID     uuid.UUID
+	UserID          uuid.UUID
+	ApplicationID   uuid.UUID
+	Username        pgtype.Text
+	EndpointUrl     pgtype.Text
+	Email           pgtype.Text
+	ApplicationName string
+	TokenCreatedAt  pgtype.Timestamptz
+	Expiration      pgtype.Timestamptz
+}
+
+func (q *Queries) GetUserSecretsByUserId(ctx context.Context, userID uuid.UUID) ([]GetUserSecretsByUserIdRow, error) {
+	rows, err := q.db.Query(ctx, getUserSecretsByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserSecretsByUserIdRow
+	for rows.Next() {
+		var i GetUserSecretsByUserIdRow
+		if err := rows.Scan(
+			&i.AuthTokenID,
+			&i.UserID,
+			&i.ApplicationID,
+			&i.Username,
+			&i.EndpointUrl,
+			&i.Email,
+			&i.ApplicationName,
+			&i.TokenCreatedAt,
+			&i.Expiration,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const hardDeleteUserRoleById = `-- name: HardDeleteUserRoleById :exec
 DELETE FROM user_roles
 WHERE id = $1
@@ -695,7 +752,7 @@ func (q *Queries) HardDeleteUserRoleById(ctx context.Context, id uuid.UUID) erro
 const insertExternalAppIntegrationByName = `-- name: InsertExternalAppIntegrationByName :one
 INSERT INTO public.external_integration_apps (id, "name") 
 VALUES ($1, $2)
-RETURNING id, name, created_at, last_modified
+RETURNING id, name, created_at, last_modified, endpoint_url
 `
 
 type InsertExternalAppIntegrationByNameParams struct {
@@ -711,6 +768,7 @@ func (q *Queries) InsertExternalAppIntegrationByName(ctx context.Context, arg In
 		&i.Name,
 		&i.CreatedAt,
 		&i.LastModified,
+		&i.EndpointUrl,
 	)
 	return i, err
 }

@@ -21,3 +21,19 @@ func (t *ExternalApplication) ParseExternalApplicationFromDb(extApp infra_db_pg.
 	t.Id = extApp.ID
 	t.Name = extApp.Name
 }
+
+func (t *ExternalAppSecretMetadata) ParseExternalAppSecretMetadataFromDb(extAppToken infra_db_pg.ExternalAuthToken) {
+	t.Id = extAppToken.ID
+	t.UserId = extAppToken.UserID
+	t.Expiration = extAppToken.Expiration.Time
+}
+
+func (t *UserSecretEntry) ParseExternalAppSecretMetadataFromDb(userSecretInfo infra_db_pg.GetUserSecretsByUserIdRow) {
+	t.SecretMetadata.Id = userSecretInfo.AuthTokenID
+	t.SecretMetadata.UserId = userSecretInfo.UserID
+	t.SecretMetadata.Expiration = userSecretInfo.Expiration.Time
+	t.SecretMetadata.CreatedAt = userSecretInfo.TokenCreatedAt.Time
+	t.AppInfo.Id = userSecretInfo.ApplicationID
+	t.AppInfo.Name = userSecretInfo.ApplicationName
+	t.AppInfo.UrlEndpoint = userSecretInfo.EndpointUrl.String
+}

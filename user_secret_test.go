@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/user_secrets"
@@ -47,7 +48,7 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 
 	t.Logf("Storing %d secrets...", totalSecrets)
 	for i := 0; i < totalSecrets; i++ {
-		err := provider.StoreSecret(samplePlaintext, userId, appId)
+		err := provider.StoreSecret(samplePlaintext, userId, appId, time.Now())
 		if err != nil {
 			t.Fatalf("failed to store secret at iteration %d: %v", i, err)
 		}

@@ -34,7 +34,7 @@ type RetrievedSecretRequest struct {
 
 // swagger:response RetrievedSecretResponse
 type RetrievedSecretResponse struct {
-	// in:body
+	// in: body
 	Body struct {
 		ID                  uuid.UUID `json:"id"`
 		UserID              uuid.UUID `json:"user_id"`
@@ -42,4 +42,21 @@ type RetrievedSecretResponse struct {
 		Expiration          time.Time `json:"expiration,omitempty"`
 		Token               string    `json:"token"`
 	}
+}
+
+// swagger:parameters GetUserSecretEntriesRequest
+type GetUserSecretEntriesRequestWrapper struct {
+	// in: body
+	Body GetUserSecretEntriesRequest `json:"body"`
+}
+
+type GetUserSecretEntriesRequest struct {
+	// In: path
+	USERID uuid.UUID `json:"userId"`
+}
+
+// swagger:response GetUserSecretEntriesResponse
+type GetUserSecretEntriesResponseWrapper struct {
+	// in: body
+	Body []UserSecretEntry `json:"userSecretEntries"`
 }

@@ -2,7 +2,7 @@ package user_secrets
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/babbage88/go-infra/webapi/authapi"
@@ -85,6 +85,54 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 	}))
 }
 
+// swagger:route GET /user/secrets/{USERID} secrets GetUserSecretEntries
+// Retrieve a user secret by USERID.
+// responses:
+//
+//	200: GetUserSecretEntriesResponse
+//	401: description:Unauthorized
+//	403: description:Forbidden
+//	404: description:Not Found
+
+func GetUserSecretEntriesByIdHandler(provider UserSecretProvider) http.Handler {
+	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		urlId := r.PathValue("USERID")
+		urlUserId, err := uuid.Parse(urlId)
+		if err != nil {
+			slog.Error("Error parsing UUID from url string")
+			http.Error(w, "Invalid USERID", http.StatusBadRequest)
+		}
+
+		userID, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		if urlUserId != userID {
+			http.Error(w, "unauthorized to access secrets for requested user id", http.StatusUnauthorized)
+
+		}
+
+		secrets, err := provider.GetUserSecretEntries(urlUserId)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		if secrets == nil {
+			http.Error(w, "Not Found", http.StatusNotFound)
+		}
+
+		resp := GetUserSecretEntriesResponseWrapper{
+			Body: secrets,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp.Body)
+
+	}))
+}
+
 // swagger:route DELETE /secrets/delete/{ID} secrets deleteUserSecretByID
 // Delete a user secret by ID.
 // responses:
@@ -96,7 +144,6 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		urlId := r.PathValue("ID")
-		fmt.Println(urlId)
 
 		secretId, err := uuid.Parse(urlId)
 		if err != nil {

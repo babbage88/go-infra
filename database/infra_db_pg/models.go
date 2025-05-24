@@ -47,6 +47,7 @@ type ExternalIntegrationApp struct {
 	Name         string
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
+	EndpointUrl  pgtype.Text
 }
 
 type HealthCheck struct {
@@ -117,6 +118,7 @@ type UserAuthAppMapping struct {
 	Email           pgtype.Text
 	ApplicationID   uuid.UUID
 	ApplicationName string
+	EndpointUrl     pgtype.Text
 	AuthTokenID     uuid.UUID
 	TokenCreatedAt  pgtype.Timestamptz
 	Expiration      pgtype.Timestamptz

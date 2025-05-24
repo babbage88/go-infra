@@ -19,9 +19,31 @@ type RetrievedUserSecret struct {
 	Metadata *ExternalApplicationAuthToken
 }
 
+// swagger:model UserSecretEntry
+type UserSecretEntry struct {
+	AppInfo        ExternalApplicationInfo   `json:"appInfo"`
+	SecretMetadata ExternalAppSecretMetadata `json:"secretMetadata"`
+}
+
+// swagger:model ExternalApplicationInfo
+type ExternalApplicationInfo struct {
+	Id          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	UrlEndpoint string    `json:"url"`
+}
+
+// swagger:model ExternalAppSecretMetadata
+type ExternalAppSecretMetadata struct {
+	Id         uuid.UUID `json:"id"`
+	UserId     uuid.UUID `json:"userId"`
+	Expiration time.Time `json:"expiry"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
 type UserSecretProvider interface {
 	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
+	GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error)
 	DeleteSecret(secretId uuid.UUID) error
 }
 
@@ -110,4 +132,21 @@ func (p *PgUserSecretStore) DeleteSecret(secretId uuid.UUID) error {
 	qry := infra_db_pg.New(p.DbConn)
 	result := qry.DeleteExternalAuthTokenById(context.Background(), secretId)
 	return result
+}
+
+func (p *PgUserSecretStore) GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error) {
+	userSecrets := make([]UserSecretEntry, 0)
+	qry := infra_db_pg.New(p.DbConn)
+	tokens, err := qry.GetUserSecretsByUserId(context.Background(), userId)
+	if err != nil {
+		slog.Error("Error retrieving token metadata from database", slog.String("error", err.Error()))
+		return userSecrets, err
+	}
+	for _, entryDb := range tokens {
+		var entry UserSecretEntry
+		entry.ParseExternalAppSecretMetadataFromDb(entryDb)
+		userSecrets = append(userSecrets, entry)
+	}
+
+	return userSecrets, nil
 }
