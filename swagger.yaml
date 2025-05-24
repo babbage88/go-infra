@@ -346,18 +346,14 @@ paths:
 definitions:
     AppPermissionDao:
         properties:
-            id:
-                format: uuid
+            error:
                 type: string
-                x-go-name: Id
-            permissionDescription:
-                type: string
-                x-go-name: PermissionDescription
-            permissionName:
-                type: string
-                x-go-name: PermissionName
+                x-go-name: Error
+            newPermissionInfo:
+                $ref: '#/definitions/AppPermissionDao'
         type: object
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-name: CreateAppPermissionResponse
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     AuthTokenDao:
         properties:
             created_at:
@@ -476,6 +472,15 @@ definitions:
                 x-go-name: RoleName
         type: object
         x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+    CreateUserRoleResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            newUserRoleInfo:
+                $ref: '#/definitions/UserRoleDao'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     DisableUserRequest:
         properties:
             targetUserId:
@@ -549,31 +554,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-name: CreateRolePermissionMappingResponse
+        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -783,6 +771,18 @@ responses:
                 type: string
             zipDir:
                 type: string
+    CreateAppPermissionResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/AppPermissionDao'
+    CreateRolePermissionMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/RolePermissionMappingDao'
+    CreateUserRoleResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateUserRoleResponse'
     GetAllRolesResponse:
         description: (empty)
         headers:

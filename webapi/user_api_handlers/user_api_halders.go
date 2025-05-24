@@ -432,15 +432,16 @@ func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 			return
 		}
 		newUserRoleInfo := &user_crud_svc.UserRoleDao{RoleName: request.RoleName, RoleDescription: request.RoleDescription}
-		response := CreateUserRoleResponse{
-			NewUserRoleInfo: newUserRoleInfo,
-			Error:           err,
+		response := CreateUserRoleResponseWrapper{
+			CreateUserRoleResponse{
+				NewUserRoleInfo: newUserRoleInfo,
+				Error:           err},
 		}
 
 		slog.Info("CreateorUpdate user role", slog.String("RoleName", request.RoleName))
-		response.NewUserRoleInfo, response.Error = uc_service.CreateOrUpdateUserRole(request.RoleName, request.RoleDescription)
-		if response.Error != nil {
-			http.Error(w, "error creating role "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.NewUserRoleInfo, response.Body.Error = uc_service.CreateOrUpdateUserRole(request.RoleName, request.RoleDescription)
+		if response.Body.Error != nil {
+			http.Error(w, "error creating role "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 
@@ -477,14 +478,16 @@ func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) func(
 			return
 		}
 		newAppPermissionInfo := &user_crud_svc.AppPermissionDao{PermissionName: request.PermissionName, PermissionDescription: request.PermissionDescription}
-		response := CreateAppPermissionResponse{
-			NewAppPermissionInfo: newAppPermissionInfo,
-			Error:                err,
+		response := CreateAppPermissionResponseWrapper{
+			Body: CreateAppPermissionResponse{
+				NewAppPermissionInfo: newAppPermissionInfo,
+				Error:                err,
+			},
 		}
 
-		response.NewAppPermissionInfo, response.Error = uc_service.CreateOrUpdateAppPermission(request.PermissionName, request.PermissionDescription)
-		if response.Error != nil {
-			http.Error(w, "error creating role "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.NewAppPermissionInfo, response.Body.Error = uc_service.CreateOrUpdateAppPermission(request.PermissionName, request.PermissionDescription)
+		if response.Body.Error != nil {
+			http.Error(w, "error creating role "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 
@@ -521,14 +524,16 @@ func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDServic
 			return
 		}
 		newRolePermissionMappingInfo := &user_crud_svc.RolePermissionMappingDao{RoleId: request.RoleId, PermissionId: request.PermissionId}
-		response := CreateRolePermissionMappingResponse{
-			NewMappingInfo: newRolePermissionMappingInfo,
-			Error:          err,
+		response := CreateRolePermissionMappingResponseWrapper{
+			Body: CreateRolePermissionMappingResponse{
+				NewMappingInfo: newRolePermissionMappingInfo,
+				Error:          err,
+			},
 		}
 
-		response.NewMappingInfo, response.Error = uc_service.CreateOrUpdateRolePermisssionMapping(request.RoleId, request.PermissionId)
-		if response.Error != nil {
-			http.Error(w, "error creating role permission mapping "+response.Error.Error(), http.StatusUnauthorized)
+		response.Body.NewMappingInfo, response.Body.Error = uc_service.CreateOrUpdateRolePermisssionMapping(request.RoleId, request.PermissionId)
+		if response.Body.Error != nil {
+			http.Error(w, "error creating role permission mapping "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 

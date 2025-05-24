@@ -583,6 +583,7 @@
           "x-go-name": "PermissionName"
         }
       },
+      "x-go-name": "CreateAppPermissionResponse",
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "AuthTokenDao": {
@@ -745,6 +746,19 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
     },
+    "CreateUserRoleResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+    },
     "DisableUserRequest": {
       "type": "object",
       "properties": {
@@ -874,6 +888,7 @@
           "x-go-name": "RoleId"
         }
       },
+      "x-go-name": "CreateRolePermissionMappingResponse",
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "SoftDeleteUserByIdRequest": {
@@ -1162,6 +1177,24 @@
         "zipDir": {
           "type": "string"
         }
+      }
+    },
+    "CreateAppPermissionResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/AppPermissionDao"
+      }
+    },
+    "CreateRolePermissionMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/RolePermissionMappingDao"
+      }
+    },
+    "CreateUserRoleResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateUserRoleResponse"
       }
     },
     "GetAllRolesResponse": {

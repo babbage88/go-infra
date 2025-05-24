@@ -112,13 +112,19 @@ type UpdateUserRoleMappingResponse struct {
 // User Id of the executing and target users
 // swagger:parameters CreateUserRole
 type CreateUserRoleRequestWrapper struct {
-	//in:body
+	// in:body
 	Body CreateUserRoleRequest `json:"body"`
 }
 
 type CreateUserRoleRequest struct {
 	RoleName        string `json:"roleName"`
 	RoleDescription string `json:"roleDesc"`
+}
+
+// swagger:response CreateUserRoleResponse
+type CreateUserRoleResponseWrapper struct {
+	// In:body
+	Body CreateUserRoleResponse `json:"body"`
 }
 
 type CreateUserRoleResponse struct {
@@ -137,6 +143,13 @@ type CreateAppPermissionRequest struct {
 	PermissionDescription string `json:"descripiton"`
 }
 
+// swagger:response CreateAppPermissionResponse
+type CreateAppPermissionResponseWrapper struct {
+	// in: body
+	Body CreateAppPermissionResponse `json:"body"`
+}
+
+// swagger:model AppPermissionDao
 type CreateAppPermissionResponse struct {
 	NewAppPermissionInfo *user_crud_svc.AppPermissionDao `json:"newPermissionInfo"`
 	Error                error                           `json:"error"`
@@ -154,6 +167,13 @@ type CreateRolePermissionMappingRequest struct {
 	PermissionId uuid.UUID `json:"permId"`
 }
 
+// swagger:response CreateRolePermissionMappingResponse
+type CreateRolePermissionMappingResponseWrapper struct {
+	// in: body
+	Body CreateRolePermissionMappingResponse `json:"body"`
+}
+
+// swagger:model RolePermissionMappingDao
 type CreateRolePermissionMappingResponse struct {
 	NewMappingInfo *user_crud_svc.RolePermissionMappingDao `json:"newMappingInfo"`
 	Error          error                                   `json:"error"`
