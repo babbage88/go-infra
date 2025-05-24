@@ -204,7 +204,7 @@ type CreateRolePermissionMappingRequest struct {
 	PermissionId uuid.UUID `json:"permId"`
 }
 
-// swagger:response CreateRolePermissionMappingResponse
+// swagger:response CreateRolePermissionMapptingResponse
 type CreateRolePermissionMappingResponseWrapper struct {
 	// in: body
 	Body CreateRolePermissionMappingResponse `json:"body"`
