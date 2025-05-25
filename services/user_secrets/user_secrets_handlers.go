@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/babbage88/go-infra/webapi/authapi"
+	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/google/uuid"
 )
 

@@ -31,10 +31,10 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/babbage88/go-infra/api/api_server"
+	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
-	"github.com/babbage88/go-infra/webapi/api_server"
-	"github.com/babbage88/go-infra/webapi/authapi"
 	"github.com/google/uuid"
 )
 
@@ -70,5 +70,12 @@ func main() {
 		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}
 
-	api_server.StartWebApiServer(healthCheckService, authService, userService, secretProvider, swaggerSpec, &srvport)
+	switch {
+	case userHttps:
+		api_server.StartApiServerWithHttps(healthCheckService, authService, userService, secretProvider, swaggerSpec, &srvport, certFile, certKey)
+	default:
+		api_server.StartWebApiServer(healthCheckService, authService, userService, secretProvider, swaggerSpec, &srvport)
+
+	}
+
 }

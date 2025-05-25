@@ -4,13 +4,13 @@ import (
 	"log/slog"
 	"net/http"
 
+	authapi "github.com/babbage88/go-infra/api/authapi"
+	userapi "github.com/babbage88/go-infra/api/user_api_handlers"
 	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	customlogger "github.com/babbage88/go-infra/utils/logger"
-	authapi "github.com/babbage88/go-infra/webapi/authapi"
-	userapi "github.com/babbage88/go-infra/webapi/user_api_handlers"
 	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

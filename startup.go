@@ -16,6 +16,9 @@ import (
 )
 
 var (
+	userHttps          bool
+	certFile           string
+	certKey            string
 	isLocalDevelopment bool
 	srvport            string
 	envFile            string
@@ -119,6 +122,9 @@ func parseFlags() {
 	flag.BoolVar(&initDevUser, "devuser", false, "Update the devuser password")
 	flag.BoolVar(&version, "version", false, "Show the current version.")
 	flag.BoolVar(&bumpVersion, "bump-version", false, "Bumps version tag, push to remote repo and update version.yaml")
+	flag.BoolVar(&userHttps, "use-https", false, "Starts api with TLS/SSL with the specified cert and key")
+	flag.StringVar(&certFile, "cert-file", "server.crt", "Path to certificate file to use")
+	flag.StringVar(&certKey, "cert-key", "server.key", "Path to certificate key file file to use")
 	flag.BoolVar(&minor, "minor", false, "Bumps Minor version number")
 	flag.BoolVar(&major, "major", false, "Bumps Major version number")
 	flag.BoolVar(&testEncryption, "test-enc", false, "testing/debugging encrytion package")

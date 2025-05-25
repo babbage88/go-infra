@@ -6,7 +6,6 @@
     "application/json"
   ],
   "schemes": [
-    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -643,7 +642,7 @@
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "AuthTokenDao": {
       "type": "object",
@@ -735,7 +734,7 @@
           "x-go-name": "PermissionName"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "CreateNewUserRequest": {
       "type": "object",
@@ -753,7 +752,7 @@
           "x-go-name": "NewUsername"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "CreateRolePermissionMappingRequest": {
       "type": "object",
@@ -769,7 +768,7 @@
           "x-go-name": "RoleId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "CreateSecretRequest": {
       "type": "object",
@@ -803,7 +802,7 @@
           "x-go-name": "RoleName"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "DisableUserRequest": {
       "type": "object",
@@ -814,7 +813,7 @@
           "x-go-name": "TargetUserId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "Duration": {
       "description": "A Duration represents the elapsed time between two instants\nas an int64 nanosecond count. The representation limits the\nlargest representable duration to approximately 290 years.",
@@ -833,7 +832,7 @@
           "$ref": "#/definitions/UserDao"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "EnableUserRequest": {
       "type": "object",
@@ -844,7 +843,7 @@
           "x-go-name": "TargetUserId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "ExternalAppSecretMetadata": {
       "type": "object",
@@ -902,7 +901,7 @@
           "x-go-name": "AppPermissions"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "GetAllRolesResponse": {
       "type": "object",
@@ -915,7 +914,7 @@
           "x-go-name": "UserRoles"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "GetUserByIdResponse": {
       "type": "object",
@@ -924,7 +923,7 @@
           "$ref": "#/definitions/UserDao"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "HostServer": {
       "type": "object",
@@ -1039,7 +1038,7 @@
           "x-go-name": "TargetUserId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdResponse": {
       "type": "object",
@@ -1052,7 +1051,7 @@
           "x-go-name": "Error"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UUIDs": {
       "type": "array",
@@ -1076,7 +1075,7 @@
           "x-go-name": "TargetUserId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UpdateUserRoleMappingRequest": {
       "type": "object",
@@ -1092,7 +1091,7 @@
           "x-go-name": "TargetUserId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UpdateUserRoleMappingResponse": {
       "type": "object",
@@ -1106,7 +1105,7 @@
           "x-go-name": "Success"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserDao": {
       "type": "object",
@@ -1226,7 +1225,7 @@
           "x-go-name": "UserName"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/authapi"
+      "x-go-package": "github.com/babbage88/go-infra/api/authapi"
     },
     "UserPasswordUpdateResponse": {
       "type": "object",
@@ -1245,7 +1244,7 @@
           "x-go-name": "TargetUserId"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webapi/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserRoleDao": {
       "type": "object",

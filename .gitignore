@@ -1,5 +1,8 @@
 response.json
 response_renew.json
+server.crt
+server.key
+localdev_certs/*
 goinfra
 k8s.env
 k8s.env.yaml

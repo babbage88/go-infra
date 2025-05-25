@@ -3,7 +3,6 @@ consumes:
 produces:
     - application/json
 schemes:
-    - http
     - https
 swagger: "2.0"
 info:
@@ -396,7 +395,7 @@ definitions:
                 $ref: '#/definitions/AppPermissionDao'
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     AuthTokenDao:
         properties:
             created_at:
@@ -464,7 +463,7 @@ definitions:
                 type: string
                 x-go-name: PermissionName
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     CreateNewUserRequest:
         properties:
             newEmail:
@@ -477,7 +476,7 @@ definitions:
                 type: string
                 x-go-name: NewUsername
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     CreateRolePermissionMappingRequest:
         properties:
             permId:
@@ -489,7 +488,7 @@ definitions:
                 type: string
                 x-go-name: RoleId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     CreateSecretRequest:
         properties:
             application_id:
@@ -514,7 +513,7 @@ definitions:
                 type: string
                 x-go-name: RoleName
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     DisableUserRequest:
         properties:
             targetUserId:
@@ -522,7 +521,7 @@ definitions:
                 type: string
                 x-go-name: TargetUserId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     Duration:
         description: |-
             A Duration represents the elapsed time between two instants
@@ -539,7 +538,7 @@ definitions:
             modifiedUserInfo:
                 $ref: '#/definitions/UserDao'
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     EnableUserRequest:
         properties:
             targetUserId:
@@ -547,7 +546,7 @@ definitions:
                 type: string
                 x-go-name: TargetUserId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     ExternalAppSecretMetadata:
         properties:
             createdAt:
@@ -590,7 +589,7 @@ definitions:
                 type: array
                 x-go-name: AppPermissions
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     GetAllRolesResponse:
         properties:
             userRoles:
@@ -599,13 +598,13 @@ definitions:
                 type: array
                 x-go-name: UserRoles
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     GetUserByIdResponse:
         properties:
             user:
                 $ref: '#/definitions/UserDao'
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     HostServer:
         properties:
             CreatedAt:
@@ -655,32 +654,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -688,7 +669,7 @@ definitions:
                 type: string
                 x-go-name: TargetUserId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdResponse:
         properties:
             deletedUserInfo:
@@ -697,7 +678,7 @@ definitions:
                 type: string
                 x-go-name: Error
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UUIDs:
         items:
             format: uuid
@@ -715,7 +696,7 @@ definitions:
                 type: string
                 x-go-name: TargetUserId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UpdateUserRoleMappingRequest:
         properties:
             roleId:
@@ -727,7 +708,7 @@ definitions:
                 type: string
                 x-go-name: TargetUserId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UpdateUserRoleMappingResponse:
         properties:
             error:
@@ -737,7 +718,7 @@ definitions:
                 type: boolean
                 x-go-name: Success
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserDao:
         properties:
             createdAt:
@@ -825,7 +806,7 @@ definitions:
                 type: string
                 x-go-name: UserName
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/authapi
+        x-go-package: github.com/babbage88/go-infra/api/authapi
     UserPasswordUpdateResponse:
         properties:
             error:
@@ -839,7 +820,7 @@ definitions:
                 type: string
                 x-go-name: TargetUserId
         type: object
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
             error:
@@ -849,7 +830,7 @@ definitions:
                 $ref: '#/definitions/UserRoleDao'
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/webapi/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserSecretEntry:
         properties:
             appInfo:

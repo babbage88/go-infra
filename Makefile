@@ -8,6 +8,9 @@ BUILDER := infrabuilder
 CUR_DUR := $(shell pwd)
 mig:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
+SPEC_JSON_SRC_FILE := spec/swagger.local-https.json
+SPEC_YAML_SRC_FILE := spec/swagger.local-https.json
+
 
 check-swagger:
 	which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
@@ -27,6 +30,12 @@ local-swagger: check-swagger
 	swagger mixin spec/swagger.local.yaml local-swagger.yaml --output swagger.yaml --format=yaml
 	rm local-swagger.json && rm local-swagger.yaml
 
+local-swagger-https: check-swagger
+	swagger generate spec -o ./local-swagger.yaml --scan-models && swagger generate spec --scan-models -o local-swagger.json --scan-models
+	swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.json --output swagger.json --format=json
+	swagger mixin $(SPEC_YAML_SRC_FILE) local-swagger.yaml --output swagger.yaml --format=yaml
+	rm local-swagger.json && rm local-swagger.yaml
+
 k3local-swagger: check-swagger
 	swagger generate spec -o ./k3local-swagger.yaml --scan-models && swagger generate spec -o k3local-swagger.json --scan-models
 	swagger mixin spec/swagger.localdev.json k3local-swagger.json --output swagger.json --format=json
@@ -35,6 +44,9 @@ k3local-swagger: check-swagger
 
 run-local: local-swagger
 	go run . --local-development
+
+run-local-with-https: local-swagger-https
+	go run . --local-development --use-https
 
 embed-swagger:
 	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json
