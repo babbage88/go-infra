@@ -25,7 +25,7 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
-	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
+	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAccessTokens(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateUser", userapi.CreateUserHandler(userCRUDService))))
 	mux.Handle("/update/userpass", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.UpdateUserPasswordHandler(userCRUDService))))
 	mux.Handle("/user/enable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.EnableUserHandler(userCRUDService))))

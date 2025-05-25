@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,47 +42,36 @@ func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.R
 	}
 }
 
-// swagger:route POST /login Authentication LocalLogin
-// Login a user and return token.
-// responses:
-//   200: AuthToken
-
-func (l *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	LoginHandleFunc(l.Service)
-}
-
-func parseAuthHeader(w http.ResponseWriter, r *http.Request) (*TokenRefreshReq, error) {
-	retVal := &TokenRefreshReq{}
-	authHeader := r.Header.Get("Authorization")
-	parts := strings.Split(authHeader, "Bearer ")
-	if len(parts) != 2 {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Malformed Token"))
-		return retVal, fmt.Errorf("malformed token")
-	}
-	retVal.RefreshToken = parts[1]
-	return retVal, nil
-}
-
 // swagger:route POST /token/refresh Authentication RefreshAccessToken
-// Refresh accessTokens andreturn to client.
+// Refresh accessTokens and return to client.
 // responses:
 //
-//	200: AuthToken
-func RefreshAuthTokens(ua AuthService) http.HandlerFunc {
+//	200: RefreshAccessTokenResponse
+//	400: description:Bad Request
+//	401: description:Unauthorized
+//	500: description:Insernal Server Error
+func RefreshAccessTokens(ua AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := parseAuthHeader(w, r)
+		var refreshReq TokenRefreshReq
+		err := json.NewDecoder(r.Body).Decode(&refreshReq)
 		if err != nil {
-			slog.Error("Error parsing Bearer token from Authorization Header", slog.String("Error", err.Error()))
+			slog.Error("Error parsing refresh token from request body", slog.String("Error", err.Error()))
+			http.Error(w, "error parsing refresh token from request body", http.StatusBadRequest)
 		}
 
-		newtokens, err := ua.RefreshAccessToken(req.RefreshToken)
+		newtokens, err := ua.RefreshAccessToken(refreshReq.RefreshToken)
 		if err != nil {
 			slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized, please login."))
 		}
-		jsonResponse, _ := json.Marshal(newtokens)
+		resp := AccessTokenRefreshResponse{AccessToken: newtokens.Token, RefreshToken: refreshReq.RefreshToken}
+		w.Header().Set("Content-Type", "application/json")
+		jsonResponse, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "error marshaling response", http.StatusInternalServerError)
+		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResponse)
 	}

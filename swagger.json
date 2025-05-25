@@ -130,6 +130,9 @@
         "responses": {
           "200": {
             "$ref": "#/responses/AuthToken"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -327,11 +330,56 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "Refresh accessTokens andreturn to client.",
+        "summary": "Refresh accessTokens and return to client.",
         "operationId": "RefreshAccessToken",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/TokenRefreshReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/RefreshAccessTokenResponse"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Insernal Server Error"
+          }
+        }
+      }
+    },
+    "/token/refreshauth": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh accessTokens andreturn to client.",
+        "operationId": "RefreshAccessTokenauth",
         "responses": {
           "200": {
             "$ref": "#/responses/AuthToken"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -630,6 +678,21 @@
     }
   },
   "definitions": {
+    "AccessTokens": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "x-go-name": "AccessToken"
+        },
+        "refreshToken": {
+          "type": "string",
+          "x-go-name": "RefreshToken"
+        }
+      },
+      "x-go-name": "AccessTokenRefreshResponse",
+      "x-go-package": "github.com/babbage88/go-infra/api/authapi"
+    },
     "AppPermissionDao": {
       "type": "object",
       "properties": {
@@ -1053,6 +1116,16 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "TokenRefreshReq": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "x-go-name": "RefreshToken"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/authapi"
+    },
     "UUIDs": {
       "type": "array",
       "title": "UUIDs is a slice of UUID types.",
@@ -1414,6 +1487,12 @@
         "items": {
           "$ref": "#/definitions/UserSecretEntry"
         }
+      }
+    },
+    "RefreshAccessTokenResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/AccessTokens"
       }
     },
     "RetrievedSecretResponse": {

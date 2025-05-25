@@ -22,6 +22,29 @@ type LoginResult struct {
 	UserEnabled     bool  `json:"enabled"`
 }
 
+// swagger:parameters RefreshAccessToken
+type RefreshAccessTokenRequestWrapper struct {
+	// in: body
+	Body TokenRefreshReq `json:"body"`
+}
+
+// swagger:model TokenRefreshReq
+type TokenRefreshReq struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+// swagger:response RefreshAccessTokenResponse
+type TokenRefreshResponseWrapper struct {
+	// in: body
+	Body AccessTokenRefreshResponse `json:"body"`
+}
+
+// swagger:model AccessTokens
+type AccessTokenRefreshResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
 // Login Request takes  in Username and Password.
 // swagger:parameters LocalLogin
 type UserLoginReqWrapper struct {
@@ -53,10 +76,6 @@ type AuthToken struct {
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refreshToken"`
 	Expiration   time.Time `json:"expiration"`
-}
-
-type TokenRefreshReq struct {
-	RefreshToken string `json:"refreshToken"`
 }
 
 type UserPermission struct {

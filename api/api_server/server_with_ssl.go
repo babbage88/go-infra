@@ -26,7 +26,7 @@ func StartApiServerWithHttps(healthCheckService *user_crud_svc.HealthCheckServic
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
-	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAuthTokens(authService))))
+	mux.Handle("/token/refresh", cors.CORSWithPOST(http.HandlerFunc(authapi.RefreshAccessTokens(authService))))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateUser", userapi.CreateUserHandler(userCRUDService))))
 	mux.Handle("/update/userpass", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.UpdateUserPasswordHandler(userCRUDService))))
 	mux.Handle("/user/enable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.EnableUserHandler(userCRUDService))))
@@ -53,7 +53,7 @@ func StartApiServerWithHttps(healthCheckService *user_crud_svc.HealthCheckServic
 	// Add Swagger UI handler
 	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui", swaggerui.ServeSwaggerUI(swaggerSpec)))
 
-	slog.Info("Starting http server.")
+	slog.Info("Starting https server.", slog.String("ListenAddress", *srvadr))
 	err := http.ListenAndServeTLS(*srvadr, certificatePath, certificateKeyPath, cors.HandleCORSPreflightMiddleware(mux))
 	if err != nil {
 		slog.Error("Failed to start server", slog.String("Error", err.Error()))
