@@ -17,7 +17,12 @@ var keyPrefix string = "-----BEGIN PRIVATE KEY-----\n"
 
 var keySuffix string = "\n-----END PRIVATE KEY-----\n"
 
-// swagger:response CertificateData
+// swagger:response CertificateDataRenewResponse
+type CertificateDataRenewResponse struct {
+	Body CertificateData
+}
+
+// swagger:model CertificateData
 type CertificateData struct {
 	DomainNames   []string `json:"domainName"`
 	CertPEM       string   `json:"cert_pem"`

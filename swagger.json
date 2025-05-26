@@ -233,7 +233,16 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/CertificateData"
+            "$ref": "#/responses/CertificateDataResponse"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Insernal Server Error"
           }
         }
       }
@@ -844,16 +853,22 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "id": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "uuid",
+          "x-go-name": "Id"
         },
-        "newPermissionInfo": {
-          "$ref": "#/definitions/AppPermissionDao"
+        "permissionDescription": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "permissionName": {
+          "type": "string",
+          "x-go-name": "PermissionName"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "AuthToken": {
       "type": "object",
@@ -950,6 +965,43 @@
         "token": {
           "type": "string",
           "x-go-name": "Token"
+        },
+        "zipDir": {
+          "type": "string",
+          "x-go-name": "ZipDir"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
+    },
+    "CertificateData": {
+      "type": "object",
+      "properties": {
+        "cert_pem": {
+          "type": "string",
+          "x-go-name": "CertPEM"
+        },
+        "chain_pem": {
+          "type": "string",
+          "x-go-name": "ChainPEM"
+        },
+        "domainName": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DomainNames"
+        },
+        "fullchain_pem": {
+          "type": "string",
+          "x-go-name": "Fullchain"
+        },
+        "priv_key": {
+          "type": "string",
+          "x-go-name": "PrivKey"
+        },
+        "s3DownloadUrl": {
+          "type": "string",
+          "x-go-name": "S3DownloadUrl"
         },
         "zipDir": {
           "type": "string",
@@ -1232,38 +1284,16 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "permissionId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -1495,16 +1525,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -1520,33 +1574,13 @@
     }
   },
   "responses": {
-    "CertificateData": {
+    "CertificateDataResponse": {
       "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CertificateData"
+      },
       "headers": {
-        "cert_pem": {
-          "type": "string"
-        },
-        "chain_pem": {
-          "type": "string"
-        },
-        "domainName": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "fullchain_pem": {
-          "type": "string"
-        },
-        "priv_key": {
-          "type": "string"
-        },
-        "s3DownloadUrl": {
-          "type": "string"
-        },
-        "zipDir": {
-          "type": "string"
-        }
+        "Body": {}
       }
     },
     "CreateAppPermissionResponse": {

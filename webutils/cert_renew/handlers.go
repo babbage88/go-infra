@@ -10,7 +10,10 @@ import (
 // swagger:route POST /renew Certificates Renew
 // Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
 // responses:
-//   200: CertificateData
+//  200: CertificateDataRenewResponse
+//	400: description:Bad Request
+//	401: description:Unauthorized
+//	500: description:Insernal Server Error
 // produces:
 // - application/json
 // - application/zip
