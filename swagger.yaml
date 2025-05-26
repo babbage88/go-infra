@@ -146,7 +146,7 @@ paths:
                 - application/zip
             responses:
                 "200":
-                    $ref: '#/responses/CertificateDataResponse'
+                    $ref: '#/responses/CertificateDataRenewResponse'
                 "400":
                     description: Bad Request
                 "401":
@@ -1063,7 +1063,7 @@ definitions:
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
 responses:
-    CertificateDataResponse:
+    CertificateDataRenewResponse:
         description: (empty)
         headers:
             Body: {}
