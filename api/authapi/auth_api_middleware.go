@@ -16,6 +16,7 @@ import (
 type ContextKey string
 
 const ClaimsContextKey ContextKey = "jwtClaims"
+const userIDContextKey = ContextKey("userID")
 
 // AuthMiddleware extracts and validates the JWT and stores claims in context
 func AuthMiddleware(next http.Handler) http.Handler {

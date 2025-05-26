@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// swagger:route POST /secrets/create/{ID} secrets createUserSecret
+// swagger:route POST /secrets/create secrets createUserSecret
 // Create a new external application secret.
 // responses:
 //
@@ -101,6 +101,7 @@ func GetUserSecretEntriesByIdHandler(provider UserSecretProvider) http.Handler {
 		if err != nil {
 			slog.Error("Error parsing UUID from url string")
 			http.Error(w, "Invalid USERID", http.StatusBadRequest)
+			return
 		}
 
 		userID, err := authapi.GetUserIDFromContext(r.Context())
