@@ -65,17 +65,21 @@ func main() {
 	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
 	secretProvider := &user_secrets.PgUserSecretStore{DbConn: connPool}
 
+	apiServer := api_server.APIServer{
+		HealthCheckService:      healthCheckService,
+		AuthService:             authService,
+		UserCRUDService:         userService,
+		UserSecretsStoreService: secretProvider,
+		UseSsl:                  userHttps,
+		Certificate:             certFile,
+		CertKey:                 certKey,
+		SwaggerSpec:             swaggerSpec,
+	}
+
 	switch {
 	case initDevUser:
 		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
 	}
 
-	switch {
-	case userHttps:
-		api_server.StartApiServerWithHttps(healthCheckService, authService, userService, secretProvider, swaggerSpec, &srvport, certFile, certKey)
-	default:
-		api_server.StartWebApiServer(healthCheckService, authService, userService, secretProvider, swaggerSpec, &srvport)
-
-	}
-
+	apiServer.StartAPIServices(&srvport)
 }

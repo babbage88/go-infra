@@ -10,18 +10,12 @@ import (
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
-	customlogger "github.com/babbage88/go-infra/utils/logger"
 	"github.com/babbage88/go-infra/webutils/cert_renew"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
-	authService authapi.AuthService,
-	userCRUDService *user_crud_svc.UserCRUDService,
-	userSecretStore user_secrets.UserSecretProvider,
-	swaggerSpec []byte, srvadr *string,
-) error {
-	mux := http.NewServeMux()
+func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService,
+	userSecretStore user_secrets.UserSecretProvider, swaggerSpec []byte) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(http.HandlerFunc(authapi.LoginHandleFunc(authService))))
 	mux.Handle("/dbhealth", cors.CORSWithGET(http.HandlerFunc(healthCheckService.DbReadHealthCheckHandler())))
@@ -51,14 +45,27 @@ func StartWebApiServer(healthCheckService *user_crud_svc.HealthCheckService,
 
 	// Add Swagger UI handler
 	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui", swaggerui.ServeSwaggerUI(swaggerSpec)))
+}
 
-	config := customlogger.NewCustomLogger()
-	clog := customlogger.SetupLogger(config)
+func (api *APIServer) StartAPIServices(srvadr *string) error {
+	mux := http.NewServeMux()
+	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.SwaggerSpec)
 
-	clog.Info("Starting http server.")
-	err := http.ListenAndServe(*srvadr, cors.HandleCORSPreflightMiddleware(mux))
-	if err != nil {
-		slog.Error("Failed to start server", slog.String("Error", err.Error()))
+	switch {
+	case api.UseSsl:
+		slog.Info("Starting https server.", slog.String("ListenAddress", *srvadr))
+		err := http.ListenAndServeTLS(*srvadr, api.Certificate, api.CertKey, cors.HandleCORSPreflightMiddleware(mux))
+
+		if err != nil {
+			slog.Error("Failed to start server", slog.String("Error", err.Error()))
+		}
+		return err
+	default:
+		slog.Info("Starting http server.", slog.String("ListenAddress", *srvadr))
+		err := http.ListenAndServe(*srvadr, cors.HandleCORSPreflightMiddleware(mux))
+		if err != nil {
+			slog.Error("Failed to start server", slog.String("Error", err.Error()))
+		}
+		return err
 	}
-	return err
 }
