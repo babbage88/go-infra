@@ -16,6 +16,15 @@ type LoginHandler struct {
 	Service AuthService `json:"authService"`
 }
 
+// swagger:route POST /login Authentication LocalLogin
+// Local Auth login with username and password
+// responses:
+//
+//	200: LocalLoginResponse
+//	400: description:Bad Request
+//	401: description:Unauthorized
+//	500: description:Insernal Server Error
+
 func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

@@ -69,6 +69,7 @@ paths:
                 - UserCRUD
     /login:
         post:
+            description: Local Auth login with username and password
             operationId: LocalLogin
             parameters:
                 - in: body
@@ -78,10 +79,13 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    $ref: '#/responses/AuthToken'
+                    $ref: '#/responses/LocalLoginResponse'
+                "400":
+                    description: Bad Request
                 "401":
                     description: Unauthorized
-            summary: Login a user and return token.
+                "500":
+                    description: Insernal Server Error
             tags:
                 - Authentication
     /permissions:
@@ -220,23 +224,6 @@ paths:
                 "500":
                     description: Insernal Server Error
             summary: Refresh accessTokens and return to client.
-            tags:
-                - Authentication
-    /token/refreshauth:
-        post:
-            operationId: RefreshAccessTokenauth
-            responses:
-                "200":
-                    $ref: '#/responses/AuthToken'
-                "400":
-                    description: Bad Request
-                "401":
-                    description: Unauthorized
-                "403":
-                    description: Forbidden
-                "404":
-                    description: Not Found
-            summary: Refresh accessTokens andreturn to client.
             tags:
                 - Authentication
     /update/userpass:
@@ -430,19 +417,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     AppPermissionDao:
         properties:
-            id:
-                format: uuid
+            error:
                 type: string
-                x-go-name: Id
-            permissionDescription:
-                type: string
-                x-go-name: PermissionDescription
-            permissionName:
-                type: string
-                x-go-name: PermissionName
+                x-go-name: Error
+            newPermissionInfo:
+                $ref: '#/definitions/AppPermissionDao'
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    AuthToken:
+        properties:
+            accessToken:
+                type: string
+                x-go-name: Token
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            refreshToken:
+                type: string
+                x-go-name: RefreshToken
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+        title: Respose will return login result and the user info.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/authapi
     AuthTokenDao:
         properties:
             created_at:
@@ -877,33 +878,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            isDeleted:
-                type: boolean
-                x-go-name: IsDeleted
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            roleDesc:
-                type: string
-                x-go-name: RoleDescription
-            roleName:
-                type: string
-                x-go-name: RoleName
+                x-go-name: Error
+            newUserRoleInfo:
+                $ref: '#/definitions/UserRoleDao'
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserSecretEntry:
         properties:
             appInfo:
@@ -913,16 +895,6 @@ definitions:
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
 responses:
-    AuthToken:
-        description: Respose will return login result and the user info.
-        headers:
-            expiration:
-                format: date-time
-                type: string
-            refreshToken:
-                type: string
-            token:
-                type: string
     CertificateData:
         description: (empty)
         headers:
@@ -991,6 +963,12 @@ responses:
             items:
                 $ref: '#/definitions/UserSecretEntry'
             type: array
+    LocalLoginResponse:
+        description: (empty)
+        headers:
+            Body: {}
+        schema:
+            $ref: '#/definitions/AuthToken'
     RefreshAccessTokenResponse:
         description: (empty)
         schema:

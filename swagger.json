@@ -112,10 +112,10 @@
     },
     "/login": {
       "post": {
+        "description": "Local Auth login with username and password",
         "tags": [
           "Authentication"
         ],
-        "summary": "Login a user and return token.",
         "operationId": "LocalLogin",
         "parameters": [
           {
@@ -129,10 +129,16 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/AuthToken"
+            "$ref": "#/responses/LocalLoginResponse"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Insernal Server Error"
           }
         }
       }
@@ -354,32 +360,6 @@
           },
           "500": {
             "description": "Insernal Server Error"
-          }
-        }
-      }
-    },
-    "/token/refreshauth": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "summary": "Refresh accessTokens andreturn to client.",
-        "operationId": "RefreshAccessTokenauth",
-        "responses": {
-          "200": {
-            "$ref": "#/responses/AuthToken"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
           }
         }
       }
@@ -706,6 +686,31 @@
       },
       "x-go-name": "CreateAppPermissionResponse",
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "AuthToken": {
+      "type": "object",
+      "title": "Respose will return login result and the user info.",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "x-go-name": "Token"
+        },
+        "expiration": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Expiration"
+        },
+        "refreshToken": {
+          "type": "string",
+          "x-go-name": "RefreshToken"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/authapi"
     },
     "AuthTokenDao": {
       "type": "object",
@@ -1322,40 +1327,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -1371,21 +1352,6 @@
     }
   },
   "responses": {
-    "AuthToken": {
-      "description": "Respose will return login result and the user info.",
-      "headers": {
-        "expiration": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "refreshToken": {
-          "type": "string"
-        },
-        "token": {
-          "type": "string"
-        }
-      }
-    },
     "CertificateData": {
       "description": "(empty)",
       "headers": {
@@ -1487,6 +1453,15 @@
         "items": {
           "$ref": "#/definitions/UserSecretEntry"
         }
+      }
+    },
+    "LocalLoginResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/AuthToken"
+      },
+      "headers": {
+        "Body": {}
       }
     },
     "RefreshAccessTokenResponse": {
