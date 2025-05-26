@@ -48,6 +48,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/CreateAppPermissionResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -77,6 +89,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/CreateUserRoleResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -106,6 +130,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/CreateUserResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -158,6 +194,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllAppPermissionsResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -205,6 +253,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllRolesResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -234,6 +294,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/CreateRolePermissionMapptingResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -389,6 +461,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/UserPasswordUpdateResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -418,6 +502,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/SoftDeleteUserByIdResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -447,6 +543,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/EnableDisableUserResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -476,6 +584,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/EnableDisableUserResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -505,6 +625,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/UpdateUserRoleMappingResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -534,6 +666,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/EnableDisableUserResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -624,6 +768,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/GetAllUsersResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -652,6 +808,18 @@
         "responses": {
           "200": {
             "$ref": "#/responses/GetUserByIdResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -676,22 +844,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "AuthToken": {
       "type": "object",

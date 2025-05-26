@@ -28,6 +28,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/CreateAppPermissionResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Create New App Permission.
@@ -45,6 +53,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/CreateUserRoleResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Create New User Role.
@@ -62,6 +78,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/CreateUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Create a new user.
@@ -95,6 +119,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/GetAllAppPermissionsResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             tags:
@@ -123,6 +155,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/GetAllRolesResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Returns all active User Roles.
@@ -140,6 +180,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/CreateRolePermissionMapptingResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Map App Permission to User Role.
@@ -238,6 +286,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/UserPasswordUpdateResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Update user password.
@@ -255,6 +311,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/SoftDeleteUserByIdResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Soft Delete User by id.
@@ -272,6 +336,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/EnableDisableUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Disable specified target User Id.
@@ -289,6 +361,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/EnableDisableUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Enable specified target User Id.
@@ -307,6 +387,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/UpdateUserRoleMappingResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             tags:
@@ -324,6 +412,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/EnableDisableUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             tags:
@@ -381,6 +477,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/GetAllUsersResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Returns all active users.
@@ -398,6 +502,14 @@ paths:
             responses:
                 "200":
                     $ref: '#/responses/GetUserByIdResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             security:
                 - bearer: []
             summary: Returns User Info for the user id specified in URL users.
@@ -417,14 +529,19 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     AppPermissionDao:
         properties:
-            error:
+            id:
+                format: uuid
                 type: string
-                x-go-name: Error
-            newPermissionInfo:
-                $ref: '#/definitions/AppPermissionDao'
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
         type: object
         x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     AuthToken:
         properties:
             accessToken:
@@ -878,14 +995,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:

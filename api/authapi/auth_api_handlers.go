@@ -12,10 +12,6 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 }
 
-type LoginHandler struct {
-	Service AuthService `json:"authService"`
-}
-
 // swagger:route POST /login Authentication LocalLogin
 // Local Auth login with username and password
 // responses:
@@ -51,6 +47,10 @@ func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.R
 	}
 }
 
+func LoginHandler(auth_svc AuthService) http.Handler {
+	return http.HandlerFunc(LoginHandleFunc(auth_svc))
+}
+
 // swagger:route POST /token/refresh Authentication RefreshAccessToken
 // Refresh accessTokens and return to client.
 // responses:
@@ -59,7 +59,7 @@ func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.R
 //	400: description:Bad Request
 //	401: description:Unauthorized
 //	500: description:Insernal Server Error
-func RefreshAccessTokens(ua AuthService) http.HandlerFunc {
+func RefreshAccessTokensHandleFunc(ua AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var refreshReq TokenRefreshReq
 		err := json.NewDecoder(r.Body).Decode(&refreshReq)
@@ -84,4 +84,8 @@ func RefreshAccessTokens(ua AuthService) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResponse)
 	}
+}
+
+func RefreshAccessTokensHandler(ua AuthService) http.Handler {
+	return http.HandlerFunc(RefreshAccessTokensHandleFunc(ua))
 }

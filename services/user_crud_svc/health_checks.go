@@ -42,7 +42,7 @@ func (h *HealthCheckService) DbReadHealthCheck() DbHeathCheckResponse {
 	return *dbHealth
 }
 
-func (h *HealthCheckService) DbReadHealthCheckHandler() func(http.ResponseWriter, *http.Request) {
+func (h *HealthCheckService) DbReadHealthCheckHandleFunc() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		readCheck := h.DbReadHealthCheck()
 		if readCheck.Error != nil {
@@ -62,4 +62,8 @@ func (h *HealthCheckService) DbReadHealthCheckHandler() func(http.ResponseWriter
 		w.Write(hcResponse)
 		slog.Info("Response sent successfully")
 	}
+}
+
+func (h *HealthCheckService) DbReadHealthCheckHandler() http.Handler {
+	return http.HandlerFunc(h.DbReadHealthCheckHandleFunc())
 }

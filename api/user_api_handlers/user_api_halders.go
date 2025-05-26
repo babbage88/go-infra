@@ -16,9 +16,13 @@ import (
 // security:
 // - bearer:
 // responses:
-//   200: CreateUserResponse
+// 200: CreateUserResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
 
-func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func CreateUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			slog.Error("Invalid request method", slog.String("Method", r.Method))
@@ -62,6 +66,10 @@ func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 	}
 }
 
+func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(CreateUserHandleFunc(uc_service))
+}
+
 // swagger:route POST /update/userpass UserCRUD UpdateUserPw
 // Update user password.
 //
@@ -69,8 +77,12 @@ func CreateUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 // - bearer:
 // responses:
 //
-//	200: UserPasswordUpdateResponse
-func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: UserPasswordUpdateResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func UpdateUserPasswordHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -108,15 +120,23 @@ func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) func(w
 	}
 }
 
+func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(UpdateUserPasswordHandleFunc(uc_service))
+}
+
 // swagger:route GET /users users GetAllUsers
 // Returns all active users.
 //
 // security:
 // - bearer:
 // responses:
-//   200: GetAllUsersResponse
+//  200: GetAllUsersResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
 
-func GetAllUsersHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetAllUsersHandlerFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		users, err := uc_service.GetAllActiveUsersDao()
@@ -138,15 +158,23 @@ func GetAllUsersHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
+func GetAllUsersHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(GetAllUsersHandlerFunc(uc_service))
+}
+
 // swagger:route GET /users/{ID} users getUserById
 // Returns User Info for the user id specified in URL users.
 //
 // security:
 // - bearer:
 // responses:
-//   200: GetUserByIdResponse
+//  200: GetUserByIdResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
 
-func GetUserByIdHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetUserByIdHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		urlId := r.PathValue("ID")
 		id, err := uuid.Parse(urlId)
@@ -180,15 +208,24 @@ func GetUserByIdHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
+func GetUserByIdHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(GetUserByIdHandleFunc(uc_service))
+}
+
 // swagger:route GET /roles RolesCRUD GetAllUserRoles
 // Returns all active User Roles.
 //
 // security:
 // - bearer:
 // responses:
-//   200: GetAllRolesResponse
-
-func GetAllRolesHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+//
+//	200: GetAllRolesResponse
+//
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func GetAllRolesHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		roles, err := uc_service.GetAllActiveRoles()
@@ -212,15 +249,23 @@ func GetAllRolesHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
+func GetAllRolesHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(GetAllRolesHandleFunc(uc_service))
+}
+
 // swagger:route GET /permissions PermissionsCRUD GetAllAppPermissions
 // Returns all App Permissions
 //
 // security:
 // - bearer:
 // responses:
-//   200: GetAllAppPermissionsResponse
+//  200: GetAllAppPermissionsResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
 
-func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+func GetAllAppPermissionsHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		appPermissions, err := uc_service.GetAllAppPermissions()
@@ -243,6 +288,10 @@ func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) func
 	}
 }
 
+func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(GetAllAppPermissionsHandleFunc(uc_service))
+}
+
 // swagger:route POST /user/enable UserCRUD EnableUser
 // Enable specified target User Id.
 //
@@ -250,8 +299,12 @@ func GetAllAppPermissionsHandler(uc_service *user_crud_svc.UserCRUDService) func
 // - bearer:
 // responses:
 //
-//	200: EnableDisableUserResponse
-func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: EnableDisableUserResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func EnableUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -289,6 +342,10 @@ func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 	}
 }
 
+func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(EnableUserHandleFunc(uc_service))
+}
+
 // swagger:route POST /user/disable UserCRUD DisableUser
 // Disable specified target User Id.
 //
@@ -296,8 +353,12 @@ func EnableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.Re
 // - bearer:
 // responses:
 //
-//	200: EnableDisableUserResponse
-func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: EnableDisableUserResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func DisableUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -335,6 +396,10 @@ func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 	}
 }
 
+func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(DisableUserHandleFunc(uc_service))
+}
+
 // swagger:route POST /user/role RolesCRUD UpdateUserRole
 // Update User Role Mapping
 //
@@ -342,8 +407,12 @@ func DisableUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.R
 // - bearer:
 // responses:
 //
-//	200: UpdateUserRoleMappingResponse
-func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: UpdateUserRoleMappingResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func UpdateUserRoleMappingHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -384,6 +453,10 @@ func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fun
 	}
 }
 
+func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(UpdateUserRoleMappingHandleFunc(uc_service))
+}
+
 // swagger:route POST /user/role/remove UserCRUD DisableUserRoleMapping
 // Disable User Role Mapping
 //
@@ -391,8 +464,12 @@ func UpdateUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fun
 // - bearer:
 // responses:
 //
-//	200: EnableDisableUserResponse
-func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: EnableDisableUserResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func DisableUserRoleMappingHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -432,6 +509,10 @@ func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fu
 	}
 }
 
+func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(DisableUserRoleMappingHandleFunc(uc_service))
+}
+
 // swagger:route POST /create/role RolesCRUD CreateUserRole
 // Create New User Role.
 //
@@ -439,8 +520,12 @@ func DisableUserRoleMappingHandler(uc_service *user_crud_svc.UserCRUDService) fu
 // - bearer:
 // responses:
 //
-//	200: CreateUserRoleResponse
-func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: CreateUserRoleResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func CreateUserRoleHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -479,6 +564,10 @@ func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 	}
 }
 
+func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(CreateUserRoleHandleFunc(uc_service))
+}
+
 // swagger:route POST /create/permission PermissionsCRUD CreateAppPermission
 // Create New App Permission.
 //
@@ -486,8 +575,12 @@ func CreateUserRoleHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 // - bearer:
 // responses:
 //
-//	200: CreateAppPermissionResponse
-func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: CreateAppPermissionResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func CreateAppPermissionHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -525,6 +618,10 @@ func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) func(
 	}
 }
 
+func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(CreateAppPermissionHandleFunc(uc_service))
+}
+
 // swagger:route POST /roles/permission PermissionsCRUD CreateRolePermissionMapping
 // Map App Permission to User Role.
 //
@@ -532,8 +629,12 @@ func CreateAppPermissionHandler(uc_service *user_crud_svc.UserCRUDService) func(
 // - bearer:
 // responses:
 //
-//	200: CreateRolePermissionMapptingResponse
-func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: CreateRolePermissionMapptingResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func CreateRolePermissionMappingHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -571,6 +672,10 @@ func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDServic
 	}
 }
 
+func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(CreateRolePermissionMappingHandleFunc(uc_service))
+}
+
 // swagger:route DELETE /user/delete UserCRUD SoftDeleteUserById
 // Soft Delete User by id.
 //
@@ -578,8 +683,12 @@ func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDServic
 // - bearer:
 // responses:
 //
-//	200: SoftDeleteUserByIdResponse
-func SoftDeleteUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+// 200: SoftDeleteUserByIdResponse
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func SoftDeleteUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -615,4 +724,8 @@ func SoftDeleteUserHandler(uc_service *user_crud_svc.UserCRUDService) func(w htt
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResponse)
 	}
+}
+
+func SoftDeleteUserHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(SoftDeleteUserHandleFunc(uc_service))
 }

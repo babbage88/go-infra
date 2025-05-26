@@ -2,7 +2,6 @@ package authapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,138 +12,113 @@ import (
 	"github.com/google/uuid"
 )
 
-func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// ContextKey type to avoid collisions
+type ContextKey string
 
+const ClaimsContextKey ContextKey = "jwtClaims"
+
+// AuthMiddleware extracts and validates the JWT and stores claims in context
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if authHeader == nil {
-			slog.Error("Auth Header is nil")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Auth Header is nil"})
+
+		claims, err := parseAndValidateToken(r)
+		if err != nil {
+			slog.Error("Unauthorized request", slog.String("error", err.Error()))
+			http.Error(w, fmt.Sprintf(`{"error": "%s"}`, err.Error()), http.StatusUnauthorized)
 			return
 		}
-		if len(authHeader) != 2 {
-			slog.Error("Malformed token")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Malformed Token"})
-			return
-		} else {
-			jwtToken := authHeader[1]
-			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				// Retrieve the secret key from environment variables
-				SECRETKEY := os.Getenv("JWT_KEY")
-				if SECRETKEY == "" {
-					return nil, fmt.Errorf("secret key not found")
-				}
-				return []byte(SECRETKEY), nil
-			})
 
-			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				ctx := context.WithValue(r.Context(), "props", claims)
-				next.ServeHTTP(w, r.WithContext(ctx))
-			} else {
-				slog.Error("Error validating token", slog.String("Error", err.Error()))
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
-			}
-		}
-
-		slog.Info("Token has been verified.", slog.String("Host", r.URL.Host), slog.String("Path", r.URL.Path))
-	}
+		ctx := context.WithValue(r.Context(), ClaimsContextKey, claims)
+		slog.Info("Token has been verified.", slog.String("Path", r.URL.Path))
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
-func AuthMiddlewareRequirePermission(ua AuthService, permissionName string, next http.HandlerFunc) http.HandlerFunc {
-	slog.Info("Starting AuthMiddlewareRequirePermissions", slog.String("Required Perm", permissionName))
-
-	return func(w http.ResponseWriter, r *http.Request) {
+// AuthMiddlewareRequirePermission adds permission check on top of AuthMiddleware
+func AuthMiddlewareRequirePermission(ua AuthService, permissionName string, next http.Handler) http.Handler {
+	return AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-		if authHeader == nil || len(authHeader) != 2 {
-			slog.Error("Malformed or missing Authorization header")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
-			return
-		}
-
-		jwtToken := authHeader[1]
-		token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			SECRETKEY := os.Getenv("JWT_KEY")
-			if SECRETKEY == "" {
-				return nil, fmt.Errorf("secret key not found")
-			}
-			return []byte(SECRETKEY), nil
-		})
-
-		if err != nil || !token.Valid {
-			slog.Error("Error validating token", slog.String("Error", err.Error()))
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || !token.Valid {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid claims"})
+		claimsVal := r.Context().Value(ClaimsContextKey)
+		claims, ok := claimsVal.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, `{"error": "Invalid token claims"}`, http.StatusUnauthorized)
 			return
 		}
 
 		roleIDsInterface, ok := claims["role_ids"].([]interface{})
 		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Role IDs missing"})
+			http.Error(w, `{"error": "Role IDs missing or invalid"}`, http.StatusUnauthorized)
 			return
 		}
 
-		var roleIDs uuid.UUIDs
+		var roleIDs []uuid.UUID
 		for _, roleID := range roleIDsInterface {
 			roleIDStr, ok := roleID.(string)
 			if !ok {
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(map[string]string{"error": "Invalid role ID format"})
+				http.Error(w, `{"error": "Invalid role ID format"}`, http.StatusBadRequest)
 				return
 			}
 
 			parsedUUID, err := uuid.Parse(roleIDStr)
 			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(map[string]string{"error": "Invalid UUID format"})
+				http.Error(w, `{"error": "Invalid UUID format"}`, http.StatusBadRequest)
 				return
 			}
-
 			roleIDs = append(roleIDs, parsedUUID)
 		}
 
-		slog.Info("Verifying permission for role IDs",
+		slog.Info("Checking permission for role IDs",
 			slog.Any("roleIDs", roleIDs),
-			slog.String("PermName", permissionName))
+			slog.String("permission", permissionName))
 
 		hasPermission, err := ua.VerifyUserRolesForPermission(roleIDs, permissionName)
 		if err != nil {
-			slog.Error("Error verifying user permission", slog.String("Error", err.Error()))
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error"})
+			slog.Error("Permission check failed", slog.String("error", err.Error()))
+			http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 			return
 		}
 
 		if !hasPermission {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Permission Denied"})
+			http.Error(w, `{"error": "Permission Denied"}`, http.StatusUnauthorized)
 			return
 		}
 
-		slog.Info("User permission verified successfully.",
-			slog.Any("RoleIDs", roleIDs),
-			slog.String("Permission", permissionName))
-
+		slog.Info("Permission granted", slog.String("permission", permissionName))
 		next.ServeHTTP(w, r)
+	}))
+}
+
+// parseAndValidateToken extracts the token from the request and returns the claims if valid
+func parseAndValidateToken(r *http.Request) (jwt.MapClaims, error) {
+	authHeader := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		return nil, fmt.Errorf("missing or malformed Authorization header")
 	}
+	jwtToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	secret := os.Getenv("JWT_KEY")
+	if secret == "" {
+		return nil, fmt.Errorf("JWT_KEY environment variable is not set")
+	}
+
+	token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+		// Only HMAC signing methods are supported
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secret), nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid token: %v", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token claims")
+	}
+
+	return claims, nil
 }
