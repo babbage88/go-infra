@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/internal/type_helper"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -63,9 +64,16 @@ func (us *LocalAuthService) VerifyUserPermissionByRole(roleId uuid.UUID, permiss
 
 func (a *LocalAuthService) CreateAuthTokenOnLogin(id uuid.UUID, roleIds uuid.UUIDs, email string) (AuthToken, error) {
 	tokens := AuthToken{UserID: id}
-
+	var expireMinutes int
+	envExp := os.Getenv("EXPIRATION_MINUTES")
+	expireMinutesInt, err := type_helper.ParseIntegerFromString[int](envExp)
+	if err != nil {
+		slog.Error("Error parsing JWT Expiration minutes from env var EXPIRATION_MINUTS")
+		expireMinutes = int(15)
+	}
+	expireMinutes = expireMinutesInt
 	signingMethod := getJwtSigningMenthodFromEnv()
-	expTime := time.Now().Add(time.Minute * 15)
+	expTime := time.Now().Add(time.Minute * time.Duration(expireMinutes))
 	tokens.Expiration = expTime
 
 	// Create access accessToken

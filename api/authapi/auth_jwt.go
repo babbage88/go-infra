@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/internal/type_helper"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -50,13 +51,21 @@ func NewRefreshTokenWithExp(id uuid.UUID, signingMethod jwt.SigningMethod, expTi
 
 func NewAccessToken(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMethod jwt.SigningMethod) (string, error) {
 	// Create token
+	var expireMinutes int
 	token := jwt.New(signingMethod)
+	envExp := os.Getenv("EXPIRATION_MINUTES")
+	expireMinutesInt, err := type_helper.ParseIntegerFromString[int](envExp)
+	if err != nil {
+		slog.Error("Error parsing JWT Expiration minutes from env var EXPIRATION_MINUTS")
+		expireMinutes = int(15)
+	}
+	expireMinutes = expireMinutesInt
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = id
 	claims["name"] = email
 	claims["role_ids"] = roleIds
-	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * time.Duration(expireMinutes)).Unix()
 
 	t, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
