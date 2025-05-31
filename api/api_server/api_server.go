@@ -62,7 +62,7 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		return err
 	default:
 		slog.Info("Starting http server.", slog.String("ListenAddress", *srvadr))
-		err := http.ListenAndServe(*srvadr, cors.HandleCORSPreflightMiddleware(mux))
+		err := http.ListenAndServe(*srvadr, requestLoggingMiddleware(cors.HandleCORSPreflightMiddleware(mux)))
 		if err != nil {
 			slog.Error("Failed to start server", slog.String("Error", err.Error()))
 		}
