@@ -54,7 +54,7 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 	switch {
 	case api.UseSsl:
 		slog.Info("Starting https server.", slog.String("ListenAddress", *srvadr))
-		err := http.ListenAndServeTLS(*srvadr, api.Certificate, api.CertKey, cors.HandleCORSPreflightMiddleware(mux))
+		err := http.ListenAndServeTLS(*srvadr, api.Certificate, api.CertKey, requestLoggingMiddleware(cors.HandleCORSPreflightMiddleware(mux)))
 
 		if err != nil {
 			slog.Error("Failed to start server", slog.String("Error", err.Error()))
