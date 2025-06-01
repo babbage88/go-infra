@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -853,22 +853,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "AuthToken": {
       "type": "object",
@@ -1284,16 +1278,38 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newMappingInfo": {
-          "$ref": "#/definitions/RolePermissionMappingDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "permissionId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PermissionId"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "RoleId"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",

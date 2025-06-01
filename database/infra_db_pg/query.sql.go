@@ -599,7 +599,7 @@ func (q *Queries) GetUserIdByName(ctx context.Context, username pgtype.Text) (uu
 
 const getUserLogin = `-- name: GetUserLogin :one
 SELECT id, username, "password" , email, "enabled", "roles", "role_ids" FROM public.users_with_roles uwr
-WHERE username = $1
+WHERE username = $1 OR email = $1
 LIMIT 1
 `
 

@@ -40,7 +40,7 @@ WHERE username = $1;
 
 -- name: GetUserLogin :one
 SELECT id, username, "password" , email, "enabled", "roles", "role_ids" FROM public.users_with_roles uwr
-WHERE username = $1
+WHERE username = $1 OR email = $1
 LIMIT 1;
 
 -- name: GetUserIdByName :one
