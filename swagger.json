@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/permission": {
       "post": {
@@ -445,6 +445,26 @@
         }
       }
     },
+    "/token/verify": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Verify a JWT access token's validity.",
+        "operationId": "VerifyToken",
+        "responses": {
+          "200": {
+            "description": "Valid Token"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/update/userpass": {
       "post": {
         "security": [
@@ -842,9 +862,22 @@
           "type": "string",
           "x-go-name": "AccessToken"
         },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
         "refreshToken": {
           "type": "string",
           "x-go-name": "RefreshToken"
+        },
+        "userName": {
+          "type": "string",
+          "x-go-name": "Username"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
         }
       },
       "x-go-name": "AccessTokenRefreshResponse",
@@ -872,6 +905,10 @@
           "type": "string",
           "x-go-name": "Token"
         },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
         "expiration": {
           "type": "string",
           "format": "date-time",
@@ -880,6 +917,10 @@
         "refreshToken": {
           "type": "string",
           "x-go-name": "RefreshToken"
+        },
+        "userName": {
+          "type": "string",
+          "x-go-name": "Username"
         },
         "user_id": {
           "type": "string",
@@ -1275,41 +1316,52 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
+    "LoginResponseInfo": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "x-go-name": "Token"
+        },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "expiration": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Expiration"
+        },
+        "refreshToken": {
+          "type": "string",
+          "x-go-name": "RefreshToken"
+        },
+        "userName": {
+          "type": "string",
+          "x-go-name": "Username"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-name": "LocalLoginResponse",
+      "x-go-package": "github.com/babbage88/go-infra/api/authapi"
+    },
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "permissionId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -1541,40 +1593,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -1676,7 +1704,7 @@
     "LocalLoginResponse": {
       "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/AuthToken"
+        "$ref": "#/definitions/LoginResponseInfo"
       },
       "headers": {
         "Body": {}

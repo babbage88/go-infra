@@ -41,8 +41,11 @@ type TokenRefreshResponseWrapper struct {
 
 // swagger:model AccessTokens
 type AccessTokenRefreshResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	AccessToken  string    `json:"accessToken"`
+	RefreshToken string    `json:"refreshToken"`
+	UserID       uuid.UUID `json:"user_id"`
+	Username     string    `json:"userName"`
+	Email        string    `json:"email"`
 }
 
 // Login Request takes  in Username and Password.
@@ -58,8 +61,18 @@ type UserLoginRequest struct {
 }
 
 // swagger:response LocalLoginResponse
+type LocalLoginResponseWrapper struct {
+	Body LocalLoginResponse
+}
+
+// swagger:model LoginResponseInfo
 type LocalLoginResponse struct {
-	Body AuthToken
+	UserID       uuid.UUID `json:"user_id"`
+	Username     string    `json:"userName"`
+	Email        string    `json:"email"`
+	Token        string    `json:"accessToken"`
+	RefreshToken string    `json:"refreshToken"`
+	Expiration   time.Time `json:"expiration"`
 }
 
 type UserLoginResponse struct {
@@ -77,6 +90,8 @@ type InfraJWTClaim struct {
 // This text will appear as description of your response body.
 type AuthToken struct {
 	UserID       uuid.UUID `json:"user_id"`
+	Username     string    `json:"userName"`
+	Email        string    `json:"email"`
 	Token        string    `json:"accessToken"`
 	RefreshToken string    `json:"refreshToken"`
 	Expiration   time.Time `json:"expiration"`

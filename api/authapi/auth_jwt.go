@@ -161,6 +161,8 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 			if err != nil {
 				return tokenPair, fmt.Errorf("error creating NewAccessToken %w", err)
 			}
+			tokenPair.Email = usrInfo.Email
+			tokenPair.Username = usrInfo.UserName
 			return tokenPair, nil
 
 		} else {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +37,10 @@ func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.R
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
 			}
-			jsonResponse, _ := json.Marshal(token)
+			response := LocalLoginResponse{UserID: LoginResult.UserInfo.Id,
+				Username: LoginResult.UserInfo.UserName, Email: LoginResult.UserInfo.Email,
+				Token: token.Token, RefreshToken: token.RefreshToken, Expiration: token.Expiration}
+			jsonResponse, _ := json.Marshal(response)
 			w.WriteHeader(http.StatusOK)
 			w.Write(jsonResponse)
 			return
@@ -74,7 +78,12 @@ func RefreshAccessTokensHandleFunc(ua AuthService) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized, please login."))
 		}
-		resp := AccessTokenRefreshResponse{AccessToken: newtokens.Token, RefreshToken: refreshReq.RefreshToken}
+		resp := AccessTokenRefreshResponse{AccessToken: newtokens.Token,
+			RefreshToken: refreshReq.RefreshToken,
+			UserID:       newtokens.UserID,
+			Username:     newtokens.Username,
+			Email:        newtokens.Email,
+		}
 		w.Header().Set("Content-Type", "application/json")
 		jsonResponse, err := json.Marshal(resp)
 		if err != nil {
@@ -88,4 +97,41 @@ func RefreshAccessTokensHandleFunc(ua AuthService) http.HandlerFunc {
 
 func RefreshAccessTokensHandler(ua AuthService) http.Handler {
 	return http.HandlerFunc(RefreshAccessTokensHandleFunc(ua))
+}
+
+// swagger:route POST /token/verify Authentication VerifyToken
+// Verify a JWT access token's validity.
+// responses:
+//
+//	200: description:Valid Token
+//	401: description:Unauthorized
+//	400: description:Bad Request
+
+func VerifyTokenHandler(auth_svc AuthService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, `{"error":"Authorization header missing"}`, http.StatusBadRequest)
+			return
+		}
+
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			http.Error(w, `{"error":"Authorization header must be in 'Bearer <token>' format"}`, http.StatusBadRequest)
+			return
+		}
+
+		tokenString := parts[1]
+
+		err := auth_svc.VerifyToken(tokenString)
+		if err != nil {
+			slog.Warn("Token verification failed", slog.String("error", err.Error()))
+			http.Error(w, `{"error":"Invalid or expired token"}`, http.StatusUnauthorized)
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]string{"status": "token valid"})
+	})
 }

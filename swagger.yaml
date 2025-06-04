@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: localhost:8993
+host: infra.trahan.dev
 paths:
     /create/permission:
         post:
@@ -280,6 +280,19 @@ paths:
             summary: Refresh accessTokens and return to client.
             tags:
                 - Authentication
+    /token/verify:
+        post:
+            operationId: VerifyToken
+            responses:
+                "200":
+                    description: Valid Token
+                "400":
+                    description: Bad Request
+                "401":
+                    description: Unauthorized
+            summary: Verify a JWT access token's validity.
+            tags:
+                - Authentication
     /update/userpass:
         post:
             operationId: UpdateUserPw
@@ -527,9 +540,19 @@ definitions:
             accessToken:
                 type: string
                 x-go-name: AccessToken
+            email:
+                type: string
+                x-go-name: Email
             refreshToken:
                 type: string
                 x-go-name: RefreshToken
+            userName:
+                type: string
+                x-go-name: Username
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
         type: object
         x-go-name: AccessTokenRefreshResponse
         x-go-package: github.com/babbage88/go-infra/api/authapi
@@ -548,6 +571,9 @@ definitions:
             accessToken:
                 type: string
                 x-go-name: Token
+            email:
+                type: string
+                x-go-name: Email
             expiration:
                 format: date-time
                 type: string
@@ -555,6 +581,9 @@ definitions:
             refreshToken:
                 type: string
                 x-go-name: RefreshToken
+            userName:
+                type: string
+                x-go-name: Username
             user_id:
                 format: uuid
                 type: string
@@ -845,34 +874,41 @@ definitions:
                 type: string
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    LoginResponseInfo:
+        properties:
+            accessToken:
+                type: string
+                x-go-name: Token
+            email:
+                type: string
+                x-go-name: Email
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            refreshToken:
+                type: string
+                x-go-name: RefreshToken
+            userName:
+                type: string
+                x-go-name: Username
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+        type: object
+        x-go-name: LocalLoginResponse
+        x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -1041,14 +1077,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:
@@ -1118,7 +1173,7 @@ responses:
         headers:
             Body: {}
         schema:
-            $ref: '#/definitions/AuthToken'
+            $ref: '#/definitions/LoginResponseInfo'
     RefreshAccessTokenResponse:
         description: (empty)
         schema:
