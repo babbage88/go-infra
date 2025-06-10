@@ -75,6 +75,11 @@ spec:
                 secretKeyRef:
                   name: goinfra-app-secrets
                   key: CLOUDFLARE_DNS_API_TOKEN
+            - name: USER_SEC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: USER_SEC_KEY
           resources:
             limits:
               memory: "1Gi"

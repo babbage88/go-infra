@@ -319,6 +319,46 @@ func (q *Queries) GetAllExternalApps(ctx context.Context) ([]GetAllExternalAppsR
 	return items, nil
 }
 
+const getAllUserPermissions = `-- name: GetAllUserPermissions :many
+SELECT
+  "UserId",
+  "Username",
+  "PermissionId",
+  "Permission",
+  "Role",
+  "LastModified"
+FROM
+    public.user_permissions_view upv
+ORDER BY "UserId" ASC
+`
+
+func (q *Queries) GetAllUserPermissions(ctx context.Context) ([]UserPermissionsView, error) {
+	rows, err := q.db.Query(ctx, getAllUserPermissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserPermissionsView
+	for rows.Next() {
+		var i UserPermissionsView
+		if err := rows.Scan(
+			&i.UserId,
+			&i.Username,
+			&i.PermissionId,
+			&i.Permission,
+			&i.Role,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllUserRoles = `-- name: GetAllUserRoles :many
 SELECT "RoleId", "RoleName", "RoleDescription", "CreatedAt", "LastModified", "Enabled", "IsDeleted"
 FROM public.user_roles_active
@@ -496,6 +536,39 @@ func (q *Queries) GetLatestExternalAuthToken(ctx context.Context, arg GetLatestE
 		&i.Expiration,
 		&i.CreatedAt,
 		&i.LastModified,
+	)
+	return i, err
+}
+
+const getLatestExternalAuthTokenByAppName = `-- name: GetLatestExternalAuthTokenByAppName :one
+SELECT et.id, et.user_id, et.external_app_id, ea.name 
+FROM external_auth_tokens et 
+LEFT JOIN public.external_integration_apps ea on et.external_app_id = ea.id
+WHERE et.user_id = $1 AND ea.name = $2
+ORDER BY et.created_at DESC
+LIMIT 1
+`
+
+type GetLatestExternalAuthTokenByAppNameParams struct {
+	UserID uuid.UUID
+	Name   string
+}
+
+type GetLatestExternalAuthTokenByAppNameRow struct {
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	ExternalAppID uuid.UUID
+	Name          pgtype.Text
+}
+
+func (q *Queries) GetLatestExternalAuthTokenByAppName(ctx context.Context, arg GetLatestExternalAuthTokenByAppNameParams) (GetLatestExternalAuthTokenByAppNameRow, error) {
+	row := q.db.QueryRow(ctx, getLatestExternalAuthTokenByAppName, arg.UserID, arg.Name)
+	var i GetLatestExternalAuthTokenByAppNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExternalAppID,
+		&i.Name,
 	)
 	return i, err
 }
@@ -694,7 +767,7 @@ SELECT
   token_created_at,
   expiration
 FROM public.user_auth_app_mappings
-WHERE user_id = $1 and application_id = $2
+WHERE user_id = $1 AND application_id = $2
 `
 
 type GetUserSecretsByAppIdParams struct {
@@ -867,30 +940,21 @@ func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExterna
 
 const insertHostServer = `-- name: InsertHostServer :one
 INSERT INTO host_servers (
-            hostname, ip_address, username, public_ssh_keyname, hosted_domains,
-            ssl_key_path, is_container_host, is_vm_host, is_virtual_machine, id_db_host
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host
+        ) VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (hostname, ip_address)
         DO UPDATE SET
-            username = EXCLUDED.username,
-            public_ssh_keyname = EXCLUDED.public_ssh_keyname,
-            hosted_domains = EXCLUDED.hosted_domains,
-            ssl_key_path = EXCLUDED.ssl_key_path,
             is_container_host = EXCLUDED.is_container_host,
             is_vm_host = EXCLUDED.is_vm_host,
             is_virtual_machine = EXCLUDED.is_virtual_machine,
             id_db_host = EXCLUDED.id_db_host,
-			last_modified = DEFAULT
-RETURNING id, hostname, ip_address, username, public_ssh_keyname, hosted_domains, ssl_key_path, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+			      last_modified = DEFAULT
+RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
 `
 
 type InsertHostServerParams struct {
 	Hostname         string
 	IpAddress        netip.Addr
-	Username         pgtype.Text
-	PublicSshKeyname pgtype.Text
-	HostedDomains    []string
-	SslKeyPath       pgtype.Text
 	IsContainerHost  pgtype.Bool
 	IsVmHost         pgtype.Bool
 	IsVirtualMachine pgtype.Bool
@@ -901,10 +965,6 @@ func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerPara
 	row := q.db.QueryRow(ctx, insertHostServer,
 		arg.Hostname,
 		arg.IpAddress,
-		arg.Username,
-		arg.PublicSshKeyname,
-		arg.HostedDomains,
-		arg.SslKeyPath,
 		arg.IsContainerHost,
 		arg.IsVmHost,
 		arg.IsVirtualMachine,
@@ -915,10 +975,6 @@ func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerPara
 		&i.ID,
 		&i.Hostname,
 		&i.IpAddress,
-		&i.Username,
-		&i.PublicSshKeyname,
-		&i.HostedDomains,
-		&i.SslKeyPath,
 		&i.IsContainerHost,
 		&i.IsVmHost,
 		&i.IsVirtualMachine,

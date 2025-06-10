@@ -59,13 +59,9 @@ type HealthCheck struct {
 }
 
 type HostServer struct {
-	ID               int32
+	ID               uuid.UUID
 	Hostname         string
 	IpAddress        netip.Addr
-	Username         pgtype.Text
-	PublicSshKeyname pgtype.Text
-	HostedDomains    []string
-	SslKeyPath       pgtype.Text
 	IsContainerHost  pgtype.Bool
 	IsVmHost         pgtype.Bool
 	IsVirtualMachine pgtype.Bool
@@ -94,6 +90,16 @@ type RolePermissionsView struct {
 	Role         string
 	PermissionId pgtype.UUID
 	Permission   pgtype.Text
+}
+
+type SshKey struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID pgtype.UUID
+	PublicKey    string
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
 }
 
 type TempAdminInfo struct {

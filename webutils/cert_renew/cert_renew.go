@@ -121,6 +121,7 @@ func (c *CertDnsRenewReq) ZipFileName() string {
 func (c *CertDnsRenewReq) KubeSecretName() string {
 	var retVal strings.Builder
 	retVal.WriteString(strings.TrimPrefix(strings.ReplaceAll(c.DomainNames[0], ".", "-"), "*-"))
+	retVal.WriteString("-cert")
 	slog.Info("generated zipfile name", slog.String("zipfilename", retVal.String()))
 	return retVal.String()
 }

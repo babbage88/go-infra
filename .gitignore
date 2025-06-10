@@ -1,3 +1,6 @@
+secrets.yaml
+scratch.sql
+trahan-dev-certs.yaml
 response.json
 response_renew.json
 server.crt

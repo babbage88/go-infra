@@ -5,8 +5,8 @@ metadata:
 spec:
   backup:
     barmanObjectStore:
-      destinationPath: "postgres-backups/infradb_bakups"
-      endpointURL: minio.trahan.dev
+      destinationPath: s3://postgres-backups/infradb_bakups
+      endpointURL: https://minio.trahan.dev
       s3Credentials:
         accessKeyId:
           name: cnpg-minio-creds
@@ -29,3 +29,14 @@ spec:
       - host all all all scram-sha-256
   monitoring:
     enablePodMonitor: true
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: infradb-bakups
+spec:
+  schedule: "0 0 0 * * *"
+  immediate: true
+  backupOwnerReference: self
+  cluster:
+    name: infra-db

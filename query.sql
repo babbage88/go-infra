@@ -91,20 +91,15 @@ RETURNING *;
 
 -- name: InsertHostServer :one
 INSERT INTO host_servers (
-            hostname, ip_address, username, public_ssh_keyname, hosted_domains,
-            ssl_key_path, is_container_host, is_vm_host, is_virtual_machine, id_db_host
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host
+        ) VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (hostname, ip_address)
         DO UPDATE SET
-            username = EXCLUDED.username,
-            public_ssh_keyname = EXCLUDED.public_ssh_keyname,
-            hosted_domains = EXCLUDED.hosted_domains,
-            ssl_key_path = EXCLUDED.ssl_key_path,
             is_container_host = EXCLUDED.is_container_host,
             is_vm_host = EXCLUDED.is_vm_host,
             is_virtual_machine = EXCLUDED.is_virtual_machine,
             id_db_host = EXCLUDED.id_db_host,
-			last_modified = DEFAULT
+			      last_modified = DEFAULT
 RETURNING *;
 
 -- name: InsertUserHostedDb :one
@@ -138,7 +133,7 @@ SELECT
     "is_deleted"
 FROM public.users_with_roles uwr;
 
----- name: GetAllUserPermissions :many
+-- name: GetAllUserPermissions :many
 SELECT
   "UserId",
   "Username",
@@ -161,7 +156,7 @@ SELECT
 FROM
     public.user_permissions_view upv
 WHERE "UserId" = $1;
---
+
 -- name: VerifyUserPermissionById :one
 SELECT EXISTS (
   SELECT
@@ -343,6 +338,15 @@ WHERE user_id = $1 AND external_app_id = $2
 ORDER BY created_at DESC
 LIMIT 1;
 
+
+-- name: GetLatestExternalAuthTokenByAppName :one
+SELECT et.id, et.user_id, et.external_app_id, ea.name 
+FROM external_auth_tokens et 
+LEFT JOIN public.external_integration_apps ea on et.external_app_id = ea.id
+WHERE et.user_id = $1 AND ea.name = $2
+ORDER BY et.created_at DESC
+LIMIT 1;
+
 -- name: GetUserSecretsByUserId :many
 SELECT
   auth_token_id,
@@ -369,5 +373,5 @@ SELECT
   token_created_at,
   expiration
 FROM public.user_auth_app_mappings
-WHERE user_id = $1 and application_id = $2;
+WHERE user_id = $1 AND application_id = $2;
 
