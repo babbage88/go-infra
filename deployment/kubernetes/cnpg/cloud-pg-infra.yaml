@@ -5,7 +5,7 @@ metadata:
 spec:
   backup:
     barmanObjectStore:
-      destinationPath: s3://postgres-backups/infradb_bakups
+      destinationPath: s3://postgres-backups/devjtcom_infradb_bakups
       endpointURL: https://minio.trahan.dev
       s3Credentials:
         accessKeyId:
@@ -14,7 +14,6 @@ spec:
         secretAccessKey:
           name: cnpg-minio-creds
           key: ACCESS_SECRET_KEY
-
   instances: 1
   bootstrap:
     initdb:

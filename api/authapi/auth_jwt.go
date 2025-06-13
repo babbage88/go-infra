@@ -51,13 +51,13 @@ func NewRefreshTokenWithExp(id uuid.UUID, signingMethod jwt.SigningMethod, expTi
 
 func NewAccessToken(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMethod jwt.SigningMethod) (string, error) {
 	// Create token
-	var expireMinutes int
+	var expireMinutes int64
 	token := jwt.New(signingMethod)
 	envExp := os.Getenv("EXPIRATION_MINUTES")
-	expireMinutesInt, err := type_helper.ParseIntegerFromString[int](envExp)
+	expireMinutesInt, err := type_helper.ParseIntegerFromString[int64](envExp)
 	if err != nil {
 		slog.Error("Error parsing JWT Expiration minutes from env var EXPIRATION_MINUTS")
-		expireMinutes = int(15)
+		expireMinutes = int64(15)
 	}
 	expireMinutes = expireMinutesInt
 
@@ -77,10 +77,16 @@ func NewAccessToken(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMetho
 
 func NewRefreshToken(id uuid.UUID, signingMethod jwt.SigningMethod) (string, error) {
 	refreshToken := jwt.New(signingMethod)
+	refrshLengthEnv := os.Getenv("REFRESH_TOKEN_EXPIRIRATION_MINUTES")
+	expireMinutesInt, err := type_helper.ParseIntegerFromString[int64](refrshLengthEnv)
+	if err != nil {
+		slog.Error("Error parsing JWT Expiration minutes from env var EXPIRATION_MINUTS")
+		expireMinutesInt = int64(2880)
+	}
 
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
 	rtClaims["sub"] = id
-	rtClaims["exp"] = time.Now().Add(time.Hour * 48).Unix()
+	rtClaims["exp"] = time.Now().Add(time.Hour * time.Duration(expireMinutesInt)).Unix()
 
 	rt, err := refreshToken.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
