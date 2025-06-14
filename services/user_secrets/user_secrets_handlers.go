@@ -237,9 +237,11 @@ func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 // responses:
 //
 //	200: GetUserSecretEntriesResponse
+//	400: description:Invalid request
 //	401: description:Unauthorized
 //	403: description:Forbidden
 //	404: description:Not Found
+//	500: description:Internal Server Error
 func GetUserSecretEntriesByAppNameHandler(provider UserSecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appName := r.PathValue("APPNAME")

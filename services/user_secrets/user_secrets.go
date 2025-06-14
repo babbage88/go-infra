@@ -171,7 +171,6 @@ func (p *PgUserSecretStore) GetUserSecretEntriesByAppId(userId uuid.UUID, appId 
 	return userSecrets, nil
 }
 
-/*
 func (p *PgUserSecretStore) GetUserSecretEntriesByAppName(userId uuid.UUID, appName string) ([]UserSecretEntry, error) {
 	userSecrets := make([]UserSecretEntry, 0)
 	qry := infra_db_pg.New(p.DbConn)
@@ -189,4 +188,3 @@ func (p *PgUserSecretStore) GetUserSecretEntriesByAppName(userId uuid.UUID, appN
 
 	return userSecrets, nil
 }
-*/

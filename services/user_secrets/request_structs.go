@@ -63,3 +63,11 @@ type GetUserSecretEntriesByAppIdRequest struct {
 	// In: path
 	APPID uuid.UUID
 }
+
+// swagger:parameters GetUserSecretEntriesByAppName
+type GetUserSecretEntriesByAppNameRequest struct {
+	// In: path
+	USERID uuid.UUID
+	// In: path
+	APPNAME string
+}
