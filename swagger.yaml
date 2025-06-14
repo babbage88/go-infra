@@ -443,6 +443,35 @@ paths:
                 - bearer: []
             tags:
                 - UserCRUD
+    /user/secrets/by-name/{APPNAME}/{USERID}:
+        get:
+            operationId: GetUserSecretEntriesByAppName
+            parameters:
+                - format: uuid
+                  in: path
+                  name: USERID
+                  required: true
+                  type: string
+                - in: path
+                  name: APPNAME
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserSecretEntriesResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Retrieve a user secret by USERID and application name.
+            tags:
+                - secrets
     /user/secrets/{USERID}:
         get:
             operationId: GetUserSecretEntries
@@ -488,35 +517,6 @@ paths:
                 "404":
                     description: Not Found
             summary: Retrieve a user secret by USERID.
-            tags:
-                - secrets
-    /user/{APPNAME}/secrets/{USERID}:
-        get:
-            operationId: GetUserSecretEntriesByAppName
-            parameters:
-                - format: uuid
-                  in: path
-                  name: USERID
-                  required: true
-                  type: string
-                - in: path
-                  name: APPNAME
-                  required: true
-                  type: string
-            responses:
-                "200":
-                    $ref: '#/responses/GetUserSecretEntriesResponse'
-                "400":
-                    description: Invalid request
-                "401":
-                    description: Unauthorized
-                "403":
-                    description: Forbidden
-                "404":
-                    description: Not Found
-                "500":
-                    description: Internal Server Error
-            summary: Retrieve a user secret by USERID and application name.
             tags:
                 - secrets
     /users:
@@ -930,14 +930,32 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newMappingInfo:
-                $ref: '#/definitions/RolePermissionMappingDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            permissionId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -1106,14 +1124,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:

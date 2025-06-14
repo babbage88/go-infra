@@ -711,6 +711,50 @@
         }
       }
     },
+    "/user/secrets/by-name/{APPNAME}/{USERID}": {
+      "get": {
+        "tags": [
+          "secrets"
+        ],
+        "summary": "Retrieve a user secret by USERID and application name.",
+        "operationId": "GetUserSecretEntriesByAppName",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "USERID",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "APPNAME",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetUserSecretEntriesResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/user/secrets/{USERID}": {
       "get": {
         "tags": [
@@ -778,50 +822,6 @@
           },
           "404": {
             "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/user/{APPNAME}/secrets/{USERID}": {
-      "get": {
-        "tags": [
-          "secrets"
-        ],
-        "summary": "Retrieve a user secret by USERID and application name.",
-        "operationId": "GetUserSecretEntriesByAppName",
-        "parameters": [
-          {
-            "type": "string",
-            "format": "uuid",
-            "name": "USERID",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "APPNAME",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/GetUserSecretEntriesResponse"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
           }
         }
       }
@@ -1659,16 +1659,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",
