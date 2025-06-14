@@ -13,6 +13,178 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createHostServer = `-- name: CreateHostServer :one
+INSERT INTO public.host_servers (
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+`
+
+type CreateHostServerParams struct {
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+}
+
+// Host Servers CRUD Operations
+func (q *Queries) CreateHostServer(ctx context.Context, arg CreateHostServerParams) (HostServer, error) {
+	row := q.db.QueryRow(ctx, createHostServer,
+		arg.Hostname,
+		arg.IpAddress,
+		arg.IsContainerHost,
+		arg.IsVmHost,
+		arg.IsVirtualMachine,
+		arg.IDDbHost,
+	)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.IsContainerHost,
+		&i.IsVmHost,
+		&i.IsVirtualMachine,
+		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHKey = `-- name: CreateSSHKey :one
+INSERT INTO public.ssh_keys (
+    name,
+    description,
+    priv_secret_id,
+    public_key,
+    key_type_id,
+    owner_user_id
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified
+`
+
+type CreateSSHKeyParams struct {
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID pgtype.UUID
+	PublicKey    string
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+}
+
+type CreateSSHKeyRow struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID pgtype.UUID
+	PublicKey    string
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+// SSH Keys CRUD Operations
+func (q *Queries) CreateSSHKey(ctx context.Context, arg CreateSSHKeyParams) (CreateSSHKeyRow, error) {
+	row := q.db.QueryRow(ctx, createSSHKey,
+		arg.Name,
+		arg.Description,
+		arg.PrivSecretID,
+		arg.PublicKey,
+		arg.KeyTypeID,
+		arg.OwnerUserID,
+	)
+	var i CreateSSHKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.PrivSecretID,
+		&i.PublicKey,
+		&i.KeyTypeID,
+		&i.OwnerUserID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHKeyHostMapping = `-- name: CreateSSHKeyHostMapping :one
+INSERT INTO public.ssh_key_host_mappings (
+    ssh_key_id,
+    host_server_id,
+    user_id,
+    hostserver_username
+) VALUES (
+    $1, $2, $3, $4
+) RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified
+`
+
+type CreateSSHKeyHostMappingParams struct {
+	SshKeyID           uuid.UUID
+	HostServerID       uuid.UUID
+	UserID             uuid.UUID
+	HostserverUsername string
+}
+
+// SSH Key to Host Server Mappings CRUD Operations
+func (q *Queries) CreateSSHKeyHostMapping(ctx context.Context, arg CreateSSHKeyHostMappingParams) (SshKeyHostMapping, error) {
+	row := q.db.QueryRow(ctx, createSSHKeyHostMapping,
+		arg.SshKeyID,
+		arg.HostServerID,
+		arg.UserID,
+		arg.HostserverUsername,
+	)
+	var i SshKeyHostMapping
+	err := row.Scan(
+		&i.ID,
+		&i.SshKeyID,
+		&i.HostServerID,
+		&i.UserID,
+		&i.HostserverUsername,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHKeyType = `-- name: CreateSSHKeyType :one
+INSERT INTO public.ssh_key_types (
+    name,
+    description
+) VALUES (
+    $1, $2
+) RETURNING id, name, description, created_at, last_modified
+`
+
+type CreateSSHKeyTypeParams struct {
+	Name        string
+	Description pgtype.Text
+}
+
+func (q *Queries) CreateSSHKeyType(ctx context.Context, arg CreateSSHKeyTypeParams) (SshKeyType, error) {
+	row := q.db.QueryRow(ctx, createSSHKeyType, arg.Name, arg.Description)
+	var i SshKeyType
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username,
@@ -102,6 +274,46 @@ WHERE id = $1
 
 func (q *Queries) DeleteExternalAuthTokenById(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteExternalAuthTokenById, id)
+	return err
+}
+
+const deleteHostServer = `-- name: DeleteHostServer :exec
+DELETE FROM public.host_servers
+WHERE id = $1
+`
+
+func (q *Queries) DeleteHostServer(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteHostServer, id)
+	return err
+}
+
+const deleteSSHKey = `-- name: DeleteSSHKey :exec
+DELETE FROM public.ssh_keys
+WHERE id = $1
+`
+
+func (q *Queries) DeleteSSHKey(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSSHKey, id)
+	return err
+}
+
+const deleteSSHKeyHostMapping = `-- name: DeleteSSHKeyHostMapping :exec
+DELETE FROM public.ssh_key_host_mappings
+WHERE id = $1
+`
+
+func (q *Queries) DeleteSSHKeyHostMapping(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSSHKeyHostMapping, id)
+	return err
+}
+
+const deleteSSHKeyType = `-- name: DeleteSSHKeyType :exec
+DELETE FROM public.ssh_key_types
+WHERE name = $1
+`
+
+func (q *Queries) DeleteSSHKeyType(ctx context.Context, name string) error {
+	_, err := q.db.Exec(ctx, deleteSSHKeyType, name)
 	return err
 }
 
@@ -319,6 +531,87 @@ func (q *Queries) GetAllExternalApps(ctx context.Context) ([]GetAllExternalAppsR
 	return items, nil
 }
 
+const getAllHostServers = `-- name: GetAllHostServers :many
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+`
+
+func (q *Queries) GetAllHostServers(ctx context.Context) ([]HostServer, error) {
+	rows, err := q.db.Query(ctx, getAllHostServers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HostServer
+	for rows.Next() {
+		var i HostServer
+		if err := rows.Scan(
+			&i.ID,
+			&i.Hostname,
+			&i.IpAddress,
+			&i.IsContainerHost,
+			&i.IsVmHost,
+			&i.IsVirtualMachine,
+			&i.IDDbHost,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllSSHKeyTypes = `-- name: GetAllSSHKeyTypes :many
+SELECT 
+    id,
+    name,
+    description,
+    created_at,
+    last_modified
+FROM public.ssh_key_types
+`
+
+// SSH Key Types Operations
+func (q *Queries) GetAllSSHKeyTypes(ctx context.Context) ([]SshKeyType, error) {
+	rows, err := q.db.Query(ctx, getAllSSHKeyTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SshKeyType
+	for rows.Next() {
+		var i SshKeyType
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllUserPermissions = `-- name: GetAllUserPermissions :many
 SELECT
   "UserId",
@@ -513,6 +806,102 @@ func (q *Queries) GetExternalAuthTokensByUserIdAndAppId(ctx context.Context, arg
 	return items, nil
 }
 
+const getHostServerByHostname = `-- name: GetHostServerByHostname :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE hostname = $1
+`
+
+func (q *Queries) GetHostServerByHostname(ctx context.Context, hostname string) (HostServer, error) {
+	row := q.db.QueryRow(ctx, getHostServerByHostname, hostname)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.IsContainerHost,
+		&i.IsVmHost,
+		&i.IsVirtualMachine,
+		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getHostServerByIP = `-- name: GetHostServerByIP :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE ip_address = $1
+`
+
+func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress netip.Addr) (HostServer, error) {
+	row := q.db.QueryRow(ctx, getHostServerByIP, ipAddress)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.IsContainerHost,
+		&i.IsVmHost,
+		&i.IsVirtualMachine,
+		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getHostServerById = `-- name: GetHostServerById :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE id = $1
+`
+
+func (q *Queries) GetHostServerById(ctx context.Context, id uuid.UUID) (HostServer, error) {
+	row := q.db.QueryRow(ctx, getHostServerById, id)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.IsContainerHost,
+		&i.IsVmHost,
+		&i.IsVirtualMachine,
+		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const getLatestExternalAuthToken = `-- name: GetLatestExternalAuthToken :one
 SELECT id, user_id, external_app_id, token, expiration, created_at, last_modified FROM external_auth_tokens
 WHERE user_id = $1 AND external_app_id = $2
@@ -586,6 +975,316 @@ func (q *Queries) GetRoleIdByName(ctx context.Context, roleName string) (uuid.UU
 	var RoleId uuid.UUID
 	err := row.Scan(&RoleId)
 	return RoleId, err
+}
+
+const getSSHKeyById = `-- name: GetSSHKeyById :one
+SELECT 
+    sk.id,
+    sk.name,
+    sk.description,
+    sk.priv_secret_id,
+    sk.public_key,
+    sk.key_type_id,
+    sk.owner_user_id,
+    sk.created_at,
+    sk.last_modified,
+    skt.name as key_type_name,
+    skt.description as key_type_description,
+    u.username as owner_username
+FROM public.ssh_keys sk
+JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
+JOIN public.users u ON sk.owner_user_id = u.id
+WHERE sk.id = $1
+`
+
+type GetSSHKeyByIdRow struct {
+	ID                 uuid.UUID
+	Name               string
+	Description        pgtype.Text
+	PrivSecretID       pgtype.UUID
+	PublicKey          string
+	KeyTypeID          uuid.UUID
+	OwnerUserID        uuid.UUID
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+	KeyTypeName        string
+	KeyTypeDescription pgtype.Text
+	OwnerUsername      pgtype.Text
+}
+
+func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByIdRow, error) {
+	row := q.db.QueryRow(ctx, getSSHKeyById, id)
+	var i GetSSHKeyByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.PrivSecretID,
+		&i.PublicKey,
+		&i.KeyTypeID,
+		&i.OwnerUserID,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.KeyTypeName,
+		&i.KeyTypeDescription,
+		&i.OwnerUsername,
+	)
+	return i, err
+}
+
+const getSSHKeyHostMappingById = `-- name: GetSSHKeyHostMappingById :one
+SELECT 
+    id,
+    ssh_key_id,
+    host_server_id,
+    user_id,
+    hostserver_username,
+    created_at,
+    last_modified
+FROM public.ssh_key_host_mappings
+WHERE id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingById(ctx context.Context, id uuid.UUID) (SshKeyHostMapping, error) {
+	row := q.db.QueryRow(ctx, getSSHKeyHostMappingById, id)
+	var i SshKeyHostMapping
+	err := row.Scan(
+		&i.ID,
+		&i.SshKeyID,
+		&i.HostServerID,
+		&i.UserID,
+		&i.HostserverUsername,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getSSHKeyHostMappingsByHostId = `-- name: GetSSHKeyHostMappingsByHostId :many
+SELECT 
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username
+FROM public.user_ssh_key_mappings
+WHERE host_server_id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingsByHostId(ctx context.Context, hostServerID uuid.UUID) ([]UserSshKeyMapping, error) {
+	rows, err := q.db.Query(ctx, getSSHKeyHostMappingsByHostId, hostServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSshKeyMapping
+	for rows.Next() {
+		var i UserSshKeyMapping
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.HostServerName,
+			&i.HostServerID,
+			&i.PublicKey,
+			&i.SshKeyID,
+			&i.ExternalAuthTokenID,
+			&i.SshKeyType,
+			&i.HostserverUsername,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHKeyHostMappingsByKeyId = `-- name: GetSSHKeyHostMappingsByKeyId :many
+SELECT 
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username
+FROM public.user_ssh_key_mappings
+WHERE ssh_key_id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingsByKeyId(ctx context.Context, sshKeyID uuid.UUID) ([]UserSshKeyMapping, error) {
+	rows, err := q.db.Query(ctx, getSSHKeyHostMappingsByKeyId, sshKeyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSshKeyMapping
+	for rows.Next() {
+		var i UserSshKeyMapping
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.HostServerName,
+			&i.HostServerID,
+			&i.PublicKey,
+			&i.SshKeyID,
+			&i.ExternalAuthTokenID,
+			&i.SshKeyType,
+			&i.HostserverUsername,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHKeyHostMappingsByUserId = `-- name: GetSSHKeyHostMappingsByUserId :many
+SELECT 
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username
+FROM public.user_ssh_key_mappings
+WHERE user_id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingsByUserId(ctx context.Context, userID uuid.UUID) ([]UserSshKeyMapping, error) {
+	rows, err := q.db.Query(ctx, getSSHKeyHostMappingsByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSshKeyMapping
+	for rows.Next() {
+		var i UserSshKeyMapping
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.HostServerName,
+			&i.HostServerID,
+			&i.PublicKey,
+			&i.SshKeyID,
+			&i.ExternalAuthTokenID,
+			&i.SshKeyType,
+			&i.HostserverUsername,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHKeyTypeByName = `-- name: GetSSHKeyTypeByName :one
+SELECT 
+    id,
+    name,
+    description,
+    created_at,
+    last_modified
+FROM public.ssh_key_types
+WHERE name = $1
+`
+
+func (q *Queries) GetSSHKeyTypeByName(ctx context.Context, name string) (SshKeyType, error) {
+	row := q.db.QueryRow(ctx, getSSHKeyTypeByName, name)
+	var i SshKeyType
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getSSHKeysByOwnerId = `-- name: GetSSHKeysByOwnerId :many
+SELECT 
+    sk.id,
+    sk.name,
+    sk.description,
+    sk.priv_secret_id,
+    sk.public_key,
+    sk.key_type_id,
+    sk.owner_user_id,
+    sk.created_at,
+    sk.last_modified,
+    skt.name as key_type_name,
+    skt.description as key_type_description,
+    u.username as owner_username
+FROM public.ssh_keys sk
+JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
+JOIN public.users u ON sk.owner_user_id = u.id
+WHERE sk.owner_user_id = $1
+`
+
+type GetSSHKeysByOwnerIdRow struct {
+	ID                 uuid.UUID
+	Name               string
+	Description        pgtype.Text
+	PrivSecretID       pgtype.UUID
+	PublicKey          string
+	KeyTypeID          uuid.UUID
+	OwnerUserID        uuid.UUID
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+	KeyTypeName        string
+	KeyTypeDescription pgtype.Text
+	OwnerUsername      pgtype.Text
+}
+
+func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID) ([]GetSSHKeysByOwnerIdRow, error) {
+	rows, err := q.db.Query(ctx, getSSHKeysByOwnerId, ownerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSSHKeysByOwnerIdRow
+	for rows.Next() {
+		var i GetSSHKeysByOwnerIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.PrivSecretID,
+			&i.PublicKey,
+			&i.KeyTypeID,
+			&i.OwnerUserID,
+			&i.CreatedAt,
+			&i.LastModified,
+			&i.KeyTypeName,
+			&i.KeyTypeDescription,
+			&i.OwnerUsername,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUserById = `-- name: GetUserById :one
@@ -1253,6 +1952,166 @@ WHERE id = $1
 func (q *Queries) SoftDeleteUserRoleById(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, softDeleteUserRoleById, id)
 	return err
+}
+
+const updateHostServer = `-- name: UpdateHostServer :one
+UPDATE public.host_servers
+SET 
+    hostname = COALESCE($2, hostname),
+    ip_address = COALESCE($3, ip_address),
+    is_container_host = COALESCE($4, is_container_host),
+    is_vm_host = COALESCE($5, is_vm_host),
+    is_virtual_machine = COALESCE($6, is_virtual_machine),
+    id_db_host = COALESCE($7, id_db_host),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+`
+
+type UpdateHostServerParams struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+}
+
+func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (HostServer, error) {
+	row := q.db.QueryRow(ctx, updateHostServer,
+		arg.ID,
+		arg.Hostname,
+		arg.IpAddress,
+		arg.IsContainerHost,
+		arg.IsVmHost,
+		arg.IsVirtualMachine,
+		arg.IDDbHost,
+	)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.IsContainerHost,
+		&i.IsVmHost,
+		&i.IsVirtualMachine,
+		&i.IDDbHost,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateSSHKey = `-- name: UpdateSSHKey :one
+UPDATE public.ssh_keys
+SET 
+    name = COALESCE($2, name),
+    description = COALESCE($3, description),
+    public_key = COALESCE($4, public_key),
+    key_type_id = COALESCE($5, key_type_id),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified
+`
+
+type UpdateSSHKeyParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description pgtype.Text
+	PublicKey   string
+	KeyTypeID   uuid.UUID
+}
+
+type UpdateSSHKeyRow struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID pgtype.UUID
+	PublicKey    string
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateSSHKey(ctx context.Context, arg UpdateSSHKeyParams) (UpdateSSHKeyRow, error) {
+	row := q.db.QueryRow(ctx, updateSSHKey,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.PublicKey,
+		arg.KeyTypeID,
+	)
+	var i UpdateSSHKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.PrivSecretID,
+		&i.PublicKey,
+		&i.KeyTypeID,
+		&i.OwnerUserID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateSSHKeyHostMapping = `-- name: UpdateSSHKeyHostMapping :one
+UPDATE public.ssh_key_host_mappings
+SET 
+    hostserver_username = COALESCE($2, hostserver_username),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified
+`
+
+type UpdateSSHKeyHostMappingParams struct {
+	ID                 uuid.UUID
+	HostserverUsername string
+}
+
+func (q *Queries) UpdateSSHKeyHostMapping(ctx context.Context, arg UpdateSSHKeyHostMappingParams) (SshKeyHostMapping, error) {
+	row := q.db.QueryRow(ctx, updateSSHKeyHostMapping, arg.ID, arg.HostserverUsername)
+	var i SshKeyHostMapping
+	err := row.Scan(
+		&i.ID,
+		&i.SshKeyID,
+		&i.HostServerID,
+		&i.UserID,
+		&i.HostserverUsername,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateSSHKeyType = `-- name: UpdateSSHKeyType :one
+UPDATE public.ssh_key_types
+SET 
+    description = COALESCE($2, description),
+    last_modified = CURRENT_TIMESTAMP
+WHERE name = $1
+RETURNING id, name, description, created_at, last_modified
+`
+
+type UpdateSSHKeyTypeParams struct {
+	Name        string
+	Description pgtype.Text
+}
+
+func (q *Queries) UpdateSSHKeyType(ctx context.Context, arg UpdateSSHKeyTypeParams) (SshKeyType, error) {
+	row := q.db.QueryRow(ctx, updateSSHKeyType, arg.Name, arg.Description)
+	var i SshKeyType
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
 }
 
 const updateUserEmailById = `-- name: UpdateUserEmailById :one

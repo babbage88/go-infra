@@ -100,6 +100,26 @@ type SshKey struct {
 	PublicKey    string
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+}
+
+type SshKeyHostMapping struct {
+	ID                 uuid.UUID
+	SshKeyID           uuid.UUID
+	HostServerID       uuid.UUID
+	UserID             uuid.UUID
+	HostserverUsername string
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+}
+
+type SshKeyType struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
 }
 
 type TempAdminInfo struct {
@@ -200,6 +220,19 @@ type UserRolesActive struct {
 	LastModified    pgtype.Timestamptz
 	Enabled         bool
 	IsDeleted       bool
+}
+
+// View showing all SSH key mappings for users, including host server details and key information
+type UserSshKeyMapping struct {
+	UserID              uuid.UUID
+	Username            pgtype.Text
+	HostServerName      string
+	HostServerID        uuid.UUID
+	PublicKey           string
+	SshKeyID            uuid.UUID
+	ExternalAuthTokenID pgtype.UUID
+	SshKeyType          string
+	HostserverUsername  string
 }
 
 type UsersAudit struct {

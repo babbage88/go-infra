@@ -388,3 +388,271 @@ SELECT
   expiration
 FROM public.user_auth_app_mappings
 WHERE user_id = $1 AND application_name = $2;
+
+-- SSH Keys CRUD Operations
+-- name: CreateSSHKey :one
+INSERT INTO public.ssh_keys (
+    name,
+    description,
+    priv_secret_id,
+    public_key,
+    key_type_id,
+    owner_user_id
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified;
+
+-- name: GetSSHKeyById :one
+SELECT 
+    sk.id,
+    sk.name,
+    sk.description,
+    sk.priv_secret_id,
+    sk.public_key,
+    sk.key_type_id,
+    sk.owner_user_id,
+    sk.created_at,
+    sk.last_modified,
+    skt.name as key_type_name,
+    skt.description as key_type_description,
+    u.username as owner_username
+FROM public.ssh_keys sk
+JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
+JOIN public.users u ON sk.owner_user_id = u.id
+WHERE sk.id = $1;
+
+-- name: GetSSHKeysByOwnerId :many
+SELECT 
+    sk.id,
+    sk.name,
+    sk.description,
+    sk.priv_secret_id,
+    sk.public_key,
+    sk.key_type_id,
+    sk.owner_user_id,
+    sk.created_at,
+    sk.last_modified,
+    skt.name as key_type_name,
+    skt.description as key_type_description,
+    u.username as owner_username
+FROM public.ssh_keys sk
+JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
+JOIN public.users u ON sk.owner_user_id = u.id
+WHERE sk.owner_user_id = $1;
+
+-- name: UpdateSSHKey :one
+UPDATE public.ssh_keys
+SET 
+    name = COALESCE($2, name),
+    description = COALESCE($3, description),
+    public_key = COALESCE($4, public_key),
+    key_type_id = COALESCE($5, key_type_id),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified;
+
+-- name: DeleteSSHKey :exec
+DELETE FROM public.ssh_keys
+WHERE id = $1;
+
+-- SSH Key to Host Server Mappings CRUD Operations
+-- name: CreateSSHKeyHostMapping :one
+INSERT INTO public.ssh_key_host_mappings (
+    ssh_key_id,
+    host_server_id,
+    user_id,
+    hostserver_username
+) VALUES (
+    $1, $2, $3, $4
+) RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified;
+
+-- name: GetSSHKeyHostMappingById :one
+SELECT 
+    id,
+    ssh_key_id,
+    host_server_id,
+    user_id,
+    hostserver_username,
+    created_at,
+    last_modified
+FROM public.ssh_key_host_mappings
+WHERE id = $1;
+
+-- name: GetSSHKeyHostMappingsByUserId :many
+SELECT 
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username
+FROM public.user_ssh_key_mappings
+WHERE user_id = $1;
+
+-- name: GetSSHKeyHostMappingsByHostId :many
+SELECT 
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username
+FROM public.user_ssh_key_mappings
+WHERE host_server_id = $1;
+
+-- name: GetSSHKeyHostMappingsByKeyId :many
+SELECT 
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username
+FROM public.user_ssh_key_mappings
+WHERE ssh_key_id = $1;
+
+-- name: UpdateSSHKeyHostMapping :one
+UPDATE public.ssh_key_host_mappings
+SET 
+    hostserver_username = COALESCE($2, hostserver_username),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified;
+
+-- name: DeleteSSHKeyHostMapping :exec
+DELETE FROM public.ssh_key_host_mappings
+WHERE id = $1;
+
+-- Host Servers CRUD Operations
+-- name: CreateHostServer :one
+INSERT INTO public.host_servers (
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
+
+-- name: GetHostServerById :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE id = $1;
+
+-- name: GetHostServerByHostname :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE hostname = $1;
+
+-- name: GetHostServerByIP :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE ip_address = $1;
+
+-- name: GetAllHostServers :many
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host,
+    created_at,
+    last_modified
+FROM public.host_servers;
+
+-- name: UpdateHostServer :one
+UPDATE public.host_servers
+SET 
+    hostname = COALESCE($2, hostname),
+    ip_address = COALESCE($3, ip_address),
+    is_container_host = COALESCE($4, is_container_host),
+    is_vm_host = COALESCE($5, is_vm_host),
+    is_virtual_machine = COALESCE($6, is_virtual_machine),
+    id_db_host = COALESCE($7, id_db_host),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
+
+-- name: DeleteHostServer :exec
+DELETE FROM public.host_servers
+WHERE id = $1;
+
+-- SSH Key Types Operations
+-- name: GetAllSSHKeyTypes :many
+SELECT 
+    id,
+    name,
+    description,
+    created_at,
+    last_modified
+FROM public.ssh_key_types;
+
+-- name: GetSSHKeyTypeByName :one
+SELECT 
+    id,
+    name,
+    description,
+    created_at,
+    last_modified
+FROM public.ssh_key_types
+WHERE name = $1;
+
+-- name: CreateSSHKeyType :one
+INSERT INTO public.ssh_key_types (
+    name,
+    description
+) VALUES (
+    $1, $2
+) RETURNING id, name, description, created_at, last_modified;
+
+-- name: UpdateSSHKeyType :one
+UPDATE public.ssh_key_types
+SET 
+    description = COALESCE($2, description),
+    last_modified = CURRENT_TIMESTAMP
+WHERE name = $1
+RETURNING id, name, description, created_at, last_modified;
+
+-- name: DeleteSSHKeyType :exec
+DELETE FROM public.ssh_key_types
+WHERE name = $1;
