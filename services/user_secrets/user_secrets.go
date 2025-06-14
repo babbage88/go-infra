@@ -15,8 +15,8 @@ import (
 )
 
 type RetrievedUserSecret struct {
-	Reader   io.Reader
-	Metadata *ExternalApplicationAuthToken
+	Reader            io.Reader
+	ExternalAuthToken *ExternalApplicationAuthToken
 }
 
 // swagger:model UserSecretEntry
@@ -54,7 +54,7 @@ type PgUserSecretStore struct {
 	DbConn *pgxpool.Pool `json:"dbConn"`
 }
 
-type PgEncrytpedAuthToken struct {
+type PgEncrytpedSecret struct {
 	UserId        uuid.UUID                      `json:"userId"`
 	ApplicationId uuid.UUID                      `json:"applicationId"`
 	UserSecret    *EncryptedUserSecretsAES256GCM `json:"userSecret"`
@@ -67,7 +67,7 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 		return err
 	}
 
-	userSecret := PgEncrytpedAuthToken{
+	userSecret := PgEncrytpedSecret{
 		UserId:        userId,
 		ApplicationId: appId,
 		UserSecret:    &userCipherText,
@@ -102,7 +102,7 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 		return nil, err
 	}
 
-	var stored PgEncrytpedAuthToken
+	var stored PgEncrytpedSecret
 	err = json.Unmarshal(record.Token, &stored)
 	if err != nil {
 		slog.Error("Failed to unmarshal encrypted secret", slog.String("error", err.Error()))
@@ -124,8 +124,8 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 	}
 
 	return &RetrievedUserSecret{
-		Reader:   bytes.NewReader(plaintext),
-		Metadata: &daoExtSecret,
+		Reader:            bytes.NewReader(plaintext),
+		ExternalAuthToken: &daoExtSecret,
 	}, nil
 }
 

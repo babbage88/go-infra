@@ -40,7 +40,7 @@ type RetrievedSecretResponse struct {
 		UserID              uuid.UUID `json:"user_id"`
 		ExternalApplication uuid.UUID `json:"external_application_id"`
 		Expiration          time.Time `json:"expiration,omitempty"`
-		Token               string    `json:"token"`
+		Secret              string    `json:"secret"`
 	}
 }
 

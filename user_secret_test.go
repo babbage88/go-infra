@@ -74,7 +74,7 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 		}
 
 		// base64 the raw encrypted bytes to compare
-		encoded := base64.StdEncoding.EncodeToString(secret.Metadata.Token)
+		encoded := base64.StdEncoding.EncodeToString(secret.ExternalAuthToken.Token)
 
 		if _, exists := uniqueCiphertexts[encoded]; exists {
 			t.Fatalf("duplicate ciphertext detected at index %d (id: %s)", i, id.String())

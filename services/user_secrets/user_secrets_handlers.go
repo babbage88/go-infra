@@ -68,17 +68,17 @@ func GetSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		if secret.Metadata.UserID != userID {
+		if secret.ExternalAuthToken.UserID != userID {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 
 		resp := RetrievedSecretResponse{}
-		resp.Body.ID = secret.Metadata.Id
-		resp.Body.UserID = secret.Metadata.UserID
-		resp.Body.ExternalApplication = secret.Metadata.ExternalApplicationId
-		resp.Body.Expiration = secret.Metadata.Expiration
-		resp.Body.Token = string(secret.Metadata.Token)
+		resp.Body.ID = secret.ExternalAuthToken.Id
+		resp.Body.UserID = secret.ExternalAuthToken.UserID
+		resp.Body.ExternalApplication = secret.ExternalAuthToken.ExternalApplicationId
+		resp.Body.Expiration = secret.ExternalAuthToken.Expiration
+		resp.Body.Secret = string(secret.ExternalAuthToken.Token)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp.Body)
@@ -219,7 +219,7 @@ func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		if secret.Metadata.UserID != userID {
+		if secret.ExternalAuthToken.UserID != userID {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
