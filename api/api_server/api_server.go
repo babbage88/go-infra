@@ -40,7 +40,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/secrets/{ID}", cors.CORSWithGET(user_secrets.GetSecretHandler(userSecretStore)))
 	mux.Handle("/user/secrets/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByIdHandler(userSecretStore)))
 	mux.Handle("/user/{APPID}/secrets/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByAppIdHandler(userSecretStore)))
-	mux.Handle("/user/{APPNAME}/secrets/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByAppNameHandler(userSecretStore)))
+	mux.Handle("/user/secrets/by-name/{APPNAME}/{USERID}", cors.CORSWithGET(user_secrets.GetUserSecretEntriesByAppNameHandler(userSecretStore)))
 	mux.Handle("/secrets/delete/{ID}", cors.CORSWithDELETE(user_secrets.DeleteSecretHandler(userSecretStore)))
 	mux.Handle("/authhealthCheck", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(authapi.HealthCheckHandler))))
 	mux.Handle("/metrics", promhttp.Handler())

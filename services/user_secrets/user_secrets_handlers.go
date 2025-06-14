@@ -232,7 +232,7 @@ func DeleteSecretHandler(provider UserSecretProvider) http.Handler {
 	}))
 }
 
-// swagger:route GET /user/{APPNAME}/secrets/{USERID} secrets GetUserSecretEntriesByAppName
+// swagger:route GET /user/secrets/by-name/{APPNAME}/{USERID} secrets GetUserSecretEntriesByAppName
 // Retrieve a user secret by USERID and application name.
 // responses:
 //
