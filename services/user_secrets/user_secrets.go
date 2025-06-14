@@ -45,6 +45,7 @@ type UserSecretProvider interface {
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
 	GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error)
 	GetUserSecretEntriesByAppId(userId uuid.UUID, appId uuid.UUID) ([]UserSecretEntry, error)
+	GetUserSecretEntriesByAppName(userId uuid.UUID, appName string) ([]UserSecretEntry, error)
 	DeleteSecret(secretId uuid.UUID) error
 }
 
@@ -169,3 +170,23 @@ func (p *PgUserSecretStore) GetUserSecretEntriesByAppId(userId uuid.UUID, appId 
 
 	return userSecrets, nil
 }
+
+/*
+func (p *PgUserSecretStore) GetUserSecretEntriesByAppName(userId uuid.UUID, appName string) ([]UserSecretEntry, error) {
+	userSecrets := make([]UserSecretEntry, 0)
+	qry := infra_db_pg.New(p.DbConn)
+	params := &infra_db_pg.GetUserSecretsByAppNameParams{UserID: userId, ApplicationName: appName}
+	tokens, err := qry.GetUserSecretsByAppName(context.Background(), *params)
+	if err != nil {
+		slog.Error("Error retrieving token metadata from database", slog.String("error", err.Error()))
+		return userSecrets, err
+	}
+	for _, entryDb := range tokens {
+		var entry UserSecretEntry
+		entry.ParseExternalAppSecretMetadataFromAppName(entryDb)
+		userSecrets = append(userSecrets, entry)
+	}
+
+	return userSecrets, nil
+}
+*/
