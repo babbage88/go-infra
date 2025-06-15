@@ -75,7 +75,8 @@ type UpdateHostServerRequest struct {
 	IsDbHost *bool `json:"is_db_host,omitempty"`
 }
 
-// HostServerResponse represents a response containing a single host server
+// swagger:model HostServerResponse
+// HostServerResponse represents a single host server
 // @Description Response containing a single host server
 type HostServerResponse struct {
 	ID               uuid.UUID  `json:"id"`
@@ -89,6 +90,20 @@ type HostServerResponse struct {
 	LastModified     time.Time  `json:"last_modified"`
 }
 
+// swagger:response HostServerResponse
+// Response wrapper for a single host server
+type HostServerResponseWrapper struct {
+	// in: body
+	Body HostServerResponse `json:"body"`
+}
+
 // HostServersResponse represents a response containing a list of host servers
 // @Description Response containing multiple host servers
 type HostServersResponse []HostServerResponse
+
+// swagger:response HostServersResponse
+// Response wrapper for a list of host servers
+type HostServersResponseWrapper struct {
+	// in: body
+	Body []HostServerResponse `json:"body"`
+}

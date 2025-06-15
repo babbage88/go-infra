@@ -128,9 +128,9 @@ func GetAllHostServersHandler(provider HostServerProvider) http.Handler {
 			return
 		}
 
-		resp := make(HostServersResponse, len(servers))
+		respSlice := make(HostServersResponse, len(servers))
 		for i, server := range servers {
-			resp[i] = HostServerResponse{
+			respSlice[i] = HostServerResponse{
 				ID:               server.ID,
 				Hostname:         server.Hostname,
 				IPAddress:        server.IPAddress,
@@ -143,6 +143,7 @@ func GetAllHostServersHandler(provider HostServerProvider) http.Handler {
 			}
 		}
 
+		resp := HostServersResponseWrapper{Body: respSlice}
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			slog.Error("Failed to encode response", slog.String("error", err.Error()))

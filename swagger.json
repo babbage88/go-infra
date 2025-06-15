@@ -6,6 +6,7 @@
     "application/json"
   ],
   "schemes": [
+    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -21,7 +22,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -136,6 +137,123 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers": {
+      "get": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Get all host servers.",
+        "operationId": "getAllHostServers",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServersResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers/create": {
+      "post": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Create a new host server.",
+        "operationId": "createHostServer",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers/{ID}": {
+      "get": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Get a host server by ID.",
+        "operationId": "getHostServer",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Update a host server.",
+        "operationId": "updateHostServer",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Delete a host server.",
+        "operationId": "deleteHostServer",
+        "responses": {
+          "200": {
+            "description": "Host server deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found"
@@ -963,16 +1081,22 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "id": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "uuid",
+          "x-go-name": "Id"
         },
-        "newPermissionInfo": {
-          "$ref": "#/definitions/AppPermissionDao"
+        "permissionDescription": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "permissionName": {
+          "type": "string",
+          "x-go-name": "PermissionName"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "AuthToken": {
       "type": "object",
@@ -1453,6 +1577,51 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
+    "HostServerResponse": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "hostname": {
+          "type": "string",
+          "x-go-name": "Hostname"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "ip_address": {
+          "type": "string",
+          "x-go-name": "IPAddress"
+        },
+        "is_container_host": {
+          "type": "boolean",
+          "x-go-name": "IsContainerHost"
+        },
+        "is_db_host": {
+          "type": "boolean",
+          "x-go-name": "IsDbHost"
+        },
+        "is_virtual_machine": {
+          "type": "boolean",
+          "x-go-name": "IsVirtualMachine"
+        },
+        "is_vm_host": {
+          "type": "boolean",
+          "x-go-name": "IsVmHost"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
     "HostedDbPlatform": {
       "type": "object",
       "properties": {
@@ -1506,38 +1675,16 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "permissionId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -1904,6 +2051,21 @@
         "type": "array",
         "items": {
           "$ref": "#/definitions/UserSecretEntry"
+        }
+      }
+    },
+    "HostServerResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/HostServerResponse"
+      }
+    },
+    "HostServersResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/HostServerResponse"
         }
       }
     },
