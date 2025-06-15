@@ -49,10 +49,11 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 
 	// Host server routes
 	mux.Handle("/host-servers/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreateHostServerHandler(hostServerProvider))))
-	mux.Handle("/host-servers/{ID}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetHostServerHandler(hostServerProvider))))
+	mux.Handle("/host-servers/{ID}", cors.CORSWithMethods(
+		host_servers.HostServerByIDHandler(hostServerProvider, authService),
+		http.MethodGet, http.MethodPut, http.MethodDelete,
+	))
 	mux.Handle("/host-servers", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServersHandler(hostServerProvider))))
-	mux.Handle("/host-servers/{ID}", cors.CORSWithPUT(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.UpdateHostServerHandler(hostServerProvider))))
-	mux.Handle("/host-servers/{ID}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.DeleteHostServerHandler(hostServerProvider))))
 
 	// SSH key routes
 	mux.Handle("/ssh-keys/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.CreateSshKeyHandler(sshKeyProvider))))

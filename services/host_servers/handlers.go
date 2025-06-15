@@ -241,3 +241,22 @@ func DeleteHostServerHandler(provider HostServerProvider) http.Handler {
 		w.WriteHeader(http.StatusOK)
 	}))
 }
+
+// Combined handler for /host-servers/{ID} supporting GET, PUT, DELETE
+func HostServerByIDHandler(provider HostServerProvider, authService authapi.AuthService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			// Read permission
+			authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", GetHostServerHandler(provider)).ServeHTTP(w, r)
+		case http.MethodPut:
+			// Manage permission
+			authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", UpdateHostServerHandler(provider)).ServeHTTP(w, r)
+		case http.MethodDelete:
+			// Manage permission
+			authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", DeleteHostServerHandler(provider)).ServeHTTP(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
