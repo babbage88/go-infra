@@ -2024,40 +2024,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",
