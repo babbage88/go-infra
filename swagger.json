@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -152,7 +152,7 @@
           "host-servers"
         ],
         "summary": "Get all host servers.",
-        "operationId": "getAllHostServers",
+        "operationId": "GetAllHostServers",
         "responses": {
           "200": {
             "$ref": "#/responses/HostServersResponse"
@@ -172,7 +172,17 @@
           "host-servers"
         ],
         "summary": "Create a new host server.",
-        "operationId": "createHostServer",
+        "operationId": "CreateHostServer",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateHostServerRequest"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/HostServerResponse"
@@ -195,7 +205,7 @@
           "host-servers"
         ],
         "summary": "Get a host server by ID.",
-        "operationId": "getHostServer",
+        "operationId": "GetHostServer",
         "responses": {
           "200": {
             "$ref": "#/responses/HostServerResponse"
@@ -219,7 +229,17 @@
           "host-servers"
         ],
         "summary": "Update a host server.",
-        "operationId": "updateHostServer",
+        "operationId": "UpdateHostServer",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateHostServerRequest"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/HostServerResponse"
@@ -243,7 +263,7 @@
           "host-servers"
         ],
         "summary": "Delete a host server.",
-        "operationId": "deleteHostServer",
+        "operationId": "DeleteHostServer",
         "responses": {
           "200": {
             "description": "Host server deleted successfully"
@@ -1080,22 +1100,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "AuthToken": {
       "type": "object",
@@ -1258,6 +1272,52 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "CreateHostServerRequest": {
+      "type": "object",
+      "required": [
+        "hostname",
+        "ip_address"
+      ],
+      "properties": {
+        "hostname": {
+          "description": "Hostname of the server",
+          "type": "string",
+          "x-go-name": "Hostname",
+          "example": "server-01.example.com"
+        },
+        "ip_address": {
+          "description": "IP address of the server",
+          "type": "string",
+          "x-go-name": "IPAddress",
+          "example": "192.168.1.100"
+        },
+        "is_container_host": {
+          "description": "Whether this server can host containers",
+          "type": "boolean",
+          "x-go-name": "IsContainerHost",
+          "example": true
+        },
+        "is_db_host": {
+          "description": "Whether this server can host databases",
+          "type": "boolean",
+          "x-go-name": "IsDbHost",
+          "example": false
+        },
+        "is_virtual_machine": {
+          "description": "Whether this server is a virtual machine",
+          "type": "boolean",
+          "x-go-name": "IsVirtualMachine",
+          "example": false
+        },
+        "is_vm_host": {
+          "description": "Whether this server can host VMs",
+          "type": "boolean",
+          "x-go-name": "IsVmHost",
+          "example": false
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
     "CreateNewUserRequest": {
       "type": "object",
@@ -1621,6 +1681,13 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
+    "HostServersResponse": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/HostServerResponse"
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
     "HostedDbPlatform": {
       "type": "object",
       "properties": {
@@ -1674,38 +1741,16 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "permissionId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -1749,6 +1794,48 @@
         "format": "uuid"
       },
       "x-go-package": "github.com/google/uuid"
+    },
+    "UpdateHostServerRequest": {
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "description": "Hostname of the server",
+          "type": "string",
+          "x-go-name": "Hostname",
+          "example": "server-01.example.com"
+        },
+        "ip_address": {
+          "description": "IP address of the server",
+          "type": "string",
+          "x-go-name": "IPAddress",
+          "example": "192.168.1.100"
+        },
+        "is_container_host": {
+          "description": "Whether this server can host containers",
+          "type": "boolean",
+          "x-go-name": "IsContainerHost",
+          "example": true
+        },
+        "is_db_host": {
+          "description": "Whether this server can host databases",
+          "type": "boolean",
+          "x-go-name": "IsDbHost",
+          "example": false
+        },
+        "is_virtual_machine": {
+          "description": "Whether this server is a virtual machine",
+          "type": "boolean",
+          "x-go-name": "IsVirtualMachine",
+          "example": false
+        },
+        "is_vm_host": {
+          "description": "Whether this server can host VMs",
+          "type": "boolean",
+          "x-go-name": "IsVmHost",
+          "example": false
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
     "UpdateUserPasswordRequest": {
       "type": "object",
@@ -1937,16 +2024,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",

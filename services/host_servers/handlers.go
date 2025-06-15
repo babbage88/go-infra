@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// swagger:route POST /host-servers/create host-servers createHostServer
+// swagger:route POST /host-servers/create host-servers CreateHostServer
 // Create a new host server.
 // responses:
 //
@@ -27,7 +27,7 @@ func CreateHostServerHandler(provider HostServerProvider) http.Handler {
 		}
 
 		// Validate required fields
-		if req.Hostname == "" || req.IPAddress.IsValid() {
+		if req.Hostname == "" || !req.IPAddress.IsValid() {
 			http.Error(w, "Missing required fields", http.StatusBadRequest)
 			return
 		}
@@ -60,7 +60,7 @@ func CreateHostServerHandler(provider HostServerProvider) http.Handler {
 	}))
 }
 
-// swagger:route GET /host-servers/{ID} host-servers getHostServer
+// swagger:route GET /host-servers/{ID} host-servers GetHostServer
 // Get a host server by ID.
 // responses:
 //
@@ -112,7 +112,7 @@ func GetHostServerHandler(provider HostServerProvider) http.Handler {
 	}))
 }
 
-// swagger:route GET /host-servers host-servers getAllHostServers
+// swagger:route GET /host-servers host-servers GetAllHostServers
 // Get all host servers.
 // responses:
 //
@@ -143,9 +143,8 @@ func GetAllHostServersHandler(provider HostServerProvider) http.Handler {
 			}
 		}
 
-		resp := HostServersResponseWrapper{Body: respSlice}
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
+		if err := json.NewEncoder(w).Encode(respSlice); err != nil {
 			slog.Error("Failed to encode response", slog.String("error", err.Error()))
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
@@ -153,7 +152,7 @@ func GetAllHostServersHandler(provider HostServerProvider) http.Handler {
 	}))
 }
 
-// swagger:route PUT /host-servers/{ID} host-servers updateHostServer
+// swagger:route PUT /host-servers/{ID} host-servers UpdateHostServer
 // Update a host server.
 // responses:
 //
@@ -212,7 +211,7 @@ func UpdateHostServerHandler(provider HostServerProvider) http.Handler {
 	}))
 }
 
-// swagger:route DELETE /host-servers/{ID} host-servers deleteHostServer
+// swagger:route DELETE /host-servers/{ID} host-servers DeleteHostServer
 // Delete a host server.
 // responses:
 //

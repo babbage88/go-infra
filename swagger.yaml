@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -93,7 +93,7 @@ paths:
                 - UserCRUD
     /host-servers:
         get:
-            operationId: getAllHostServers
+            operationId: GetAllHostServers
             responses:
                 "200":
                     $ref: '#/responses/HostServersResponse'
@@ -106,7 +106,13 @@ paths:
                 - host-servers
     /host-servers/create:
         post:
-            operationId: createHostServer
+            operationId: CreateHostServer
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateHostServerRequest'
+                  x-go-name: Body
             responses:
                 "200":
                     $ref: '#/responses/HostServerResponse'
@@ -121,7 +127,7 @@ paths:
                 - host-servers
     /host-servers/{ID}:
         delete:
-            operationId: deleteHostServer
+            operationId: DeleteHostServer
             responses:
                 "200":
                     description: Host server deleted successfully
@@ -137,7 +143,7 @@ paths:
             tags:
                 - host-servers
         get:
-            operationId: getHostServer
+            operationId: GetHostServer
             responses:
                 "200":
                     $ref: '#/responses/HostServerResponse'
@@ -153,7 +159,13 @@ paths:
             tags:
                 - host-servers
         put:
-            operationId: updateHostServer
+            operationId: UpdateHostServer
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateHostServerRequest'
+                  x-go-name: Body
             responses:
                 "200":
                     $ref: '#/responses/HostServerResponse'
@@ -818,6 +830,43 @@ definitions:
                 x-go-name: PermissionName
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateHostServerRequest:
+        properties:
+            hostname:
+                description: Hostname of the server
+                example: server-01.example.com
+                type: string
+                x-go-name: Hostname
+            ip_address:
+                description: IP address of the server
+                example: 192.168.1.100
+                type: string
+                x-go-name: IPAddress
+            is_container_host:
+                description: Whether this server can host containers
+                example: true
+                type: boolean
+                x-go-name: IsContainerHost
+            is_db_host:
+                description: Whether this server can host databases
+                example: false
+                type: boolean
+                x-go-name: IsDbHost
+            is_virtual_machine:
+                description: Whether this server is a virtual machine
+                example: false
+                type: boolean
+                x-go-name: IsVirtualMachine
+            is_vm_host:
+                description: Whether this server can host VMs
+                example: false
+                type: boolean
+                x-go-name: IsVmHost
+        required:
+            - hostname
+            - ip_address
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     CreateNewUserRequest:
         properties:
             newEmail:
@@ -1089,6 +1138,11 @@ definitions:
                 x-go-name: LastModified
         type: object
         x-go-package: github.com/babbage88/go-infra/services/host_servers
+    HostServersResponse:
+        items:
+            $ref: '#/definitions/HostServerResponse'
+        type: array
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     HostedDbPlatform:
         properties:
             DefaultListenPort:
@@ -1185,6 +1239,40 @@ definitions:
         title: UUIDs is a slice of UUID types.
         type: array
         x-go-package: github.com/google/uuid
+    UpdateHostServerRequest:
+        properties:
+            hostname:
+                description: Hostname of the server
+                example: server-01.example.com
+                type: string
+                x-go-name: Hostname
+            ip_address:
+                description: IP address of the server
+                example: 192.168.1.100
+                type: string
+                x-go-name: IPAddress
+            is_container_host:
+                description: Whether this server can host containers
+                example: true
+                type: boolean
+                x-go-name: IsContainerHost
+            is_db_host:
+                description: Whether this server can host databases
+                example: false
+                type: boolean
+                x-go-name: IsDbHost
+            is_virtual_machine:
+                description: Whether this server is a virtual machine
+                example: false
+                type: boolean
+                x-go-name: IsVirtualMachine
+            is_vm_host:
+                description: Whether this server can host VMs
+                example: false
+                type: boolean
+                x-go-name: IsVmHost
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     UpdateUserPasswordRequest:
         properties:
             newPassword:
