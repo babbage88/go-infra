@@ -1118,22 +1118,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "AuthToken": {
       "type": "object",
@@ -1339,6 +1333,26 @@
           "type": "boolean",
           "x-go-name": "IsVmHost",
           "example": false
+        },
+        "ssh_key_id": {
+          "description": "SSH key ID for authentication",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SSHKeyID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "sudo_password_token_id": {
+          "description": "Optional sudo password token ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenID",
+          "example": "123e4567-e89b-12d3-a456-426614174001"
+        },
+        "username": {
+          "description": "Username for SSH connection",
+          "type": "string",
+          "x-go-name": "Username",
+          "example": "admin"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
@@ -1662,6 +1676,7 @@
     },
     "HostServerResponse": {
       "type": "object",
+      "title": "HostServerResponse represents a host server response.",
       "properties": {
         "created_at": {
           "type": "string",
@@ -1701,6 +1716,20 @@
           "type": "string",
           "format": "date-time",
           "x-go-name": "LastModified"
+        },
+        "ssh_key_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SSHKeyID"
+        },
+        "sudo_password_token_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenID"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
@@ -1857,6 +1886,26 @@
           "type": "boolean",
           "x-go-name": "IsVmHost",
           "example": false
+        },
+        "ssh_key_id": {
+          "description": "SSH key ID for authentication",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SSHKeyID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "sudo_password_token_id": {
+          "description": "Optional sudo password token ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenID",
+          "example": "123e4567-e89b-12d3-a456-426614174001"
+        },
+        "username": {
+          "description": "Username for SSH connection",
+          "type": "string",
+          "x-go-name": "Username",
+          "example": "admin"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
@@ -2048,40 +2097,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",

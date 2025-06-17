@@ -66,7 +66,7 @@ type CreateHostServerRequest struct {
 // @Description Request to update an existing host server
 type UpdateHostServerRequestWrapper struct {
 	// in: path
-	ID uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"ID"`
 	// in: body
 	Body UpdateHostServerRequest `json:"body"`
 }
@@ -156,5 +156,5 @@ type HostServerResponseWrapper struct {
 // @Description Request to delete a host server
 type DeleteHostServerRequestWrapper struct {
 	// in: path
-	ID uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"ID"`
 }
