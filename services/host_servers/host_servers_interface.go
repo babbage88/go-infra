@@ -10,15 +10,18 @@ import (
 
 // HostServer represents a server that can host containers, VMs, or databases
 type HostServer struct {
-	ID               uuid.UUID  `json:"id"`
-	Hostname         string     `json:"hostname"`
-	IPAddress        netip.Addr `json:"ip_address"`
-	IsContainerHost  bool       `json:"is_container_host"`
-	IsVmHost         bool       `json:"is_vm_host"`
-	IsVirtualMachine bool       `json:"is_virtual_machine"`
-	IsDbHost         bool       `json:"is_db_host"`
-	CreatedAt        time.Time  `json:"created_at"`
-	LastModified     time.Time  `json:"last_modified"`
+	ID                   uuid.UUID  `json:"id"`
+	Hostname             string     `json:"hostname"`
+	IPAddress            netip.Addr `json:"ip_address"`
+	Username             string     `json:"username"`
+	SSHKeyID             uuid.UUID  `json:"ssh_key_id"`
+	SudoPasswordSecretID *uuid.UUID `json:"sudo_password_secret_id,omitempty"`
+	IsContainerHost      bool       `json:"is_container_host"`
+	IsVmHost             bool       `json:"is_vm_host"`
+	IsVirtualMachine     bool       `json:"is_virtual_machine"`
+	IsDbHost             bool       `json:"is_db_host"`
+	CreatedAt            time.Time  `json:"created_at"`
+	LastModified         time.Time  `json:"last_modified"`
 }
 
 // HostServerProvider defines the interface for host server operations
