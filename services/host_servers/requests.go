@@ -27,19 +27,19 @@ type CreateHostServerRequest struct {
 	IPAddress netip.Addr `json:"ip_address" validate:"required"`
 
 	// Username for SSH connection
-	// required: true
+	// required: false
 	// example: admin
-	Username string `json:"username" validate:"required"`
+	Username *string `json:"username,omitempty"`
 
 	// SSH key ID for authentication
-	// required: true
+	// required: false
 	// example: 123e4567-e89b-12d3-a456-426614174000
-	SSHKeyID uuid.UUID `json:"ssh_key_id" validate:"required"`
+	SSHKeyID *uuid.UUID `json:"ssh_key_id,omitempty"`
 
-	// Optional sudo password secret ID
+	// Optional sudo password token ID
 	// required: false
 	// example: 123e4567-e89b-12d3-a456-426614174001
-	SudoPasswordSecretID *uuid.UUID `json:"sudo_password_secret_id,omitempty"`
+	SudoPasswordTokenID *uuid.UUID `json:"sudo_password_token_id,omitempty"`
 
 	// Whether this server can host containers
 	// required: false
@@ -93,10 +93,10 @@ type UpdateHostServerRequest struct {
 	// example: 123e4567-e89b-12d3-a456-426614174000
 	SSHKeyID *uuid.UUID `json:"ssh_key_id,omitempty"`
 
-	// Optional sudo password secret ID
+	// Optional sudo password token ID
 	// required: false
 	// example: 123e4567-e89b-12d3-a456-426614174001
-	SudoPasswordSecretID *uuid.UUID `json:"sudo_password_secret_id,omitempty"`
+	SudoPasswordTokenID *uuid.UUID `json:"sudo_password_token_id,omitempty"`
 
 	// Whether this server can host containers
 	// required: false
@@ -119,21 +119,21 @@ type UpdateHostServerRequest struct {
 	IsDbHost *bool `json:"is_db_host,omitempty"`
 }
 
-// swagger:model HostServerResponse
-// @Description Response containing a single host server
+// HostServerResponse represents a host server response.
+// swagger:model
 type HostServerResponse struct {
-	ID                   uuid.UUID  `json:"id"`
-	Hostname             string     `json:"hostname"`
-	IPAddress            netip.Addr `json:"ip_address"`
-	Username             string     `json:"username"`
-	SSHKeyID             uuid.UUID  `json:"ssh_key_id"`
-	SudoPasswordSecretID *uuid.UUID `json:"sudo_password_secret_id,omitempty"`
-	IsContainerHost      bool       `json:"is_container_host"`
-	IsVmHost             bool       `json:"is_vm_host"`
-	IsVirtualMachine     bool       `json:"is_virtual_machine"`
-	IsDbHost             bool       `json:"is_db_host"`
-	CreatedAt            time.Time  `json:"created_at"`
-	LastModified         time.Time  `json:"last_modified"`
+	ID                  uuid.UUID  `json:"id"`
+	Hostname            string     `json:"hostname"`
+	IPAddress           netip.Addr `json:"ip_address"`
+	Username            *string    `json:"username,omitempty"`
+	SSHKeyID            *uuid.UUID `json:"ssh_key_id,omitempty"`
+	SudoPasswordTokenID *uuid.UUID `json:"sudo_password_token_id,omitempty"`
+	IsContainerHost     bool       `json:"is_container_host"`
+	IsVmHost            bool       `json:"is_vm_host"`
+	IsVirtualMachine    bool       `json:"is_virtual_machine"`
+	IsDbHost            bool       `json:"is_db_host"`
+	CreatedAt           time.Time  `json:"created_at"`
+	LastModified        time.Time  `json:"last_modified"`
 }
 
 // swagger:model HostServersResponse

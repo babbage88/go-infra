@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
+	"time"
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/google/uuid"
@@ -36,16 +37,54 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 		return nil, fmt.Errorf("failed to create host server: %w", err)
 	}
 
+	// Create SSH key mapping if provided
+	if req.SSHKeyID != nil {
+		username := ""
+		if req.Username != nil {
+			username = *req.Username
+		}
+
+		_, err = p.db.CreateSSHKeyHostMapping(ctx, infra_db_pg.CreateSSHKeyHostMappingParams{
+			SshKeyID:           *req.SSHKeyID,
+			HostServerID:       server.ID,
+			UserID:             uuid.Nil, // TODO: Get from context
+			HostserverUsername: username,
+		})
+		if err != nil {
+			// Clean up the host server if mapping fails
+			_ = p.db.DeleteHostServer(ctx, server.ID)
+			return nil, fmt.Errorf("failed to create SSH key mapping: %w", err)
+		}
+	}
+
+	// Create sudo password token if provided
+	if req.SudoPasswordTokenID != nil {
+		err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
+			UserID:        uuid.Nil, // TODO: Get from context
+			ExternalAppID: server.ID,
+			Token:         []byte{}, // TODO: Get from secret provider
+			Expiration:    pgtype.Timestamptz{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		})
+		if err != nil {
+			// Clean up the host server and SSH mapping if token creation fails
+			_ = p.db.DeleteHostServer(ctx, server.ID)
+			return nil, fmt.Errorf("failed to create sudo password token: %w", err)
+		}
+	}
+
 	return &HostServer{
-		ID:               server.ID,
-		Hostname:         server.Hostname,
-		IPAddress:        server.IpAddress,
-		IsContainerHost:  server.IsContainerHost.Bool,
-		IsVmHost:         server.IsVmHost.Bool,
-		IsVirtualMachine: server.IsVirtualMachine.Bool,
-		IsDbHost:         server.IDDbHost.Bool,
-		CreatedAt:        server.CreatedAt.Time,
-		LastModified:     server.LastModified.Time,
+		ID:                   server.ID,
+		Hostname:             server.Hostname,
+		IPAddress:            server.IpAddress,
+		Username:             req.Username,
+		SSHKeyID:             req.SSHKeyID,
+		SudoPasswordSecretID: req.SudoPasswordTokenID,
+		IsContainerHost:      server.IsContainerHost.Bool,
+		IsVmHost:             server.IsVmHost.Bool,
+		IsVirtualMachine:     server.IsVirtualMachine.Bool,
+		IsDbHost:             server.IDDbHost.Bool,
+		CreatedAt:            server.CreatedAt.Time,
+		LastModified:         server.LastModified.Time,
 	}, nil
 }
 
@@ -56,16 +95,38 @@ func (p *HostServerProviderImpl) GetHostServer(ctx context.Context, id uuid.UUID
 		return nil, fmt.Errorf("failed to get host server: %w", err)
 	}
 
+	// Get SSH key mapping if exists
+	var username *string
+	var sshKeyID *uuid.UUID
+	mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, id)
+	if err == nil && len(mappings) > 0 {
+		username = &mappings[0].HostserverUsername
+		sshKeyID = &mappings[0].SshKeyID
+	}
+
+	// Get sudo password token if exists
+	var sudoPasswordTokenID *uuid.UUID
+	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
+		UserID:        uuid.Nil, // TODO: Get from context
+		ExternalAppID: id,
+	})
+	if err == nil && len(tokens) > 0 {
+		sudoPasswordTokenID = &tokens[0].ID
+	}
+
 	return &HostServer{
-		ID:               server.ID,
-		Hostname:         server.Hostname,
-		IPAddress:        server.IpAddress,
-		IsContainerHost:  server.IsContainerHost.Bool,
-		IsVmHost:         server.IsVmHost.Bool,
-		IsVirtualMachine: server.IsVirtualMachine.Bool,
-		IsDbHost:         server.IDDbHost.Bool,
-		CreatedAt:        server.CreatedAt.Time,
-		LastModified:     server.LastModified.Time,
+		ID:                   server.ID,
+		Hostname:             server.Hostname,
+		IPAddress:            server.IpAddress,
+		Username:             username,
+		SSHKeyID:             sshKeyID,
+		SudoPasswordSecretID: sudoPasswordTokenID,
+		IsContainerHost:      server.IsContainerHost.Bool,
+		IsVmHost:             server.IsVmHost.Bool,
+		IsVirtualMachine:     server.IsVirtualMachine.Bool,
+		IsDbHost:             server.IDDbHost.Bool,
+		CreatedAt:            server.CreatedAt.Time,
+		LastModified:         server.LastModified.Time,
 	}, nil
 }
 
@@ -76,16 +137,38 @@ func (p *HostServerProviderImpl) GetHostServerByHostname(ctx context.Context, ho
 		return nil, fmt.Errorf("failed to get host server by hostname: %w", err)
 	}
 
+	// Get SSH key mapping if exists
+	var username *string
+	var sshKeyID *uuid.UUID
+	mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, server.ID)
+	if err == nil && len(mappings) > 0 {
+		username = &mappings[0].HostserverUsername
+		sshKeyID = &mappings[0].SshKeyID
+	}
+
+	// Get sudo password token if exists
+	var sudoPasswordTokenID *uuid.UUID
+	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
+		UserID:        uuid.Nil, // TODO: Get from context
+		ExternalAppID: server.ID,
+	})
+	if err == nil && len(tokens) > 0 {
+		sudoPasswordTokenID = &tokens[0].ID
+	}
+
 	return &HostServer{
-		ID:               server.ID,
-		Hostname:         server.Hostname,
-		IPAddress:        server.IpAddress,
-		IsContainerHost:  server.IsContainerHost.Bool,
-		IsVmHost:         server.IsVmHost.Bool,
-		IsVirtualMachine: server.IsVirtualMachine.Bool,
-		IsDbHost:         server.IDDbHost.Bool,
-		CreatedAt:        server.CreatedAt.Time,
-		LastModified:     server.LastModified.Time,
+		ID:                   server.ID,
+		Hostname:             server.Hostname,
+		IPAddress:            server.IpAddress,
+		Username:             username,
+		SSHKeyID:             sshKeyID,
+		SudoPasswordSecretID: sudoPasswordTokenID,
+		IsContainerHost:      server.IsContainerHost.Bool,
+		IsVmHost:             server.IsVmHost.Bool,
+		IsVirtualMachine:     server.IsVirtualMachine.Bool,
+		IsDbHost:             server.IDDbHost.Bool,
+		CreatedAt:            server.CreatedAt.Time,
+		LastModified:         server.LastModified.Time,
 	}, nil
 }
 
@@ -96,16 +179,38 @@ func (p *HostServerProviderImpl) GetHostServerByIP(ctx context.Context, ip netip
 		return nil, fmt.Errorf("failed to get host server by IP: %w", err)
 	}
 
+	// Get SSH key mapping if exists
+	var username *string
+	var sshKeyID *uuid.UUID
+	mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, server.ID)
+	if err == nil && len(mappings) > 0 {
+		username = &mappings[0].HostserverUsername
+		sshKeyID = &mappings[0].SshKeyID
+	}
+
+	// Get sudo password token if exists
+	var sudoPasswordTokenID *uuid.UUID
+	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
+		UserID:        uuid.Nil, // TODO: Get from context
+		ExternalAppID: server.ID,
+	})
+	if err == nil && len(tokens) > 0 {
+		sudoPasswordTokenID = &tokens[0].ID
+	}
+
 	return &HostServer{
-		ID:               server.ID,
-		Hostname:         server.Hostname,
-		IPAddress:        server.IpAddress,
-		IsContainerHost:  server.IsContainerHost.Bool,
-		IsVmHost:         server.IsVmHost.Bool,
-		IsVirtualMachine: server.IsVirtualMachine.Bool,
-		IsDbHost:         server.IDDbHost.Bool,
-		CreatedAt:        server.CreatedAt.Time,
-		LastModified:     server.LastModified.Time,
+		ID:                   server.ID,
+		Hostname:             server.Hostname,
+		IPAddress:            server.IpAddress,
+		Username:             username,
+		SSHKeyID:             sshKeyID,
+		SudoPasswordSecretID: sudoPasswordTokenID,
+		IsContainerHost:      server.IsContainerHost.Bool,
+		IsVmHost:             server.IsVmHost.Bool,
+		IsVirtualMachine:     server.IsVirtualMachine.Bool,
+		IsDbHost:             server.IDDbHost.Bool,
+		CreatedAt:            server.CreatedAt.Time,
+		LastModified:         server.LastModified.Time,
 	}, nil
 }
 
@@ -116,19 +221,41 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 		return nil, fmt.Errorf("failed to get all host servers: %w", err)
 	}
 
-	result := make([]HostServer, len(servers))
-	for i, server := range servers {
-		result[i] = HostServer{
-			ID:               server.ID,
-			Hostname:         server.Hostname,
-			IPAddress:        server.IpAddress,
-			IsContainerHost:  server.IsContainerHost.Bool,
-			IsVmHost:         server.IsVmHost.Bool,
-			IsVirtualMachine: server.IsVirtualMachine.Bool,
-			IsDbHost:         server.IDDbHost.Bool,
-			CreatedAt:        server.CreatedAt.Time,
-			LastModified:     server.LastModified.Time,
+	result := make([]HostServer, 0, len(servers))
+	for _, server := range servers {
+		// Get SSH key mapping if exists
+		var username *string
+		var sshKeyID *uuid.UUID
+		mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, server.ID)
+		if err == nil && len(mappings) > 0 {
+			username = &mappings[0].HostserverUsername
+			sshKeyID = &mappings[0].SshKeyID
 		}
+
+		// Get sudo password token if exists
+		var sudoPasswordTokenID *uuid.UUID
+		tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
+			UserID:        uuid.Nil, // TODO: Get from context
+			ExternalAppID: server.ID,
+		})
+		if err == nil && len(tokens) > 0 {
+			sudoPasswordTokenID = &tokens[0].ID
+		}
+
+		result = append(result, HostServer{
+			ID:                   server.ID,
+			Hostname:             server.Hostname,
+			IPAddress:            server.IpAddress,
+			Username:             username,
+			SSHKeyID:             sshKeyID,
+			SudoPasswordSecretID: sudoPasswordTokenID,
+			IsContainerHost:      server.IsContainerHost.Bool,
+			IsVmHost:             server.IsVmHost.Bool,
+			IsVirtualMachine:     server.IsVirtualMachine.Bool,
+			IsDbHost:             server.IDDbHost.Bool,
+			CreatedAt:            server.CreatedAt.Time,
+			LastModified:         server.LastModified.Time,
+		})
 	}
 
 	return result, nil
@@ -136,8 +263,20 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 
 // UpdateHostServer updates an existing host server
 func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.UUID, req UpdateHostServerRequest) (*HostServer, error) {
+	// Get current server to merge with updates
+	current, err := p.GetHostServer(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
 	params := infra_db_pg.UpdateHostServerParams{
-		ID: id,
+		ID:               id,
+		Hostname:         current.Hostname,
+		IpAddress:        current.IPAddress,
+		IsContainerHost:  pgtype.Bool{Bool: current.IsContainerHost, Valid: true},
+		IsVmHost:         pgtype.Bool{Bool: current.IsVmHost, Valid: true},
+		IsVirtualMachine: pgtype.Bool{Bool: current.IsVirtualMachine, Valid: true},
+		IDDbHost:         pgtype.Bool{Bool: current.IsDbHost, Valid: true},
 	}
 
 	if req.Hostname != nil {
@@ -159,22 +298,76 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 		params.IDDbHost = pgtype.Bool{Bool: *req.IsDbHost, Valid: true}
 	}
 
-	server, err := p.db.UpdateHostServer(ctx, params)
+	// Update host server
+	_, err = p.db.UpdateHostServer(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update host server: %w", err)
 	}
 
-	return &HostServer{
-		ID:               server.ID,
-		Hostname:         server.Hostname,
-		IPAddress:        server.IpAddress,
-		IsContainerHost:  server.IsContainerHost.Bool,
-		IsVmHost:         server.IsVmHost.Bool,
-		IsVirtualMachine: server.IsVirtualMachine.Bool,
-		IsDbHost:         server.IDDbHost.Bool,
-		CreatedAt:        server.CreatedAt.Time,
-		LastModified:     server.LastModified.Time,
-	}, nil
+	// Update SSH key mapping if provided
+	if req.SSHKeyID != nil || req.Username != nil {
+		mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get SSH key mapping: %w", err)
+		}
+
+		username := ""
+		if current.Username != nil {
+			username = *current.Username
+		}
+		if req.Username != nil {
+			username = *req.Username
+		}
+
+		if len(mappings) > 0 {
+			// Update existing mapping
+			_, err = p.db.UpdateSSHKeyHostMapping(ctx, infra_db_pg.UpdateSSHKeyHostMappingParams{
+				ID:                 mappings[0].SshKeyID,
+				HostserverUsername: username,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to update SSH key mapping: %w", err)
+			}
+		} else if req.SSHKeyID != nil {
+			// Create new mapping
+			_, err = p.db.CreateSSHKeyHostMapping(ctx, infra_db_pg.CreateSSHKeyHostMappingParams{
+				SshKeyID:           *req.SSHKeyID,
+				HostServerID:       id,
+				UserID:             uuid.Nil, // TODO: Get from context
+				HostserverUsername: username,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to create SSH key mapping: %w", err)
+			}
+		}
+	}
+
+	// Update sudo password token if provided
+	if req.SudoPasswordTokenID != nil {
+		// Delete existing tokens
+		tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
+			UserID:        uuid.Nil, // TODO: Get from context
+			ExternalAppID: id,
+		})
+		if err == nil {
+			for _, token := range tokens {
+				_ = p.db.DeleteExternalAuthTokenById(ctx, token.ID)
+			}
+		}
+
+		// Create new token
+		err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
+			UserID:        uuid.Nil, // TODO: Get from context
+			ExternalAppID: id,
+			Token:         []byte{}, // TODO: Get from secret provider
+			Expiration:    pgtype.Timestamptz{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to update sudo password token: %w", err)
+		}
+	}
+
+	return p.GetHostServer(ctx, id)
 }
 
 // DeleteHostServer deletes a host server

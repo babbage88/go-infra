@@ -40,15 +40,18 @@ func CreateHostServerHandler(provider HostServerProvider) http.Handler {
 		}
 
 		resp := HostServerResponse{
-			ID:               server.ID,
-			Hostname:         server.Hostname,
-			IPAddress:        server.IPAddress,
-			IsContainerHost:  server.IsContainerHost,
-			IsVmHost:         server.IsVmHost,
-			IsVirtualMachine: server.IsVirtualMachine,
-			IsDbHost:         server.IsDbHost,
-			CreatedAt:        server.CreatedAt,
-			LastModified:     server.LastModified,
+			ID:                  server.ID,
+			Hostname:            server.Hostname,
+			IPAddress:           server.IPAddress,
+			Username:            server.Username,
+			SSHKeyID:            server.SSHKeyID,
+			SudoPasswordTokenID: server.SudoPasswordSecretID,
+			IsContainerHost:     server.IsContainerHost,
+			IsVmHost:            server.IsVmHost,
+			IsVirtualMachine:    server.IsVirtualMachine,
+			IsDbHost:            server.IsDbHost,
+			CreatedAt:           server.CreatedAt,
+			LastModified:        server.LastModified,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -92,15 +95,18 @@ func GetHostServerHandler(provider HostServerProvider) http.Handler {
 		}
 
 		resp := HostServerResponse{
-			ID:               server.ID,
-			Hostname:         server.Hostname,
-			IPAddress:        server.IPAddress,
-			IsContainerHost:  server.IsContainerHost,
-			IsVmHost:         server.IsVmHost,
-			IsVirtualMachine: server.IsVirtualMachine,
-			IsDbHost:         server.IsDbHost,
-			CreatedAt:        server.CreatedAt,
-			LastModified:     server.LastModified,
+			ID:                  server.ID,
+			Hostname:            server.Hostname,
+			IPAddress:           server.IPAddress,
+			Username:            server.Username,
+			SSHKeyID:            server.SSHKeyID,
+			SudoPasswordTokenID: server.SudoPasswordSecretID,
+			IsContainerHost:     server.IsContainerHost,
+			IsVmHost:            server.IsVmHost,
+			IsVirtualMachine:    server.IsVirtualMachine,
+			IsDbHost:            server.IsDbHost,
+			CreatedAt:           server.CreatedAt,
+			LastModified:        server.LastModified,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -131,15 +137,18 @@ func GetAllHostServersHandler(provider HostServerProvider) http.Handler {
 		respSlice := make(HostServersResponse, len(servers))
 		for i, server := range servers {
 			respSlice[i] = HostServerResponse{
-				ID:               server.ID,
-				Hostname:         server.Hostname,
-				IPAddress:        server.IPAddress,
-				IsContainerHost:  server.IsContainerHost,
-				IsVmHost:         server.IsVmHost,
-				IsVirtualMachine: server.IsVirtualMachine,
-				IsDbHost:         server.IsDbHost,
-				CreatedAt:        server.CreatedAt,
-				LastModified:     server.LastModified,
+				ID:                  server.ID,
+				Hostname:            server.Hostname,
+				IPAddress:           server.IPAddress,
+				Username:            server.Username,
+				SSHKeyID:            server.SSHKeyID,
+				SudoPasswordTokenID: server.SudoPasswordSecretID,
+				IsContainerHost:     server.IsContainerHost,
+				IsVmHost:            server.IsVmHost,
+				IsVirtualMachine:    server.IsVirtualMachine,
+				IsDbHost:            server.IsDbHost,
+				CreatedAt:           server.CreatedAt,
+				LastModified:        server.LastModified,
 			}
 		}
 
@@ -191,15 +200,18 @@ func UpdateHostServerHandler(provider HostServerProvider) http.Handler {
 		}
 
 		resp := HostServerResponse{
-			ID:               server.ID,
-			Hostname:         server.Hostname,
-			IPAddress:        server.IPAddress,
-			IsContainerHost:  server.IsContainerHost,
-			IsVmHost:         server.IsVmHost,
-			IsVirtualMachine: server.IsVirtualMachine,
-			IsDbHost:         server.IsDbHost,
-			CreatedAt:        server.CreatedAt,
-			LastModified:     server.LastModified,
+			ID:                  server.ID,
+			Hostname:            server.Hostname,
+			IPAddress:           server.IPAddress,
+			Username:            server.Username,
+			SSHKeyID:            server.SSHKeyID,
+			SudoPasswordTokenID: server.SudoPasswordSecretID,
+			IsContainerHost:     server.IsContainerHost,
+			IsVmHost:            server.IsVmHost,
+			IsVirtualMachine:    server.IsVirtualMachine,
+			IsDbHost:            server.IsDbHost,
+			CreatedAt:           server.CreatedAt,
+			LastModified:        server.LastModified,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

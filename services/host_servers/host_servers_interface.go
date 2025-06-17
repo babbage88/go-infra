@@ -13,8 +13,8 @@ type HostServer struct {
 	ID                   uuid.UUID  `json:"id"`
 	Hostname             string     `json:"hostname"`
 	IPAddress            netip.Addr `json:"ip_address"`
-	Username             string     `json:"username"`
-	SSHKeyID             uuid.UUID  `json:"ssh_key_id"`
+	Username             *string    `json:"username,omitempty"`
+	SSHKeyID             *uuid.UUID `json:"ssh_key_id,omitempty"`
 	SudoPasswordSecretID *uuid.UUID `json:"sudo_password_secret_id,omitempty"`
 	IsContainerHost      bool       `json:"is_container_host"`
 	IsVmHost             bool       `json:"is_vm_host"`
