@@ -35,8 +35,20 @@ type CreateHostServerParams struct {
 	IDDbHost         pgtype.Bool
 }
 
+type CreateHostServerRow struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
 // Host Servers CRUD Operations
-func (q *Queries) CreateHostServer(ctx context.Context, arg CreateHostServerParams) (HostServer, error) {
+func (q *Queries) CreateHostServer(ctx context.Context, arg CreateHostServerParams) (CreateHostServerRow, error) {
 	row := q.db.QueryRow(ctx, createHostServer,
 		arg.Hostname,
 		arg.IpAddress,
@@ -45,7 +57,7 @@ func (q *Queries) CreateHostServer(ctx context.Context, arg CreateHostServerPara
 		arg.IsVirtualMachine,
 		arg.IDDbHost,
 	)
-	var i HostServer
+	var i CreateHostServerRow
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,
@@ -545,15 +557,27 @@ SELECT
 FROM public.host_servers
 `
 
-func (q *Queries) GetAllHostServers(ctx context.Context) ([]HostServer, error) {
+type GetAllHostServersRow struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) GetAllHostServers(ctx context.Context) ([]GetAllHostServersRow, error) {
 	rows, err := q.db.Query(ctx, getAllHostServers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HostServer
+	var items []GetAllHostServersRow
 	for rows.Next() {
-		var i HostServer
+		var i GetAllHostServersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Hostname,
@@ -821,9 +845,21 @@ FROM public.host_servers
 WHERE hostname = $1
 `
 
-func (q *Queries) GetHostServerByHostname(ctx context.Context, hostname string) (HostServer, error) {
+type GetHostServerByHostnameRow struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) GetHostServerByHostname(ctx context.Context, hostname string) (GetHostServerByHostnameRow, error) {
 	row := q.db.QueryRow(ctx, getHostServerByHostname, hostname)
-	var i HostServer
+	var i GetHostServerByHostnameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,
@@ -853,9 +889,21 @@ FROM public.host_servers
 WHERE ip_address = $1
 `
 
-func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress netip.Addr) (HostServer, error) {
+type GetHostServerByIPRow struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress netip.Addr) (GetHostServerByIPRow, error) {
 	row := q.db.QueryRow(ctx, getHostServerByIP, ipAddress)
-	var i HostServer
+	var i GetHostServerByIPRow
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,
@@ -885,9 +933,21 @@ FROM public.host_servers
 WHERE id = $1
 `
 
-func (q *Queries) GetHostServerById(ctx context.Context, id uuid.UUID) (HostServer, error) {
+type GetHostServerByIdRow struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) GetHostServerById(ctx context.Context, id uuid.UUID) (GetHostServerByIdRow, error) {
 	row := q.db.QueryRow(ctx, getHostServerById, id)
-	var i HostServer
+	var i GetHostServerByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,
@@ -1648,7 +1708,7 @@ func (q *Queries) HardDeleteUserRoleById(ctx context.Context, id uuid.UUID) erro
 const insertExternalAppIntegrationByName = `-- name: InsertExternalAppIntegrationByName :one
 INSERT INTO public.external_integration_apps (id, "name") 
 VALUES ($1, $2)
-RETURNING id, name, created_at, last_modified, endpoint_url
+RETURNING id, name, created_at, last_modified, endpoint_url, app_description
 `
 
 type InsertExternalAppIntegrationByNameParams struct {
@@ -1665,6 +1725,7 @@ func (q *Queries) InsertExternalAppIntegrationByName(ctx context.Context, arg In
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.EndpointUrl,
+		&i.AppDescription,
 	)
 	return i, err
 }
@@ -1710,7 +1771,7 @@ INSERT INTO host_servers (
             is_virtual_machine = EXCLUDED.is_virtual_machine,
             id_db_host = EXCLUDED.id_db_host,
 			      last_modified = DEFAULT
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified, username
 `
 
 type InsertHostServerParams struct {
@@ -1742,6 +1803,7 @@ func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerPara
 		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
+		&i.Username,
 	)
 	return i, err
 }
@@ -1978,7 +2040,19 @@ type UpdateHostServerParams struct {
 	IDDbHost         pgtype.Bool
 }
 
-func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (HostServer, error) {
+type UpdateHostServerRow struct {
+	ID               uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	IsContainerHost  pgtype.Bool
+	IsVmHost         pgtype.Bool
+	IsVirtualMachine pgtype.Bool
+	IDDbHost         pgtype.Bool
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (UpdateHostServerRow, error) {
 	row := q.db.QueryRow(ctx, updateHostServer,
 		arg.ID,
 		arg.Hostname,
@@ -1988,7 +2062,7 @@ func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerPara
 		arg.IsVirtualMachine,
 		arg.IDDbHost,
 	)
-	var i HostServer
+	var i UpdateHostServerRow
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,

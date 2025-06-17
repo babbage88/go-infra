@@ -43,11 +43,12 @@ type ExternalAuthToken struct {
 }
 
 type ExternalIntegrationApp struct {
-	ID           uuid.UUID
-	Name         string
-	CreatedAt    pgtype.Timestamptz
-	LastModified pgtype.Timestamptz
-	EndpointUrl  pgtype.Text
+	ID             uuid.UUID
+	Name           string
+	CreatedAt      pgtype.Timestamptz
+	LastModified   pgtype.Timestamptz
+	EndpointUrl    pgtype.Text
+	AppDescription pgtype.Text
 }
 
 type HealthCheck struct {
@@ -68,6 +69,16 @@ type HostServer struct {
 	IDDbHost         pgtype.Bool
 	CreatedAt        pgtype.Timestamptz
 	LastModified     pgtype.Timestamptz
+	Username         pgtype.Text
+}
+
+type HostServerSshMapping struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
 }
 
 type HostedDbPlatform struct {
