@@ -128,6 +128,13 @@ paths:
     /host-servers/{ID}:
         delete:
             operationId: DeleteHostServer
+            parameters:
+                - format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
             responses:
                 "200":
                     description: Host server deleted successfully
@@ -161,6 +168,12 @@ paths:
         put:
             operationId: UpdateHostServer
             parameters:
+                - format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
                 - in: body
                   name: body
                   schema:
@@ -1177,32 +1190,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -1405,33 +1400,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            isDeleted:
-                type: boolean
-                x-go-name: IsDeleted
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            roleDesc:
-                type: string
-                x-go-name: RoleDescription
-            roleName:
-                type: string
-                x-go-name: RoleName
+                x-go-name: Error
+            newUserRoleInfo:
+                $ref: '#/definitions/UserRoleDao'
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserSecretEntry:
         properties:
             appInfo:

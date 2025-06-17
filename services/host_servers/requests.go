@@ -50,6 +50,8 @@ type CreateHostServerRequest struct {
 // swagger:parameters UpdateHostServer
 // @Description Request to update an existing host server
 type UpdateHostServerRequestWrapper struct {
+	// in: path
+	ID uuid.UUID `json:"id"`
 	// in: body
 	Body UpdateHostServerRequest `json:"body"`
 }
@@ -115,4 +117,11 @@ type HostServersResponseWrapper struct {
 type HostServerResponseWrapper struct {
 	// in: body
 	Body HostServerResponse `json:"body"`
+}
+
+// swagger:parameters DeleteHostServer
+// @Description Request to delete a host server
+type DeleteHostServerRequestWrapper struct {
+	// in: path
+	ID uuid.UUID `json:"id"`
 }
