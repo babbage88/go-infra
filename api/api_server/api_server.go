@@ -57,6 +57,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 
 	// SSH key routes
 	mux.Handle("/ssh-keys/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.CreateSshKeyHandler(sshKeyProvider))))
+	mux.Handle("/ssh-keys/{id}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.DeleteSshKeyHandler(sshKeyProvider))))
 
 	// Add Swagger UI handler
 	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui", swaggerui.ServeSwaggerUI(swaggerSpec)))

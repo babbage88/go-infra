@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/babbage88/go-infra/api/authapi"
+	"github.com/google/uuid"
 )
 
 // swagger:route POST /ssh-keys/create ssh-keys createSshKey
@@ -76,5 +77,57 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
+	}))
+}
+
+// swagger:route DELETE /ssh-keys/{id} ssh-keys deleteSshKey
+// Delete an SSH key and its associated secret.
+//
+// responses:
+//
+//	200: DeleteSshKeyResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	404: description:Not Found
+//	500: description:Internal Server Error
+func DeleteSshKeyHandler(provider SshKeySecretProvider) http.Handler {
+	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+		if idStr == "" {
+			http.Error(w, "Missing SSH key ID", http.StatusBadRequest)
+			return
+		}
+
+		sshKeyId, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, "Invalid SSH key ID", http.StatusBadRequest)
+			return
+		}
+
+		// Get user ID from context (for future RBAC, not used here)
+		_, err = authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		err = provider.DeleteSShKeyAndSecret(sshKeyId)
+		if err != nil {
+			slog.Error("Failed to delete SSH key and secret", slog.String("error", err.Error()))
+			if err.Error() == "no rows in result set" {
+				http.Error(w, "SSH key not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Failed to delete SSH key and secret", http.StatusInternalServerError)
+			return
+		}
+
+		resp := DeleteSshKeyResponse{
+			Body: struct {
+				Message string `json:"message"`
+			}{Message: "SSH key and secret deleted successfully"},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
 	}))
 }
