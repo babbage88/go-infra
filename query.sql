@@ -532,6 +532,10 @@ RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_
 DELETE FROM public.ssh_key_host_mappings
 WHERE id = $1;
 
+-- name: DeleteSSHKeyHostMappingsBySshKeyId :exec
+DELETE FROM public.ssh_key_host_mappings
+WHERE ssh_key_id = $1;
+
 -- Host Servers CRUD Operations
 -- name: CreateHostServer :one
 INSERT INTO public.host_servers (

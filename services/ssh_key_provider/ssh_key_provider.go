@@ -123,3 +123,53 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 		Error:           nil,
 	}
 }
+
+func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
+	// Start a transaction
+	tx, err := p.DbConn.Begin(context.Background())
+	if err != nil {
+		slog.Error("Failed to begin transaction", slog.String("error", err.Error()))
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	qry := infra_db_pg.New(tx)
+
+	// First, get the SSH key to retrieve the secret ID
+	sshKey, err := qry.GetSSHKeyById(context.Background(), sshKeyId)
+	if err != nil {
+		slog.Error("Failed to get SSH key", slog.String("error", err.Error()))
+		return err
+	}
+
+	// Delete SSH key host mappings first (foreign key constraint)
+	err = qry.DeleteSSHKeyHostMappingsBySshKeyId(context.Background(), sshKeyId)
+	if err != nil {
+		slog.Error("Failed to delete SSH key host mappings", slog.String("error", err.Error()))
+		return err
+	}
+
+	// Delete the SSH key record
+	err = qry.DeleteSSHKey(context.Background(), sshKeyId)
+	if err != nil {
+		slog.Error("Failed to delete SSH key", slog.String("error", err.Error()))
+		return err
+	}
+
+	// Delete the associated secret if it exists
+	if sshKey.PrivSecretID.Valid {
+		err = p.SecretProvider.DeleteSecret(sshKey.PrivSecretID.Bytes)
+		if err != nil {
+			slog.Error("Failed to delete SSH key secret", slog.String("error", err.Error()))
+			return err
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		slog.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
+}

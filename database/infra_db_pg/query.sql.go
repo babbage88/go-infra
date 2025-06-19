@@ -319,6 +319,16 @@ func (q *Queries) DeleteSSHKeyHostMapping(ctx context.Context, id uuid.UUID) err
 	return err
 }
 
+const deleteSSHKeyHostMappingsBySshKeyId = `-- name: DeleteSSHKeyHostMappingsBySshKeyId :exec
+DELETE FROM public.ssh_key_host_mappings
+WHERE ssh_key_id = $1
+`
+
+func (q *Queries) DeleteSSHKeyHostMappingsBySshKeyId(ctx context.Context, sshKeyID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSSHKeyHostMappingsBySshKeyId, sshKeyID)
+	return err
+}
+
 const deleteSSHKeyType = `-- name: DeleteSSHKeyType :exec
 DELETE FROM public.ssh_key_types
 WHERE name = $1

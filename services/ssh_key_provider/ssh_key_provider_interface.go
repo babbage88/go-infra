@@ -28,4 +28,5 @@ type NewSshKeyResult struct {
 type SshKeySecretProvider interface {
 	StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error
 	CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyResult
+	DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error
 }

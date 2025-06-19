@@ -51,7 +51,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/host-servers/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreateHostServerHandler(hostServerProvider))))
 	mux.Handle("/host-servers/{ID}", cors.CORSWithMethods(
 		host_servers.HostServerByIDHandler(hostServerProvider, authService),
-		http.MethodGet, http.MethodPut, http.MethodDelete,
+		http.MethodGet, http.MethodPut, http.MethodDelete, http.MethodPost,
 	))
 	mux.Handle("/host-servers", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServersHandler(hostServerProvider))))
 

@@ -131,10 +131,9 @@ paths:
             parameters:
                 - format: uuid
                   in: path
-                  name: id
+                  name: ID
                   required: true
                   type: string
-                  x-go-name: ID
             responses:
                 "200":
                     description: Host server deleted successfully
@@ -170,10 +169,9 @@ paths:
             parameters:
                 - format: uuid
                   in: path
-                  name: id
+                  name: ID
                   required: true
                   type: string
-                  x-go-name: ID
                 - in: body
                   name: body
                   schema:
