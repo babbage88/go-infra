@@ -13,6 +13,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createExternalApplication = `-- name: CreateExternalApplication :one
+INSERT INTO public.external_integration_apps (id, "name", endpoint_url, app_description) 
+VALUES ($1, $2, $3, $4)
+RETURNING id, "name", created_at, last_modified, endpoint_url, app_description
+`
+
+type CreateExternalApplicationParams struct {
+	ID             uuid.UUID
+	Name           string
+	EndpointUrl    pgtype.Text
+	AppDescription pgtype.Text
+}
+
+func (q *Queries) CreateExternalApplication(ctx context.Context, arg CreateExternalApplicationParams) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, createExternalApplication,
+		arg.ID,
+		arg.Name,
+		arg.EndpointUrl,
+		arg.AppDescription,
+	)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
+}
+
 const createHostServer = `-- name: CreateHostServer :one
 INSERT INTO public.host_servers (
     hostname,
@@ -739,6 +771,46 @@ func (q *Queries) GetExternalAppNameById(ctx context.Context, id uuid.UUID) (str
 	var name string
 	err := row.Scan(&name)
 	return name, err
+}
+
+const getExternalApplicationById = `-- name: GetExternalApplicationById :one
+SELECT id, "name", created_at, last_modified, endpoint_url, app_description
+FROM public.external_integration_apps
+WHERE id = $1
+`
+
+func (q *Queries) GetExternalApplicationById(ctx context.Context, id uuid.UUID) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, getExternalApplicationById, id)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
+}
+
+const getExternalApplicationByName = `-- name: GetExternalApplicationByName :one
+SELECT id, "name", created_at, last_modified, endpoint_url, app_description
+FROM public.external_integration_apps
+WHERE "name" = $1
+`
+
+func (q *Queries) GetExternalApplicationByName(ctx context.Context, name string) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, getExternalApplicationByName, name)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
 }
 
 const getExternalAuthTokenById = `-- name: GetExternalAuthTokenById :one
@@ -2024,6 +2096,43 @@ WHERE id = $1
 func (q *Queries) SoftDeleteUserRoleById(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, softDeleteUserRoleById, id)
 	return err
+}
+
+const updateExternalApplication = `-- name: UpdateExternalApplication :one
+UPDATE public.external_integration_apps
+SET 
+    "name" = COALESCE($2, "name"),
+    endpoint_url = COALESCE($3, endpoint_url),
+    app_description = COALESCE($4, app_description),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, "name", created_at, last_modified, endpoint_url, app_description
+`
+
+type UpdateExternalApplicationParams struct {
+	ID             uuid.UUID
+	Name           string
+	EndpointUrl    pgtype.Text
+	AppDescription pgtype.Text
+}
+
+func (q *Queries) UpdateExternalApplication(ctx context.Context, arg UpdateExternalApplicationParams) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, updateExternalApplication,
+		arg.ID,
+		arg.Name,
+		arg.EndpointUrl,
+		arg.AppDescription,
+	)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
 }
 
 const updateHostServer = `-- name: UpdateHostServer :one

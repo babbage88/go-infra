@@ -34,6 +34,7 @@ import (
 	"github.com/babbage88/go-infra/api/api_server"
 	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
@@ -69,6 +70,7 @@ func main() {
 	secretProvider := &user_secrets.PgUserSecretStore{DbConn: connPool}
 	hostServerProvider := host_servers.NewHostServerProvider(infra_db_pg.New(connPool))
 	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool, secretProvider)
+	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
 
 	apiServer := api_server.APIServer{
 		HealthCheckService:      healthCheckService,
@@ -77,6 +79,7 @@ func main() {
 		UserSecretsStoreService: secretProvider,
 		HostServerProvider:      hostServerProvider,
 		SshKeyProvider:          sshKeyProvider,
+		ExternalAppsService:     externalAppsService,
 		UseSsl:                  userHttps,
 		Certificate:             certFile,
 		CertKey:                 certKey,

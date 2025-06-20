@@ -1152,16 +1152,22 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "id": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "uuid",
+          "x-go-name": "Id"
         },
-        "newPermissionInfo": {
-          "$ref": "#/definitions/AppPermissionDao"
+        "permissionDescription": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "permissionName": {
+          "type": "string",
+          "x-go-name": "PermissionName"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "AuthToken": {
       "type": "object",

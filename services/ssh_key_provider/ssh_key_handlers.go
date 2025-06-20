@@ -2,6 +2,7 @@ package ssh_key_provider
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -49,14 +50,23 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			PrivateKey:  req.PrivateKey,
 			KeyType:     req.KeyType,
 		}
+		slog.Info("User ID", slog.String("user_id", userID.String()))
+		slog.Info("Host server ID", slog.String("host_server_id", req.HostServerId.String()))
+		slog.Info("Name", slog.String("name", req.Name))
+		slog.Info("Description", slog.String("description", req.Description))
+		slog.Info("Public key", slog.String("public_key", req.PublicKey))
+		slog.Info("Private key", slog.String("private_key", req.PrivateKey))
+		slog.Info("Key type", slog.String("key_type", req.KeyType))
 
 		// Add host server ID if provided
 		if req.HostServerId != nil {
+			slog.Info("Host server ID", slog.String("host_server_id", req.HostServerId.String()))
 			sshKeyReq.HostServerId = *req.HostServerId
 		}
 
 		// Create the SSH key
 		result := provider.CreateSshKey(sshKeyReq)
+		slog.Info("Created SSH key", slog.String("result", fmt.Sprintf("%+v", result)))
 		if result.Error != nil {
 			slog.Error("Failed to create SSH key", slog.String("error", result.Error.Error()))
 			http.Error(w, "Failed to create SSH key", http.StatusInternalServerError)

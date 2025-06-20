@@ -8,6 +8,7 @@ import (
 	userapi "github.com/babbage88/go-infra/api/user_api_handlers"
 	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/swaggerui"
+	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
@@ -17,7 +18,7 @@ import (
 )
 
 func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService,
-	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, swaggerSpec []byte) {
+	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(authapi.LoginHandler(authService)))
 	mux.Handle("/dbhealth", cors.CORSWithGET(healthCheckService.DbReadHealthCheckHandler()))
@@ -59,13 +60,33 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/ssh-keys/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.CreateSshKeyHandler(sshKeyProvider))))
 	mux.Handle("/ssh-keys/{id}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.DeleteSshKeyHandler(sshKeyProvider))))
 
+	// External applications routes
+	mux.Handle("/external-applications", cors.CORSWithMethods(
+		external_applications.ExternalApplicationsHandler(externalAppsService, authService),
+		http.MethodGet, http.MethodPost,
+	))
+	mux.Handle("/external-applications/{ID}", cors.CORSWithMethods(
+		external_applications.ExternalApplicationByIDHandler(externalAppsService, authService),
+		http.MethodGet, http.MethodPut, http.MethodDelete,
+	))
+	mux.Handle("/external-applications/by-name/{name}", cors.CORSWithMethods(
+		external_applications.ExternalApplicationByNameHandler(externalAppsService, authService),
+		http.MethodGet, http.MethodDelete,
+	))
+	mux.Handle("/external-applications/id/{name}", cors.CORSWithGET(
+		external_applications.GetExternalApplicationIdByNameHandler(externalAppsService),
+	))
+	mux.Handle("/external-applications/name/{ID}", cors.CORSWithGET(
+		external_applications.GetExternalApplicationNameByIdHandler(externalAppsService),
+	))
+
 	// Add Swagger UI handler
 	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui", swaggerui.ServeSwaggerUI(swaggerSpec)))
 }
 
 func (api *APIServer) StartAPIServices(srvadr *string) error {
 	mux := http.NewServeMux()
-	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.SwaggerSpec)
+	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec)
 
 	switch {
 	case api.UseSsl:

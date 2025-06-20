@@ -315,6 +315,31 @@ INSERT INTO public.external_integration_apps (id, "name")
 VALUES ($1, $2)
 RETURNING *;
 
+-- name: CreateExternalApplication :one
+INSERT INTO public.external_integration_apps (id, "name", endpoint_url, app_description) 
+VALUES ($1, $2, $3, $4)
+RETURNING id, "name", created_at, last_modified, endpoint_url, app_description;
+
+-- name: GetExternalApplicationById :one
+SELECT id, "name", created_at, last_modified, endpoint_url, app_description
+FROM public.external_integration_apps
+WHERE id = $1;
+
+-- name: GetExternalApplicationByName :one
+SELECT id, "name", created_at, last_modified, endpoint_url, app_description
+FROM public.external_integration_apps
+WHERE "name" = $1;
+
+-- name: UpdateExternalApplication :one
+UPDATE public.external_integration_apps
+SET 
+    "name" = COALESCE($2, "name"),
+    endpoint_url = COALESCE($3, endpoint_url),
+    app_description = COALESCE($4, app_description),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, "name", created_at, last_modified, endpoint_url, app_description;
+
 -- name: DeleteExternalApplicationByName :exec
 DELETE FROM external_integration_apps
 WHERE "name" = $1;
