@@ -598,6 +598,42 @@
         }
       }
     },
+    "/ssh-keys/{id}": {
+      "delete": {
+        "tags": [
+          "ssh-keys"
+        ],
+        "summary": "Delete an SSH key and its associated secret.",
+        "operationId": "deleteSshKey",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/DeleteSshKeyResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/token/refresh": {
       "post": {
         "tags": [
@@ -1116,22 +1152,16 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "id": {
+        "error": {
           "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "x-go-name": "Error"
         },
-        "permissionDescription": {
-          "type": "string",
-          "x-go-name": "PermissionDescription"
-        },
-        "permissionName": {
-          "type": "string",
-          "x-go-name": "PermissionName"
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
         }
       },
       "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "AuthToken": {
       "type": "object",
@@ -1798,16 +1828,38 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newMappingInfo": {
-          "$ref": "#/definitions/RolePermissionMappingDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "permissionId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PermissionId"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "RoleId"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -2101,40 +2153,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -2187,6 +2215,19 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserRoleDao"
+      }
+    },
+    "DeleteSshKeyResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "description": "Success message",
+            "type": "string",
+            "x-go-name": "Message"
+          }
+        }
       }
     },
     "EnableDisableUserResponse": {
