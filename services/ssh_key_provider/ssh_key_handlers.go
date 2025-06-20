@@ -564,3 +564,19 @@ func DeleteSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 		json.NewEncoder(w).Encode(resp)
 	}))
 }
+
+// SshKeyHostMappingByIDHandler handles GET, PUT, and DELETE operations for SSH key host mappings by ID
+func SshKeyHostMappingByIDHandler(provider SshKeySecretProvider, authService authapi.AuthService) http.Handler {
+	return authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			GetSshKeyHostMappingByIdHandler(provider).ServeHTTP(w, r)
+		case http.MethodPut:
+			UpdateSshKeyHostMappingHandler(provider).ServeHTTP(w, r)
+		case http.MethodDelete:
+			DeleteSshKeyHostMappingHandler(provider).ServeHTTP(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+}
