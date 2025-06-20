@@ -173,3 +173,236 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 
 	return nil
 }
+
+// SSH Key Host Mapping CRUD operations
+
+func (p *PgSshKeySecretStore) CreateSshKeyHostMapping(mapping *CreateSshKeyHostMappingRequest) CreateSshKeyHostMappingResult {
+	// Start a transaction
+	tx, err := p.DbConn.Begin(context.Background())
+	if err != nil {
+		slog.Error("Failed to begin transaction", slog.String("error", err.Error()))
+		return CreateSshKeyHostMappingResult{Error: err}
+	}
+	defer tx.Rollback(context.Background())
+
+	qry := infra_db_pg.New(tx)
+
+	// Create the SSH key host mapping
+	sshKeyHostMapping, err := qry.CreateSSHKeyHostMapping(context.Background(), infra_db_pg.CreateSSHKeyHostMappingParams{
+		SshKeyID:           mapping.SshKeyID,
+		HostServerID:       mapping.HostServerID,
+		UserID:             mapping.UserID,
+		HostserverUsername: mapping.HostserverUsername,
+	})
+	if err != nil {
+		slog.Error("Failed to create SSH key host mapping", slog.String("error", err.Error()))
+		return CreateSshKeyHostMappingResult{Error: err}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		slog.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		return CreateSshKeyHostMappingResult{Error: err}
+	}
+
+	return CreateSshKeyHostMappingResult{
+		ID:                 sshKeyHostMapping.ID,
+		SshKeyID:           sshKeyHostMapping.SshKeyID,
+		HostServerID:       sshKeyHostMapping.HostServerID,
+		UserID:             sshKeyHostMapping.UserID,
+		HostserverUsername: sshKeyHostMapping.HostserverUsername,
+		CreatedAt:          sshKeyHostMapping.CreatedAt.Time,
+		LastModified:       sshKeyHostMapping.LastModified.Time,
+		Error:              nil,
+	}
+}
+
+func (p *PgSshKeySecretStore) GetSshKeyHostMappingById(id uuid.UUID) (*CreateSshKeyHostMappingResult, error) {
+	qry := infra_db_pg.New(p.DbConn)
+
+	// Get the SSH key host mapping
+	sshKeyHostMapping, err := qry.GetSSHKeyHostMappingById(context.Background(), id)
+	if err != nil {
+		slog.Error("Failed to get SSH key host mapping", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	return &CreateSshKeyHostMappingResult{
+		ID:                 sshKeyHostMapping.ID,
+		SshKeyID:           sshKeyHostMapping.SshKeyID,
+		HostServerID:       sshKeyHostMapping.HostServerID,
+		UserID:             sshKeyHostMapping.UserID,
+		HostserverUsername: sshKeyHostMapping.HostserverUsername,
+		CreatedAt:          sshKeyHostMapping.CreatedAt.Time,
+		LastModified:       sshKeyHostMapping.LastModified.Time,
+		Error:              nil,
+	}, nil
+}
+
+func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByUserId(userId uuid.UUID) ([]CreateSshKeyHostMappingResult, error) {
+	qry := infra_db_pg.New(p.DbConn)
+
+	// Get the SSH key host mappings by user ID
+	userSshKeyMappings, err := qry.GetSSHKeyHostMappingsByUserId(context.Background(), userId)
+	if err != nil {
+		slog.Error("Failed to get SSH key host mappings by user ID", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
+	for _, mapping := range userSshKeyMappings {
+		result = append(result, CreateSshKeyHostMappingResult{
+			SshKeyID:           mapping.SshKeyID,
+			HostServerID:       mapping.HostServerID,
+			UserID:             mapping.UserID,
+			HostserverUsername: mapping.HostserverUsername,
+			// Note: UserSshKeyMapping doesn't have ID, CreatedAt, LastModified fields
+			// These would need to be fetched separately if needed
+		})
+	}
+
+	return result, nil
+}
+
+func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByHostId(hostId uuid.UUID) ([]CreateSshKeyHostMappingResult, error) {
+	qry := infra_db_pg.New(p.DbConn)
+
+	// Get the SSH key host mappings by host ID
+	userSshKeyMappings, err := qry.GetSSHKeyHostMappingsByHostId(context.Background(), hostId)
+	if err != nil {
+		slog.Error("Failed to get SSH key host mappings by host ID", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
+	for _, mapping := range userSshKeyMappings {
+		result = append(result, CreateSshKeyHostMappingResult{
+			SshKeyID:           mapping.SshKeyID,
+			HostServerID:       mapping.HostServerID,
+			UserID:             mapping.UserID,
+			HostserverUsername: mapping.HostserverUsername,
+			// Note: UserSshKeyMapping doesn't have ID, CreatedAt, LastModified fields
+			// These would need to be fetched separately if needed
+		})
+	}
+
+	return result, nil
+}
+
+func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByKeyId(keyId uuid.UUID) ([]CreateSshKeyHostMappingResult, error) {
+	qry := infra_db_pg.New(p.DbConn)
+
+	// Get the SSH key host mappings by key ID
+	userSshKeyMappings, err := qry.GetSSHKeyHostMappingsByKeyId(context.Background(), keyId)
+	if err != nil {
+		slog.Error("Failed to get SSH key host mappings by key ID", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
+	for _, mapping := range userSshKeyMappings {
+		result = append(result, CreateSshKeyHostMappingResult{
+			SshKeyID:           mapping.SshKeyID,
+			HostServerID:       mapping.HostServerID,
+			UserID:             mapping.UserID,
+			HostserverUsername: mapping.HostserverUsername,
+			// Note: UserSshKeyMapping doesn't have ID, CreatedAt, LastModified fields
+			// These would need to be fetched separately if needed
+		})
+	}
+
+	return result, nil
+}
+
+func (p *PgSshKeySecretStore) UpdateSshKeyHostMapping(mapping *UpdateSshKeyHostMappingRequest) UpdateSshKeyHostMappingResult {
+	// Start a transaction
+	tx, err := p.DbConn.Begin(context.Background())
+	if err != nil {
+		slog.Error("Failed to begin transaction", slog.String("error", err.Error()))
+		return UpdateSshKeyHostMappingResult{Error: err}
+	}
+	defer tx.Rollback(context.Background())
+
+	qry := infra_db_pg.New(tx)
+
+	// Update the SSH key host mapping
+	sshKeyHostMapping, err := qry.UpdateSSHKeyHostMapping(context.Background(), infra_db_pg.UpdateSSHKeyHostMappingParams{
+		ID:                 mapping.ID,
+		HostserverUsername: mapping.HostserverUsername,
+	})
+	if err != nil {
+		slog.Error("Failed to update SSH key host mapping", slog.String("error", err.Error()))
+		return UpdateSshKeyHostMappingResult{Error: err}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		slog.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		return UpdateSshKeyHostMappingResult{Error: err}
+	}
+
+	return UpdateSshKeyHostMappingResult{
+		ID:                 sshKeyHostMapping.ID,
+		SshKeyID:           sshKeyHostMapping.SshKeyID,
+		HostServerID:       sshKeyHostMapping.HostServerID,
+		UserID:             sshKeyHostMapping.UserID,
+		HostserverUsername: sshKeyHostMapping.HostserverUsername,
+		CreatedAt:          sshKeyHostMapping.CreatedAt.Time,
+		LastModified:       sshKeyHostMapping.LastModified.Time,
+		Error:              nil,
+	}
+}
+
+func (p *PgSshKeySecretStore) DeleteSshKeyHostMapping(id uuid.UUID) error {
+	// Start a transaction
+	tx, err := p.DbConn.Begin(context.Background())
+	if err != nil {
+		slog.Error("Failed to begin transaction", slog.String("error", err.Error()))
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	qry := infra_db_pg.New(tx)
+
+	// Delete the SSH key host mapping
+	err = qry.DeleteSSHKeyHostMapping(context.Background(), id)
+	if err != nil {
+		slog.Error("Failed to delete SSH key host mapping", slog.String("error", err.Error()))
+		return err
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		slog.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
+}
+
+func (p *PgSshKeySecretStore) DeleteSshKeyHostMappingsBySshKeyId(sshKeyId uuid.UUID) error {
+	// Start a transaction
+	tx, err := p.DbConn.Begin(context.Background())
+	if err != nil {
+		slog.Error("Failed to begin transaction", slog.String("error", err.Error()))
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	qry := infra_db_pg.New(tx)
+
+	// Delete all SSH key host mappings for the given SSH key ID
+	err = qry.DeleteSSHKeyHostMappingsBySshKeyId(context.Background(), sshKeyId)
+	if err != nil {
+		slog.Error("Failed to delete SSH key host mappings by SSH key ID", slog.String("error", err.Error()))
+		return err
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		slog.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
+}
