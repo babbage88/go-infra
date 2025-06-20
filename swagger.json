@@ -146,6 +146,319 @@
         }
       }
     },
+    "/external-applications": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get all external applications.",
+        "operationId": "getAllExternalApplications",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllExternalApplicationsResponse"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Create a new external application.",
+        "operationId": "createExternalApplication",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateExternalApplicationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "$ref": "#/responses/CreateExternalApplicationResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid input data"
+          },
+          "409": {
+            "description": "Conflict - application with this name already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/by-name/{name}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application by name.",
+        "operationId": "getExternalApplicationByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Name of the external application",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationByNameResponse"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Delete an external application by name.",
+        "operationId": "deleteExternalApplicationByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Name of the external application",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "External application deleted successfully"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/id/{name}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application ID by name.",
+        "operationId": "getExternalApplicationIdByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Name of the external application",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationIdByNameResponse"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/name/{ID}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application name by ID.",
+        "operationId": "getExternalApplicationNameById",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationNameByIdResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/{ID}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application by ID.",
+        "operationId": "getExternalApplicationById",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationByIdResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Update an external application.",
+        "operationId": "updateExternalApplication",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateExternalApplicationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdateExternalApplicationResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format or request body"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Delete an external application by ID.",
+        "operationId": "deleteExternalApplicationById",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "External application deleted successfully"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/host-servers": {
       "get": {
         "tags": [
@@ -1331,6 +1644,24 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "CreateExternalApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "appDescription": {
+          "type": "string",
+          "x-go-name": "AppDescription"
+        },
+        "endpointUrl": {
+          "type": "string",
+          "x-go-name": "EndpointUrl"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/external_applications"
+    },
     "CreateHostServerRequest": {
       "type": "object",
       "required": [
@@ -1608,6 +1939,39 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_secrets"
+    },
+    "ExternalApplicationDao": {
+      "type": "object",
+      "properties": {
+        "appDescription": {
+          "type": "string",
+          "x-go-name": "AppDescription"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "endpointUrl": {
+          "type": "string",
+          "x-go-name": "EndpointUrl"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/external_applications"
     },
     "ExternalApplicationInfo": {
       "type": "object",
@@ -1910,6 +2274,24 @@
       },
       "x-go-package": "github.com/google/uuid"
     },
+    "UpdateExternalApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "appDescription": {
+          "type": "string",
+          "x-go-name": "AppDescription"
+        },
+        "endpointUrl": {
+          "type": "string",
+          "x-go-name": "EndpointUrl"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/external_applications"
+    },
     "UpdateHostServerRequest": {
       "type": "object",
       "properties": {
@@ -2199,6 +2581,12 @@
         "$ref": "#/definitions/AppPermissionDao"
       }
     },
+    "CreateExternalApplicationResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
     "CreateRolePermissionMapptingResponse": {
       "description": "(empty)",
       "schema": {
@@ -2251,6 +2639,15 @@
         "body": {}
       }
     },
+    "GetAllExternalApplicationsResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ExternalApplicationDao"
+        }
+      }
+    },
     "GetAllRolesResponse": {
       "description": "(empty)",
       "schema": {
@@ -2267,6 +2664,43 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/UserDao"
+          }
+        }
+      }
+    },
+    "GetExternalApplicationByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "GetExternalApplicationByNameResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "GetExternalApplicationIdByNameResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "x-go-name": "ID"
+          }
+        }
+      }
+    },
+    "GetExternalApplicationNameByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "x-go-name": "Name"
           }
         }
       }
@@ -2352,6 +2786,12 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/SoftDeleteUserByIdResponse"
+      }
+    },
+    "UpdateExternalApplicationResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "UpdateUserRoleMappingResponse": {

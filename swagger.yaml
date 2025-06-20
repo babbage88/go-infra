@@ -91,6 +91,201 @@ paths:
             summary: Create a new user.
             tags:
                 - UserCRUD
+    /external-applications:
+        get:
+            operationId: getAllExternalApplications
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllExternalApplicationsResponse'
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get all external applications.
+            tags:
+                - external-applications
+        post:
+            operationId: createExternalApplication
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateExternalApplicationRequest'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/CreateExternalApplicationResponse'
+                "400":
+                    description: Bad request - invalid input data
+                "409":
+                    description: Conflict - application with this name already exists
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Create a new external application.
+            tags:
+                - external-applications
+    /external-applications/by-name/{name}:
+        delete:
+            operationId: deleteExternalApplicationByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            responses:
+                "204":
+                    description: External application deleted successfully
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Delete an external application by name.
+            tags:
+                - external-applications
+        get:
+            operationId: getExternalApplicationByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationByNameResponse'
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application by name.
+            tags:
+                - external-applications
+    /external-applications/id/{name}:
+        get:
+            operationId: getExternalApplicationIdByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationIdByNameResponse'
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application ID by name.
+            tags:
+                - external-applications
+    /external-applications/name/{ID}:
+        get:
+            operationId: getExternalApplicationNameById
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationNameByIdResponse'
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application name by ID.
+            tags:
+                - external-applications
+    /external-applications/{ID}:
+        delete:
+            operationId: deleteExternalApplicationById
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "204":
+                    description: External application deleted successfully
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Delete an external application by ID.
+            tags:
+                - external-applications
+        get:
+            operationId: getExternalApplicationById
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationByIdResponse'
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application by ID.
+            tags:
+                - external-applications
+        put:
+            operationId: updateExternalApplication
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateExternalApplicationRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UpdateExternalApplicationResponse'
+                "400":
+                    description: Bad request - invalid UUID format or request body
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Update an external application.
+            tags:
+                - external-applications
     /host-servers:
         get:
             operationId: GetAllHostServers
@@ -865,6 +1060,19 @@ definitions:
                 x-go-name: PermissionName
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateExternalApplicationRequest:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
     CreateHostServerRequest:
         properties:
             hostname:
@@ -1083,6 +1291,31 @@ definitions:
                 x-go-name: UserId
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    ExternalApplicationDao:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
     ExternalApplicationInfo:
         properties:
             id:
@@ -1246,32 +1479,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -1303,6 +1518,19 @@ definitions:
         title: UUIDs is a slice of UUID types.
         type: array
         x-go-package: github.com/google/uuid
+    UpdateExternalApplicationRequest:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
     UpdateHostServerRequest:
         properties:
             hostname:
@@ -1491,33 +1719,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            isDeleted:
-                type: boolean
-                x-go-name: IsDeleted
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            roleDesc:
-                type: string
-                x-go-name: RoleDescription
-            roleName:
-                type: string
-                x-go-name: RoleName
+                x-go-name: Error
+            newUserRoleInfo:
+                $ref: '#/definitions/UserRoleDao'
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserSecretEntry:
         properties:
             appInfo:
@@ -1537,6 +1746,10 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/AppPermissionDao'
+    CreateExternalApplicationResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
     CreateRolePermissionMapptingResponse:
         description: (empty)
         schema:
@@ -1572,6 +1785,12 @@ responses:
             body: {}
         schema:
             $ref: '#/definitions/GetAllAppPermissionsResponse'
+    GetAllExternalApplicationsResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/ExternalApplicationDao'
+            type: array
     GetAllRolesResponse:
         description: (empty)
         headers:
@@ -1585,6 +1804,31 @@ responses:
                 items:
                     $ref: '#/definitions/UserDao'
                 type: array
+    GetExternalApplicationByIdResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    GetExternalApplicationByNameResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    GetExternalApplicationIdByNameResponse:
+        description: (empty)
+        schema:
+            properties:
+                id:
+                    format: uuid
+                    type: string
+                    x-go-name: ID
+            type: object
+    GetExternalApplicationNameByIdResponse:
+        description: (empty)
+        schema:
+            properties:
+                name:
+                    type: string
+                    x-go-name: Name
+            type: object
     GetUserByIdResponse:
         description: (empty)
         schema:
@@ -1643,6 +1887,10 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/SoftDeleteUserByIdResponse'
+    UpdateExternalApplicationResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
     UpdateUserRoleMappingResponse:
         description: (empty)
         schema:
