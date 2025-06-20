@@ -1,0 +1,1875 @@
+consumes:
+    - application/json
+definitions:
+    AccessTokens:
+        properties:
+            accessToken:
+                type: string
+                x-go-name: AccessToken
+            email:
+                type: string
+                x-go-name: Email
+            refreshToken:
+                type: string
+                x-go-name: RefreshToken
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+            userName:
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-name: AccessTokenRefreshResponse
+        x-go-package: github.com/babbage88/go-infra/api/authapi
+    AppPermissionDao:
+        properties:
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
+        type: object
+        x-go-name: CreateAppPermissionResponse
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    AuthToken:
+        properties:
+            accessToken:
+                type: string
+                x-go-name: Token
+            email:
+                type: string
+                x-go-name: Email
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            refreshToken:
+                type: string
+                x-go-name: RefreshToken
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+            userName:
+                type: string
+                x-go-name: Username
+        title: Respose will return login result and the user info.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/authapi
+    AuthTokenDao:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            last_modified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            token:
+                type: string
+                x-go-name: Token
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    CertDnsRenewReq:
+        properties:
+            acmeEmail:
+                type: string
+                x-go-name: AcmeEmail
+            acmeUrl:
+                type: string
+                x-go-name: AcmeUrl
+            domainName:
+                items:
+                    type: string
+                type: array
+                x-go-name: DomainNames
+            pushS3:
+                type: boolean
+                x-go-name: PushS3
+            recurseServers:
+                items:
+                    type: string
+                type: array
+                x-go-name: RecursiveNameServers
+            timeout:
+                $ref: '#/definitions/Duration'
+            token:
+                type: string
+                x-go-name: Token
+            zipDir:
+                type: string
+                x-go-name: ZipDir
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
+    CertificateData:
+        properties:
+            cert_pem:
+                type: string
+                x-go-name: CertPEM
+            chain_pem:
+                type: string
+                x-go-name: ChainPEM
+            domainName:
+                items:
+                    type: string
+                type: array
+                x-go-name: DomainNames
+            fullchain_pem:
+                type: string
+                x-go-name: Fullchain
+            priv_key:
+                type: string
+                x-go-name: PrivKey
+            s3DownloadUrl:
+                type: string
+                x-go-name: S3DownloadUrl
+            zipDir:
+                type: string
+                x-go-name: ZipDir
+        type: object
+        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
+    CreateAppPermissionRequest:
+        properties:
+            descripiton:
+                type: string
+                x-go-name: PermissionDescription
+            name:
+                type: string
+                x-go-name: PermissionName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateExternalApplicationRequest:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
+    CreateHostServerRequest:
+        properties:
+            hostname:
+                description: Hostname of the server
+                example: server-01.example.com
+                type: string
+                x-go-name: Hostname
+            ip_address:
+                description: IP address of the server
+                example: 192.168.1.100
+                type: string
+                x-go-name: IPAddress
+            is_container_host:
+                description: Whether this server can host containers
+                example: true
+                type: boolean
+                x-go-name: IsContainerHost
+            is_db_host:
+                description: Whether this server can host databases
+                example: false
+                type: boolean
+                x-go-name: IsDbHost
+            is_virtual_machine:
+                description: Whether this server is a virtual machine
+                example: false
+                type: boolean
+                x-go-name: IsVirtualMachine
+            is_vm_host:
+                description: Whether this server can host VMs
+                example: false
+                type: boolean
+                x-go-name: IsVmHost
+            ssh_key_id:
+                description: SSH key ID for authentication
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: SSHKeyID
+            sudo_password_token_id:
+                description: Optional sudo password token ID
+                example: 123e4567-e89b-12d3-a456-426614174001
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenID
+            username:
+                description: Username for SSH connection
+                example: admin
+                type: string
+                x-go-name: Username
+        required:
+            - hostname
+            - ip_address
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    CreateNewUserRequest:
+        properties:
+            newEmail:
+                type: string
+                x-go-name: NewUserEmail
+            newPassword:
+                type: string
+                x-go-name: NewUserPassword
+            newUsername:
+                type: string
+                x-go-name: NewUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateRolePermissionMappingRequest:
+        properties:
+            permId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateSecretRequest:
+        properties:
+            application_id:
+                format: uuid
+                type: string
+                x-go-name: ApplicationID
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            secret:
+                type: string
+                x-go-name: Secret
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    CreateSshKeyRequest:
+        properties:
+            description:
+                description: Description of the SSH key
+                type: string
+                x-go-name: Description
+            hostServerId:
+                description: Optional host server ID to associate the key with
+                format: uuid
+                type: string
+                x-go-name: HostServerId
+            keyType:
+                description: Type of the SSH key (e.g., rsa, ed25519)
+                type: string
+                x-go-name: KeyType
+            name:
+                description: Name of the SSH key
+                type: string
+                x-go-name: Name
+            privateKey:
+                description: Private key in PEM format
+                type: string
+                x-go-name: PrivateKey
+            publicKey:
+                description: Public key in OpenSSH format
+                type: string
+                x-go-name: PublicKey
+        required:
+            - name
+            - publicKey
+            - privateKey
+            - keyType
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyResponse:
+        properties:
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            privKeySecretId:
+                description: ID of the stored private key secret
+                format: uuid
+                type: string
+                x-go-name: PrivKeySecretId
+            sshKeyId:
+                description: ID of the created SSH key
+                format: uuid
+                type: string
+                x-go-name: SshKeyId
+            userId:
+                description: ID of the user who owns the key
+                format: uuid
+                type: string
+                x-go-name: UserId
+        required:
+            - sshKeyId
+            - privKeySecretId
+            - userId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateUserRoleRequest:
+        properties:
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    DisableUserRequest:
+        properties:
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    Duration:
+        description: |-
+            A Duration represents the elapsed time between two instants
+            as an int64 nanosecond count. The representation limits the
+            largest representable duration to approximately 290 years.
+        format: int64
+        type: integer
+        x-go-package: time
+    EnableDisableUserResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            modifiedUserInfo:
+                $ref: '#/definitions/UserDao'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    EnableUserRequest:
+        properties:
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    ExternalAppSecretMetadata:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            expiry:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            userId:
+                format: uuid
+                type: string
+                x-go-name: UserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    ExternalApplicationDao:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
+    ExternalApplicationInfo:
+        properties:
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            name:
+                type: string
+                x-go-name: Name
+            url:
+                type: string
+                x-go-name: UrlEndpoint
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    GetAllAppPermissionsResponse:
+        properties:
+            appPermissions:
+                items:
+                    $ref: '#/definitions/AppPermissionDao'
+                type: array
+                x-go-name: AppPermissions
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    GetAllRolesResponse:
+        properties:
+            userRoles:
+                items:
+                    $ref: '#/definitions/UserRoleDao'
+                type: array
+                x-go-name: UserRoles
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    GetUserByIdResponse:
+        properties:
+            user:
+                $ref: '#/definitions/UserDao'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    HostServer:
+        properties:
+            CreatedAt:
+                format: date-time
+                type: string
+            HostedDomains:
+                items:
+                    type: string
+                type: array
+            Hostname:
+                type: string
+            ID:
+                format: int32
+                type: integer
+            IDDbHost:
+                type: boolean
+            IpAddress:
+                type: string
+            IsContainerHost:
+                type: boolean
+            IsVirtualMachine:
+                type: boolean
+            IsVmHost:
+                type: boolean
+            LastModified:
+                format: date-time
+                type: string
+            PublicSshKeyname:
+                type: string
+            SslKeyPath:
+                type: string
+            Username:
+                type: string
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    HostServerResponse:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            hostname:
+                type: string
+                x-go-name: Hostname
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            ip_address:
+                type: string
+                x-go-name: IPAddress
+            is_container_host:
+                type: boolean
+                x-go-name: IsContainerHost
+            is_db_host:
+                type: boolean
+                x-go-name: IsDbHost
+            is_virtual_machine:
+                type: boolean
+                x-go-name: IsVirtualMachine
+            is_vm_host:
+                type: boolean
+                x-go-name: IsVmHost
+            last_modified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            ssh_key_id:
+                format: uuid
+                type: string
+                x-go-name: SSHKeyID
+            sudo_password_token_id:
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenID
+            username:
+                type: string
+                x-go-name: Username
+        title: HostServerResponse represents a host server response.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    HostServersResponse:
+        items:
+            $ref: '#/definitions/HostServerResponse'
+        type: array
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    HostedDbPlatform:
+        properties:
+            DefaultListenPort:
+                format: int32
+                type: integer
+            ID:
+                format: int32
+                type: integer
+            PlatformName:
+                type: string
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    LoginResponseInfo:
+        properties:
+            accessToken:
+                type: string
+                x-go-name: Token
+            email:
+                type: string
+                x-go-name: Email
+            expiration:
+                format: date-time
+                type: string
+                x-go-name: Expiration
+            refreshToken:
+                type: string
+                x-go-name: RefreshToken
+            user_id:
+                format: uuid
+                type: string
+                x-go-name: UserID
+            userName:
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-name: LocalLoginResponse
+        x-go-package: github.com/babbage88/go-infra/api/authapi
+    RolePermissionMappingDao:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            permissionId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
+        type: object
+        x-go-name: CreateRolePermissionMappingResponse
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    SoftDeleteUserByIdRequest:
+        properties:
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    SoftDeleteUserByIdResponse:
+        properties:
+            deletedUserInfo:
+                $ref: '#/definitions/UserDao'
+            error:
+                type: string
+                x-go-name: Error
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    TokenRefreshReq:
+        properties:
+            refreshToken:
+                type: string
+                x-go-name: RefreshToken
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/authapi
+    UUIDs:
+        items:
+            format: uuid
+            type: string
+        title: UUIDs is a slice of UUID types.
+        type: array
+        x-go-package: github.com/google/uuid
+    UpdateExternalApplicationRequest:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
+    UpdateHostServerRequest:
+        properties:
+            hostname:
+                description: Hostname of the server
+                example: server-01.example.com
+                type: string
+                x-go-name: Hostname
+            ip_address:
+                description: IP address of the server
+                example: 192.168.1.100
+                type: string
+                x-go-name: IPAddress
+            is_container_host:
+                description: Whether this server can host containers
+                example: true
+                type: boolean
+                x-go-name: IsContainerHost
+            is_db_host:
+                description: Whether this server can host databases
+                example: false
+                type: boolean
+                x-go-name: IsDbHost
+            is_virtual_machine:
+                description: Whether this server is a virtual machine
+                example: false
+                type: boolean
+                x-go-name: IsVirtualMachine
+            is_vm_host:
+                description: Whether this server can host VMs
+                example: false
+                type: boolean
+                x-go-name: IsVmHost
+            ssh_key_id:
+                description: SSH key ID for authentication
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: SSHKeyID
+            sudo_password_token_id:
+                description: Optional sudo password token ID
+                example: 123e4567-e89b-12d3-a456-426614174001
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenID
+            username:
+                description: Username for SSH connection
+                example: admin
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    UpdateUserPasswordRequest:
+        properties:
+            newPassword:
+                type: string
+                x-go-name: NewPassword
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    UpdateUserRoleMappingRequest:
+        properties:
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    UpdateUserRoleMappingResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            success:
+                type: boolean
+                x-go-name: Success
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    UserDao:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            email:
+                type: string
+                x-go-name: Email
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            role_ids:
+                $ref: '#/definitions/UUIDs'
+            roles:
+                items:
+                    type: string
+                type: array
+                x-go-name: Roles
+            username:
+                type: string
+                x-go-name: UserName
+        title: Respose will return login result and the user info.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    UserHostedDb:
+        properties:
+            CreatedAt:
+                format: date-time
+                type: string
+            CurrentHostServerID:
+                format: int32
+                type: integer
+            CurrentKubeClusterID:
+                format: int32
+                type: integer
+            DbPlatformID:
+                format: int32
+                type: integer
+            Fqdn:
+                type: string
+            ID:
+                format: int32
+                type: integer
+            LastModified:
+                format: date-time
+                type: string
+            ListenPort:
+                format: int32
+                type: integer
+            PriceTierCodeID:
+                format: int32
+                type: integer
+            PrivateIpAddress:
+                type: string
+            PubIpAddress:
+                type: string
+            UserApplicationIds:
+                items:
+                    format: int32
+                    type: integer
+                type: array
+            UserID:
+                format: int32
+                type: integer
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    UserLoginRequest:
+        properties:
+            password:
+                type: string
+                x-go-name: Password
+            username:
+                type: string
+                x-go-name: UserName
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/authapi
+    UserPasswordUpdateResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            success:
+                type: boolean
+                x-go-name: Success
+            targetUserId:
+                format: uuid
+                type: string
+                x-go-name: TargetUserId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    UserRoleDao:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
+        type: object
+        x-go-name: CreateUserRoleResponse
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    UserSecretEntry:
+        properties:
+            appInfo:
+                $ref: '#/definitions/ExternalApplicationInfo'
+            secretMetadata:
+                $ref: '#/definitions/ExternalAppSecretMetadata'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/user_secrets
+info:
+    contact:
+        email: test@trahan.dev
+        name: Justin Trahan
+    license:
+        name: N/A
+    termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
+    title: go-infra API.
+    version: v1.1.0
+paths:
+    /create/permission:
+        post:
+            operationId: CreateAppPermission
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateAppPermissionRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateAppPermissionResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Create New App Permission.
+            tags:
+                - PermissionsCRUD
+    /create/role:
+        post:
+            operationId: CreateUserRole
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateUserRoleRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateUserRoleResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Create New User Role.
+            tags:
+                - RolesCRUD
+    /create/user:
+        post:
+            operationId: CreateUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateNewUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Create a new user.
+            tags:
+                - UserCRUD
+    /external-applications:
+        get:
+            operationId: getAllExternalApplications
+            produces:
+                - application/json
+            summary: Get all external applications
+            tags:
+                - external-applications
+        post:
+            consumes:
+                - application/json
+            operationId: createExternalApplication
+            parameters:
+                - $ref: '#/definitions/CreateExternalApplicationRequest'
+                  in: body
+                  name: body
+                  required: true
+                  x-go-name: Body
+            produces:
+                - application/json
+            summary: Create a new external application
+            tags:
+                - external-applications
+    /external-applications/{ID}:
+        delete:
+            operationId: deleteExternalApplicationById
+            parameters:
+                - description: ID of the external application
+                  format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            summary: Delete an external application by ID
+            tags:
+                - external-applications
+        get:
+            operationId: getExternalApplicationById
+            parameters:
+                - description: ID of the external application
+                  format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            summary: Get an external application by ID
+            tags:
+                - external-applications
+        put:
+            consumes:
+                - application/json
+            operationId: updateExternalApplication
+            parameters:
+                - description: ID of the external application
+                  format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+                - $ref: '#/definitions/UpdateExternalApplicationRequest'
+                  in: body
+                  name: body
+                  required: true
+                  x-go-name: Body
+            produces:
+                - application/json
+            summary: Update an external application
+            tags:
+                - external-applications
+    /external-applications/by-name/{name}:
+        delete:
+            operationId: deleteExternalApplicationByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            summary: Delete an external application by name
+            tags:
+                - external-applications
+        get:
+            operationId: getExternalApplicationByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            produces:
+                - application/json
+            summary: Get an external application by name
+            tags:
+                - external-applications
+    /external-applications/id/{name}:
+        get:
+            operationId: getExternalApplicationIdByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            produces:
+                - application/json
+            summary: Get an external application ID by name
+            tags:
+                - external-applications
+    /external-applications/name/{ID}:
+        get:
+            operationId: getExternalApplicationNameById
+            parameters:
+                - description: ID of the external application
+                  format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            summary: Get an external application name by ID
+            tags:
+                - external-applications
+    /host-servers:
+        get:
+            operationId: GetAllHostServers
+            responses:
+                "200":
+                    $ref: '#/responses/HostServersResponse'
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all host servers.
+            tags:
+                - host-servers
+    /host-servers/{ID}:
+        delete:
+            operationId: DeleteHostServer
+            parameters:
+                - format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    description: Host server deleted successfully
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Delete a host server.
+            tags:
+                - host-servers
+        get:
+            operationId: GetHostServer
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Get a host server by ID.
+            tags:
+                - host-servers
+        put:
+            operationId: UpdateHostServer
+            parameters:
+                - format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateHostServerRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Update a host server.
+            tags:
+                - host-servers
+    /host-servers/create:
+        post:
+            operationId: CreateHostServer
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateHostServerRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a new host server.
+            tags:
+                - host-servers
+    /login:
+        post:
+            description: Local Auth login with username and password
+            operationId: LocalLogin
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UserLoginRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/LocalLoginResponse'
+                "400":
+                    description: Bad Request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Insernal Server Error
+            tags:
+                - Authentication
+    /permissions:
+        get:
+            description: Returns all App Permissions
+            operationId: GetAllAppPermissions
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllAppPermissionsResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            tags:
+                - PermissionsCRUD
+    /renew:
+        post:
+            description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
+            operationId: Renew
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CertDnsRenewReq'
+                  x-go-name: Body
+            produces:
+                - application/json
+                - application/zip
+            responses:
+                "200":
+                    $ref: '#/responses/CertificateDataRenewResponse'
+                "400":
+                    description: Bad Request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Insernal Server Error
+            tags:
+                - Certificates
+    /roles:
+        get:
+            operationId: GetAllUserRoles
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllRolesResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Returns all active User Roles.
+            tags:
+                - RolesCRUD
+    /roles/permission:
+        post:
+            operationId: CreateRolePermissionMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateRolePermissionMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateRolePermissionMapptingResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Map App Permission to User Role.
+            tags:
+                - PermissionsCRUD
+    /secrets/{ID}:
+        get:
+            operationId: getUserSecretByID
+            parameters:
+                - description: ID of secret
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/RetrievedSecretResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by ID.
+            tags:
+                - secrets
+    /secrets/create:
+        post:
+            operationId: createUserSecret
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSecretRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    description: Secret stored successfully
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+            summary: Create a new external application secret.
+            tags:
+                - secrets
+    /secrets/delete/{ID}:
+        delete:
+            operationId: deleteUserSecretByID
+            parameters:
+                - in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    description: Secret deleted successfully
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Delete a user secret by ID.
+            tags:
+                - secrets
+    /ssh-keys/{id}:
+        delete:
+            operationId: deleteSshKey
+            parameters:
+                - description: ID of the SSH key to delete
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/DeleteSshKeyResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Delete an SSH key and its associated secret.
+            tags:
+                - ssh-keys
+    /ssh-keys/create:
+        post:
+            operationId: createSshKey
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSshKeyRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateSshKeyResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a new SSH key.
+            tags:
+                - ssh-keys
+    /token/refresh:
+        post:
+            operationId: RefreshAccessToken
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/TokenRefreshReq'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/RefreshAccessTokenResponse'
+                "400":
+                    description: Bad Request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Insernal Server Error
+            summary: Refresh accessTokens and return to client.
+            tags:
+                - Authentication
+    /token/verify:
+        post:
+            operationId: VerifyToken
+            responses:
+                "200":
+                    description: Valid Token
+                "400":
+                    description: Bad Request
+                "401":
+                    description: Unauthorized
+            summary: Verify a JWT access token's validity.
+            tags:
+                - Authentication
+    /update/userpass:
+        post:
+            operationId: UpdateUserPw
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserPasswordRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UserPasswordUpdateResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Update user password.
+            tags:
+                - UserCRUD
+    /user/{APPID}/secrets/{USERID}:
+        get:
+            operationId: GetUserSecretEntriesByAppId
+            parameters:
+                - format: uuid
+                  in: path
+                  name: USERID
+                  required: true
+                  type: string
+                - format: uuid
+                  in: path
+                  name: APPID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserSecretEntriesResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by USERID.
+            tags:
+                - secrets
+    /user/delete:
+        delete:
+            operationId: SoftDeleteUserById
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/SoftDeleteUserByIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/SoftDeleteUserByIdResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Soft Delete User by id.
+            tags:
+                - UserCRUD
+    /user/disable:
+        post:
+            operationId: DisableUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/DisableUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Disable specified target User Id.
+            tags:
+                - UserCRUD
+    /user/enable:
+        post:
+            operationId: EnableUser
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/EnableUserRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Enable specified target User Id.
+            tags:
+                - UserCRUD
+    /user/role:
+        post:
+            description: Update User Role Mapping
+            operationId: UpdateUserRole
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UpdateUserRoleMappingResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            tags:
+                - RolesCRUD
+    /user/role/remove:
+        post:
+            description: Disable User Role Mapping
+            operationId: DisableUserRoleMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserRoleMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/EnableDisableUserResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            tags:
+                - UserCRUD
+    /user/secrets/{USERID}:
+        get:
+            operationId: GetUserSecretEntries
+            parameters:
+                - format: uuid
+                  in: path
+                  name: USERID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserSecretEntriesResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+            summary: Retrieve a user secret by USERID.
+            tags:
+                - secrets
+    /user/secrets/by-name/{APPNAME}/{USERID}:
+        get:
+            operationId: GetUserSecretEntriesByAppName
+            parameters:
+                - format: uuid
+                  in: path
+                  name: USERID
+                  required: true
+                  type: string
+                - in: path
+                  name: APPNAME
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserSecretEntriesResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Retrieve a user secret by USERID and application name.
+            tags:
+                - secrets
+    /users:
+        get:
+            operationId: GetAllUsers
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllUsersResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Returns all active users.
+            tags:
+                - users
+    /users/{ID}:
+        get:
+            operationId: getUserById
+            parameters:
+                - description: ID of user
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetUserByIdResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
+            summary: Returns User Info for the user id specified in URL users.
+            tags:
+                - users
+produces:
+    - application/json
+responses:
+    CertificateDataRenewResponse:
+        description: ""
+        headers:
+            Body: {}
+        schema:
+            $ref: '#/definitions/CertificateData'
+    CreateAppPermissionResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/AppPermissionDao'
+    CreateExternalApplicationResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    CreateRolePermissionMapptingResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/RolePermissionMappingDao'
+    CreateSshKeyResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/CreateSshKeyResponse'
+    CreateUserResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/UserDao'
+    CreateUserRoleResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/UserRoleDao'
+    DeleteSshKeyResponse:
+        description: ""
+        schema:
+            properties:
+                message:
+                    description: Success message
+                    type: string
+                    x-go-name: Message
+            type: object
+    EnableDisableUserResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/EnableDisableUserResponse'
+    GetAllAppPermissionsResponse:
+        description: ""
+        headers:
+            body: {}
+        schema:
+            $ref: '#/definitions/GetAllAppPermissionsResponse'
+    GetAllExternalApplicationsResponse:
+        description: ""
+        schema:
+            items:
+                $ref: '#/definitions/ExternalApplicationDao'
+            type: array
+    GetAllRolesResponse:
+        description: ""
+        headers:
+            body: {}
+        schema:
+            $ref: '#/definitions/GetAllRolesResponse'
+    GetAllUsersResponse:
+        description: ""
+        headers:
+            users:
+                items:
+                    $ref: '#/definitions/UserDao'
+                type: array
+    GetExternalApplicationByIdResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    GetExternalApplicationByNameResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    GetExternalApplicationIdByNameResponse:
+        description: ""
+        schema:
+            properties:
+                id:
+                    format: uuid
+                    type: string
+                    x-go-name: ID
+            type: object
+    GetExternalApplicationNameByIdResponse:
+        description: ""
+        schema:
+            properties:
+                name:
+                    type: string
+                    x-go-name: Name
+            type: object
+    GetUserByIdResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/GetUserByIdResponse'
+    GetUserSecretEntriesResponse:
+        description: ""
+        schema:
+            items:
+                $ref: '#/definitions/UserSecretEntry'
+            type: array
+    HostServerResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/HostServerResponse'
+    HostServersResponse:
+        description: ""
+        schema:
+            items:
+                $ref: '#/definitions/HostServerResponse'
+            type: array
+    LocalLoginResponse:
+        description: ""
+        headers:
+            Body: {}
+        schema:
+            $ref: '#/definitions/LoginResponseInfo'
+    RefreshAccessTokenResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/AccessTokens'
+    RetrievedSecretResponse:
+        description: ""
+        schema:
+            properties:
+                expiration:
+                    format: date-time
+                    type: string
+                    x-go-name: Expiration
+                external_application_id:
+                    format: uuid
+                    type: string
+                    x-go-name: ExternalApplication
+                id:
+                    format: uuid
+                    type: string
+                    x-go-name: ID
+                secret:
+                    type: string
+                    x-go-name: Secret
+                user_id:
+                    format: uuid
+                    type: string
+                    x-go-name: UserID
+            type: object
+    SoftDeleteUserByIdResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/SoftDeleteUserByIdResponse'
+    UpdateExternalApplicationResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    UpdateUserRoleMappingResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/UpdateUserRoleMappingResponse'
+    UserPasswordUpdateResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/UserPasswordUpdateResponse'
+security:
+    - bearer: []
+securityDefinitions:
+    bearer:
+        in: header
+        name: Authorization
+        type: apiKey
+swagger: "2.0"

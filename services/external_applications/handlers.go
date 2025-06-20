@@ -128,34 +128,16 @@ type GetExternalApplicationNameByIdResponseWrapper struct {
 }
 
 // CreateExternalApplicationHandler handles POST requests to create a new external application
-// swagger:operation POST /external-applications external-applications createExternalApplication
+// swagger:route POST /external-applications external-applications createExternalApplication
+// Create a new external application.
 //
-// # Create a new external application
-//
-// ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
-// parameters:
-//   - name: body
-//     in: body
-//     required: true
-//     schema:
-//     "$ref": "#/definitions/CreateExternalApplicationRequest"
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"201":
-//	  description: External application created successfully
-//	  schema:
-//	    "$ref": "#/definitions/ExternalApplicationDao"
-//	"400":
-//	  description: Bad request - invalid input data
-//	"409":
-//	  description: Conflict - application with this name already exists
-//	"500":
-//	  description: Internal server error
+// 201: CreateExternalApplicationResponse
+// 400: description:Bad request - invalid input data
+// 409: description:Conflict - application with this name already exists
+// 500: description:Internal server error
 func CreateExternalApplicationHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CreateExternalApplicationRequest
@@ -187,32 +169,16 @@ func CreateExternalApplicationHandler(service ExternalApplications) http.Handler
 }
 
 // GetExternalApplicationByIdHandler handles GET requests to retrieve an external application by ID
-// swagger:operation GET /external-applications/{ID} external-applications getExternalApplicationById
+// swagger:route GET /external-applications/{ID} external-applications getExternalApplicationById
+// Get an external application by ID.
 //
-// # Get an external application by ID
-//
-// ---
-// produces:
-// - application/json
-// parameters:
-//   - name: ID
-//     in: path
-//     required: true
-//     type: string
-//     format: uuid
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"200":
-//	  description: External application retrieved successfully
-//	  schema:
-//	    "$ref": "#/definitions/ExternalApplicationDao"
-//	"404":
-//	  description: External application not found
-//	"400":
-//	  description: Bad request - invalid UUID format
-//	"500":
-//	  description: Internal server error
+// 200: GetExternalApplicationByIdResponse
+// 400: description:Bad request - invalid UUID format
+// 404: description:External application not found
+// 500: description:Internal server error
 func GetExternalApplicationByIdHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("ID")
@@ -239,29 +205,15 @@ func GetExternalApplicationByIdHandler(service ExternalApplications) http.Handle
 }
 
 // GetExternalApplicationByNameHandler handles GET requests to retrieve an external application by name
-// swagger:operation GET /external-applications/by-name/{name} external-applications getExternalApplicationByName
+// swagger:route GET /external-applications/by-name/{name} external-applications getExternalApplicationByName
+// Get an external application by name.
 //
-// # Get an external application by name
-//
-// ---
-// produces:
-// - application/json
-// parameters:
-//   - name: name
-//     in: path
-//     required: true
-//     type: string
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"200":
-//	  description: External application retrieved successfully
-//	  schema:
-//	    "$ref": "#/definitions/ExternalApplicationDao"
-//	"404":
-//	  description: External application not found
-//	"500":
-//	  description: Internal server error
+// 200: GetExternalApplicationByNameResponse
+// 404: description:External application not found
+// 500: description:Internal server error
 func GetExternalApplicationByNameHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
@@ -286,23 +238,14 @@ func GetExternalApplicationByNameHandler(service ExternalApplications) http.Hand
 }
 
 // GetAllExternalApplicationsHandler handles GET requests to retrieve all external applications
-// swagger:operation GET /external-applications external-applications getAllExternalApplications
+// swagger:route GET /external-applications external-applications getAllExternalApplications
+// Get all external applications.
 //
-// # Get all external applications
-//
-// ---
-// produces:
-// - application/json
+// security:
+// - bearer:
 // responses:
-//
-//	"200":
-//	  description: External applications retrieved successfully
-//	  schema:
-//	    type: array
-//	    items:
-//	      "$ref": "#/definitions/ExternalApplicationDao"
-//	"500":
-//	  description: Internal server error
+// 200: GetAllExternalApplicationsResponse
+// 500: description:Internal server error
 func GetAllExternalApplicationsHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apps, err := service.GetAllExternalApplications()
@@ -318,39 +261,16 @@ func GetAllExternalApplicationsHandler(service ExternalApplications) http.Handle
 }
 
 // UpdateExternalApplicationHandler handles PUT requests to update an external application
-// swagger:operation PUT /external-applications/{ID} external-applications updateExternalApplication
+// swagger:route PUT /external-applications/{ID} external-applications updateExternalApplication
+// Update an external application.
 //
-// # Update an external application
-//
-// ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
-// parameters:
-//   - name: ID
-//     in: path
-//     required: true
-//     type: string
-//     format: uuid
-//   - name: body
-//     in: body
-//     required: true
-//     schema:
-//     "$ref": "#/definitions/UpdateExternalApplicationRequest"
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"200":
-//	  description: External application updated successfully
-//	  schema:
-//	    "$ref": "#/definitions/ExternalApplicationDao"
-//	"404":
-//	  description: External application not found
-//	"400":
-//	  description: Bad request - invalid UUID format or request body
-//	"500":
-//	  description: Internal server error
+// 200: UpdateExternalApplicationResponse
+// 400: description:Bad request - invalid UUID format or request body
+// 404: description:External application not found
+// 500: description:Internal server error
 func UpdateExternalApplicationHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("ID")
@@ -384,28 +304,16 @@ func UpdateExternalApplicationHandler(service ExternalApplications) http.Handler
 }
 
 // DeleteExternalApplicationByIdHandler handles DELETE requests to delete an external application by ID
-// swagger:operation DELETE /external-applications/{ID} external-applications deleteExternalApplicationById
+// swagger:route DELETE /external-applications/{ID} external-applications deleteExternalApplicationById
+// Delete an external application by ID.
 //
-// # Delete an external application by ID
-//
-// ---
-// parameters:
-//   - name: ID
-//     in: path
-//     required: true
-//     type: string
-//     format: uuid
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"204":
-//	  description: External application deleted successfully
-//	"404":
-//	  description: External application not found
-//	"400":
-//	  description: Bad request - invalid UUID format
-//	"500":
-//	  description: Internal server error
+// 204: description:External application deleted successfully
+// 400: description:Bad request - invalid UUID format
+// 404: description:External application not found
+// 500: description:Internal server error
 func DeleteExternalApplicationByIdHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("ID")
@@ -431,25 +339,15 @@ func DeleteExternalApplicationByIdHandler(service ExternalApplications) http.Han
 }
 
 // DeleteExternalApplicationByNameHandler handles DELETE requests to delete an external application by name
-// swagger:operation DELETE /external-applications/by-name/{name} external-applications deleteExternalApplicationByName
+// swagger:route DELETE /external-applications/by-name/{name} external-applications deleteExternalApplicationByName
+// Delete an external application by name.
 //
-// # Delete an external application by name
-//
-// ---
-// parameters:
-//   - name: name
-//     in: path
-//     required: true
-//     type: string
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"204":
-//	  description: External application deleted successfully
-//	"404":
-//	  description: External application not found
-//	"500":
-//	  description: Internal server error
+// 204: description:External application deleted successfully
+// 404: description:External application not found
+// 500: description:Internal server error
 func DeleteExternalApplicationByNameHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
@@ -473,33 +371,15 @@ func DeleteExternalApplicationByNameHandler(service ExternalApplications) http.H
 }
 
 // GetExternalApplicationIdByNameHandler handles GET requests to retrieve an external application ID by name
-// swagger:operation GET /external-applications/id/{name} external-applications getExternalApplicationIdByName
+// swagger:route GET /external-applications/id/{name} external-applications getExternalApplicationIdByName
+// Get an external application ID by name.
 //
-// # Get an external application ID by name
-//
-// ---
-// produces:
-// - application/json
-// parameters:
-//   - name: name
-//     in: path
-//     required: true
-//     type: string
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"200":
-//	  description: External application ID retrieved successfully
-//	  schema:
-//	    type: object
-//	    properties:
-//	      id:
-//	        type: string
-//	        format: uuid
-//	"404":
-//	  description: External application not found
-//	"500":
-//	  description: Internal server error
+// 200: GetExternalApplicationIdByNameResponse
+// 404: description:External application not found
+// 500: description:Internal server error
 func GetExternalApplicationIdByNameHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
@@ -524,35 +404,16 @@ func GetExternalApplicationIdByNameHandler(service ExternalApplications) http.Ha
 }
 
 // GetExternalApplicationNameByIdHandler handles GET requests to retrieve an external application name by ID
-// swagger:operation GET /external-applications/name/{ID} external-applications getExternalApplicationNameById
+// swagger:route GET /external-applications/name/{ID} external-applications getExternalApplicationNameById
+// Get an external application name by ID.
 //
-// # Get an external application name by ID
-//
-// ---
-// produces:
-// - application/json
-// parameters:
-//   - name: ID
-//     in: path
-//     required: true
-//     type: string
-//     format: uuid
-//
+// security:
+// - bearer:
 // responses:
-//
-//	"200":
-//	  description: External application name retrieved successfully
-//	  schema:
-//	    type: object
-//	    properties:
-//	      name:
-//	        type: string
-//	"404":
-//	  description: External application not found
-//	"400":
-//	  description: Bad request - invalid UUID format
-//	"500":
-//	  description: Internal server error
+// 200: GetExternalApplicationNameByIdResponse
+// 400: description:Bad request - invalid UUID format
+// 404: description:External application not found
+// 500: description:Internal server error
 func GetExternalApplicationNameByIdHandler(service ExternalApplications) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("ID")
