@@ -67,6 +67,15 @@ buildandpushdev: dev-swagger
 	docker buildx use infrabuilder
 	docker buildx build --platform linux/amd64,linux/arm64 -t $(GHCR_REPO)$(tag) . --push
 
+
+buildandpush-arm64: dev-swagger
+	docker buildx use infrabuilder
+	docker buildx build --platform linux/arm64 -t $(GHCR_REPO)$(tag) . --push
+
+buildandpush-amd64: dev-swagger
+	docker buildx use infrabuilder
+	docker buildx build --platform linux/amd64 -t $(GHCR_REPO)$(tag) . --push
+
 buildandpushlocalk3: k3local-swagger
 	docker buildx use infrabuilder
 	docker buildx build --platform linux/amd64,linux/arm64 -t $(GHCR_REPO_TEST)$(tag) . --push
