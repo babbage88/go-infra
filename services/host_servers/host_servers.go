@@ -71,16 +71,6 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 		}
 	}
 
-	// Create sudo password token if provided
-	if req.SudoPasswordTokenID != nil {
-		_, err = p.secretProvider.StoreSecret(uuid.New().String(), userId, server.ID, time.Now().Add(24*time.Hour))
-		if err != nil {
-			// Clean up the host server and SSH mapping if token creation fails
-			_ = p.db.DeleteHostServer(ctx, server.ID)
-			return nil, fmt.Errorf("failed to create sudo password token: %w", err)
-		}
-	}
-
 	return &HostServer{
 		ID:                   server.ID,
 		Hostname:             server.Hostname,
@@ -107,21 +97,15 @@ func (p *HostServerProviderImpl) GetHostServer(ctx context.Context, id uuid.UUID
 	// Get SSH key mapping if exists
 	var username *string
 	var sshKeyID *uuid.UUID
+	var sudoPasswordTokenID *uuid.UUID
 	mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, id)
 	if err == nil && len(mappings) > 0 {
 		username = &mappings[0].HostserverUsername
 		sshKeyID = &mappings[0].SshKeyID
-	}
-
-	// Get sudo password token if exists
-	var sudoPasswordTokenID *uuid.UUID
-	userId, _ := authapi.GetUserIDFromContext(ctx)
-	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        userId,
-		ExternalAppID: id,
-	})
-	if err == nil && len(tokens) > 0 {
-		sudoPasswordTokenID = &tokens[0].ID
+		if mappings[0].SudoPasswordTokenID.Valid {
+			tokenID := uuid.UUID(mappings[0].SudoPasswordTokenID.Bytes)
+			sudoPasswordTokenID = &tokenID
+		}
 	}
 
 	return &HostServer{
@@ -150,21 +134,15 @@ func (p *HostServerProviderImpl) GetHostServerByHostname(ctx context.Context, ho
 	// Get SSH key mapping if exists
 	var username *string
 	var sshKeyID *uuid.UUID
+	var sudoPasswordTokenID *uuid.UUID
 	mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, server.ID)
 	if err == nil && len(mappings) > 0 {
 		username = &mappings[0].HostserverUsername
 		sshKeyID = &mappings[0].SshKeyID
-	}
-
-	// Get sudo password token if exists
-	var sudoPasswordTokenID *uuid.UUID
-	userId, _ := authapi.GetUserIDFromContext(ctx)
-	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        userId,
-		ExternalAppID: server.ID,
-	})
-	if err == nil && len(tokens) > 0 {
-		sudoPasswordTokenID = &tokens[0].ID
+		if mappings[0].SudoPasswordTokenID.Valid {
+			tokenID := uuid.UUID(mappings[0].SudoPasswordTokenID.Bytes)
+			sudoPasswordTokenID = &tokenID
+		}
 	}
 
 	return &HostServer{
@@ -193,21 +171,15 @@ func (p *HostServerProviderImpl) GetHostServerByIP(ctx context.Context, ip netip
 	// Get SSH key mapping if exists
 	var username *string
 	var sshKeyID *uuid.UUID
+	var sudoPasswordTokenID *uuid.UUID
 	mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, server.ID)
 	if err == nil && len(mappings) > 0 {
 		username = &mappings[0].HostserverUsername
 		sshKeyID = &mappings[0].SshKeyID
-	}
-
-	// Get sudo password token if exists
-	var sudoPasswordTokenID *uuid.UUID
-	userId, _ := authapi.GetUserIDFromContext(ctx)
-	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        userId,
-		ExternalAppID: server.ID,
-	})
-	if err == nil && len(tokens) > 0 {
-		sudoPasswordTokenID = &tokens[0].ID
+		if mappings[0].SudoPasswordTokenID.Valid {
+			tokenID := uuid.UUID(mappings[0].SudoPasswordTokenID.Bytes)
+			sudoPasswordTokenID = &tokenID
+		}
 	}
 
 	return &HostServer{
@@ -238,21 +210,15 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 		// Get SSH key mapping if exists
 		var username *string
 		var sshKeyID *uuid.UUID
+		var sudoPasswordTokenID *uuid.UUID
 		mappings, err := p.db.GetSSHKeyHostMappingsByHostId(ctx, server.ID)
 		if err == nil && len(mappings) > 0 {
 			username = &mappings[0].HostserverUsername
 			sshKeyID = &mappings[0].SshKeyID
-		}
-
-		// Get sudo password token if exists
-		var sudoPasswordTokenID *uuid.UUID
-		userId, _ := authapi.GetUserIDFromContext(ctx)
-		tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-			UserID:        userId,
-			ExternalAppID: server.ID,
-		})
-		if err == nil && len(tokens) > 0 {
-			sudoPasswordTokenID = &tokens[0].ID
+			if mappings[0].SudoPasswordTokenID.Valid {
+				tokenID := uuid.UUID(mappings[0].SudoPasswordTokenID.Bytes)
+				sudoPasswordTokenID = &tokenID
+			}
 		}
 
 		result = append(result, HostServer{
