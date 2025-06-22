@@ -1061,7 +1061,7 @@ paths:
                 - bearer: []
             summary: Returns all active users.
             tags:
-                - users
+                - UserCRUD
     /users/{ID}:
         get:
             operationId: getUserById
@@ -1086,7 +1086,7 @@ paths:
                 - bearer: []
             summary: Returns User Info for the user id specified in URL users.
             tags:
-                - users
+                - UserCRUD
 definitions:
     AccessTokens:
         properties:
@@ -2077,33 +2077,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            isDeleted:
-                type: boolean
-                x-go-name: IsDeleted
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            roleDesc:
-                type: string
-                x-go-name: RoleDescription
-            roleName:
-                type: string
-                x-go-name: RoleName
+                x-go-name: Error
+            newUserRoleInfo:
+                $ref: '#/definitions/UserRoleDao'
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserSecretEntry:
         properties:
             appInfo:

@@ -124,7 +124,7 @@ func UpdateUserPasswordHandler(uc_service *user_crud_svc.UserCRUDService) http.H
 	return http.HandlerFunc(UpdateUserPasswordHandleFunc(uc_service))
 }
 
-// swagger:route GET /users users GetAllUsers
+// swagger:route GET /users UserCRUD GetAllUsers
 // Returns all active users.
 //
 // security:
@@ -162,7 +162,7 @@ func GetAllUsersHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler 
 	return http.HandlerFunc(GetAllUsersHandlerFunc(uc_service))
 }
 
-// swagger:route GET /users/{ID} users getUserById
+// swagger:route GET /users/{ID} UserCRUD getUserById
 // Returns User Info for the user id specified in URL users.
 //
 // security:
