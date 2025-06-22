@@ -26,6 +26,18 @@ func NewHostServerProvider(db *infra_db_pg.Queries, secretProvider user_secrets.
 
 // CreateHostServer creates a new host server
 func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req CreateHostServerRequest) (*HostServer, error) {
+	// Validate sudo password token if provided
+	if req.SudoPasswordTokenID != nil {
+		userId, err := authapi.GetUserIDFromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user ID from context: %w", err)
+		}
+		secret, err := p.secretProvider.RetrieveSecret(*req.SudoPasswordTokenID)
+		if err != nil || secret.ExternalAuthToken.UserID != userId {
+			return nil, fmt.Errorf("invalid sudo secret_id provided")
+		}
+	}
+
 	params := infra_db_pg.CreateHostServerParams{
 		Hostname:         req.Hostname,
 		IpAddress:        req.IPAddress,
@@ -242,6 +254,18 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 
 // UpdateHostServer updates an existing host server
 func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.UUID, req UpdateHostServerRequest) (*HostServer, error) {
+	// Validate sudo password token if provided
+	if req.SudoPasswordTokenID != nil {
+		userId, err := authapi.GetUserIDFromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user ID from context: %w", err)
+		}
+		secret, err := p.secretProvider.RetrieveSecret(*req.SudoPasswordTokenID)
+		if err != nil || secret.ExternalAuthToken.UserID != userId {
+			return nil, fmt.Errorf("invalid sudo secret_id provided")
+		}
+	}
+
 	// Get current server to merge with updates
 	current, err := p.GetHostServer(ctx, id)
 	if err != nil {
