@@ -8,18 +8,20 @@ import (
 
 	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // HostServerProviderImpl implements the HostServerProvider interface using PostgreSQL
 type HostServerProviderImpl struct {
-	db *infra_db_pg.Queries
+	db             *infra_db_pg.Queries
+	secretProvider user_secrets.UserSecretProvider
 }
 
 // NewHostServerProvider creates a new HostServerProvider instance
-func NewHostServerProvider(db *infra_db_pg.Queries) *HostServerProviderImpl {
-	return &HostServerProviderImpl{db: db}
+func NewHostServerProvider(db *infra_db_pg.Queries, secretProvider user_secrets.UserSecretProvider) *HostServerProviderImpl {
+	return &HostServerProviderImpl{db: db, secretProvider: secretProvider}
 }
 
 // CreateHostServer creates a new host server
@@ -71,12 +73,7 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 
 	// Create sudo password token if provided
 	if req.SudoPasswordTokenID != nil {
-		_, err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
-			UserID:        userId,
-			ExternalAppID: server.ID,
-			Token:         []byte{}, // TODO: Get from secret provider
-			Expiration:    pgtype.Timestamptz{Time: time.Now().Add(24 * time.Hour), Valid: true},
-		})
+		_, err = p.secretProvider.StoreSecret(uuid.New().String(), userId, server.ID, time.Now().Add(24*time.Hour))
 		if err != nil {
 			// Clean up the host server and SSH mapping if token creation fails
 			_ = p.db.DeleteHostServer(ctx, server.ID)
@@ -383,12 +380,7 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 		}
 
 		// Create new token
-		_, err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
-			UserID:        userId,
-			ExternalAppID: id,
-			Token:         []byte{}, // TODO: Get from secret provider
-			Expiration:    pgtype.Timestamptz{Time: time.Now().Add(24 * time.Hour), Valid: true},
-		})
+		_, err = p.secretProvider.StoreSecret(uuid.New().String(), userId, id, time.Now().Add(24*time.Hour))
 		if err != nil {
 			return nil, fmt.Errorf("failed to update sudo password token: %w", err)
 		}
