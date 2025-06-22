@@ -27,13 +27,8 @@ window.onload = function() {
   //</editor-fold>
 
   const loginModal = document.getElementById('login-modal');
-  const loginButton = document.getElementById('custom-login-button');
   const closeButton = document.querySelector('.close-button');
   const loginForm = document.getElementById('login-form');
-
-  loginButton.onclick = function() {
-    loginModal.style.display = 'block';
-  }
 
   closeButton.onclick = function() {
     loginModal.style.display = 'none';
@@ -71,6 +66,9 @@ window.onload = function() {
         const schema = { "type": "apiKey", "in": "header", "name": "Authorization" };
         window.ui.authActions.authorize({ bearer: { name: "bearer", schema: schema, value: "Bearer " + data.accessToken } });
         loginModal.style.display = 'none';
+        
+        window.dispatchEvent(new Event('login-success'));
+
         alert('Login successful!');
       } else {
         alert('Login failed: accessToken not found in response.');
@@ -87,4 +85,46 @@ window.onload = function() {
       const schema = { "type": "apiKey", "in": "header", "name": "Authorization" };
       window.ui.authActions.authorize({ bearer: { name: "bearer", schema: schema, value: "Bearer " + token } });
   }
+
+  // --- DOM manipulation logic to add Login/Logout button ---
+  const domCheck = setInterval(() => {
+    const authWrapper = document.querySelector('.swagger-ui .auth-wrapper');
+    if (authWrapper) {
+      clearInterval(domCheck);
+
+      const loginBtn = document.createElement('button');
+      loginBtn.className = 'btn authorize';
+      loginBtn.style.marginRight = '10px';
+
+      const updateLoginButtonState = () => {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          loginBtn.textContent = 'Logout';
+          loginBtn.onclick = () => {
+            localStorage.removeItem('accessToken');
+            window.ui.authActions.logout(['bearer']);
+            updateLoginButtonState(); // Rerender the button
+            alert('Logged out successfully!');
+          };
+        } else {
+          loginBtn.textContent = 'Login';
+          loginBtn.onclick = () => {
+            document.getElementById('login-modal').style.display = 'block';
+          };
+        }
+      };
+
+      window.addEventListener('login-success', updateLoginButtonState);
+      
+      // Also listen to storage events to sync across tabs
+      window.addEventListener('storage', (event) => {
+          if (event.key === 'accessToken') {
+              updateLoginButtonState();
+          }
+      });
+
+      updateLoginButtonState(); // Set initial state
+      authWrapper.prepend(loginBtn);
+    }
+  }, 200);
 };
