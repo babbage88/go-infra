@@ -33,7 +33,10 @@ body {
     margin: 15% auto; 
     padding: 20px;
     border: 1px solid #888;
-    width: 300px; 
+    width: 400px; 
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
 }
 
 .close-button {
@@ -60,7 +63,7 @@ body {
 }
 
 #login-form button {
-    background-color: #4CAF50;
+    background-color: #397fe9;
     color: white;
     padding: 14px 20px;
     margin: 8px 0;
