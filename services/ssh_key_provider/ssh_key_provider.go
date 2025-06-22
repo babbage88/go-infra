@@ -13,19 +13,13 @@ import (
 )
 
 type PgSshKeySecretStore struct {
-	DbConn         *pgxpool.Pool
-	SecretProvider user_secrets.UserSecretProvider
+	DbConn *pgxpool.Pool
 }
 
-func NewPgSshKeySecretStore(dbConn *pgxpool.Pool, secretProvider user_secrets.UserSecretProvider) *PgSshKeySecretStore {
+func NewPgSshKeySecretStore(dbConn *pgxpool.Pool) *PgSshKeySecretStore {
 	return &PgSshKeySecretStore{
-		DbConn:         dbConn,
-		SecretProvider: secretProvider,
+		DbConn: dbConn,
 	}
-}
-
-func (p *PgSshKeySecretStore) StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error) {
-	return p.SecretProvider.StoreSecret(plaintextSecret, userId, appId, expiry)
 }
 
 func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyResult {
@@ -38,6 +32,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	defer tx.Rollback(context.Background())
 
 	qry := infra_db_pg.New(tx)
+	txSecretProvider := user_secrets.NewPgUserSecretStore(tx)
 
 	// Get the SSH key type ID
 	keyType, err := qry.GetSSHKeyTypeByName(context.Background(), sshKey.KeyType)
@@ -58,7 +53,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	}
 
 	// Store the private key as a secret
-	secretId, err := p.StoreSshKeySecret(sshKey.PrivateKey, sshKey.UserID, sshAppId, expiry)
+	secretId, err := txSecretProvider.StoreSecret(sshKey.PrivateKey, sshKey.UserID, sshAppId, expiry)
 	if err != nil {
 		slog.Error("Failed to store SSH key secret", slog.String("error", err.Error()))
 		return NewSshKeyResult{Error: err}
@@ -124,6 +119,7 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 	defer tx.Rollback(context.Background())
 
 	qry := infra_db_pg.New(tx)
+	txSecretProvider := user_secrets.NewPgUserSecretStore(tx)
 
 	// First, get the SSH key to retrieve the secret ID
 	sshKey, err := qry.GetSSHKeyById(context.Background(), sshKeyId)
@@ -148,7 +144,9 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 
 	// Delete the associated secret if it exists
 	if sshKey.PrivSecretID.Valid {
-		err = p.SecretProvider.DeleteSecret(sshKey.PrivSecretID.Bytes)
+		var secretUUID uuid.UUID
+		copy(secretUUID[:], sshKey.PrivSecretID.Bytes[:])
+		err = txSecretProvider.DeleteSecret(secretUUID)
 		if err != nil {
 			slog.Error("Failed to delete SSH key secret", slog.String("error", err.Error()))
 			return err

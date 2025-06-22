@@ -60,7 +60,7 @@ func (p *prettyPrinter) Print(s ...any) {
 }
 
 func (p *prettyPrinter) Printf(format string, a ...any) {
-	fstring := fmt.Sprintf(format, a)
+	fstring := fmt.Sprintf(format, a...)
 	p.Print(fstring)
 }
 
@@ -69,7 +69,7 @@ func (p *prettyPrinter) PrintWarning(s ...any) {
 }
 
 func (p *prettyPrinter) PrintWarningf(format string, a ...any) {
-	fstring := fmt.Sprintf(format, a)
+	fstring := fmt.Sprintf(format, a...)
 	p.PrintWarning(fstring)
 }
 
@@ -78,7 +78,7 @@ func (p *prettyPrinter) PrintError(s ...any) {
 }
 
 func (p *prettyPrinter) PrintErrorf(format string, a ...any) {
-	fstring := fmt.Sprintf(format, a)
+	fstring := fmt.Sprintf(format, a...)
 	p.PrintError(fstring)
 }
 
@@ -93,7 +93,7 @@ func Printf(format string, a ...any) {
 	const (
 		infoColor = int32(92)
 	)
-	fstring := fmt.Sprintf(format, a)
+	fstring := fmt.Sprintf(format, a...)
 	fmt.Printf("\x1b[1;%dm%s\x1b[0m\n", infoColor, fstring)
 }
 
@@ -108,7 +108,7 @@ func PrintWarningf(format string, a ...any) {
 	const (
 		warnColor = int32(93)
 	)
-	fstring := fmt.Sprintf(format, a)
+	fstring := fmt.Sprintf(format, a...)
 	fmt.Printf("\x1b[1;%dm%s\x1b[0m\n", warnColor, fstring)
 }
 
@@ -123,6 +123,6 @@ func PrintErrorf(format string, a ...any) {
 	const (
 		errColor = int32(91)
 	)
-	fstring := fmt.Sprintf(format, a)
+	fstring := fmt.Sprintf(format, a...)
 	fmt.Printf("\x1b[1;%dm%s\x1b[0m\n", errColor, fstring)
 }

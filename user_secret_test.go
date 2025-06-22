@@ -36,7 +36,7 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 	}
 	defer pool.Close()
 
-	provider := &user_secrets.PgUserSecretStore{DbConn: pool}
+	provider := user_secrets.NewPgUserSecretStore(pool)
 
 	userId := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
 	appId := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")

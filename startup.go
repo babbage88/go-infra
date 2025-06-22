@@ -50,7 +50,7 @@ func testAES256GCMEncryptDecrypt() {
 func testPgSecretStore() {
 
 	connPool := initPgConnPool()
-	pgSecretStore := user_secrets.PgUserSecretStore{DbConn: connPool}
+	pgSecretStore := user_secrets.NewPgUserSecretStore(connPool)
 	devuserUUID := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
 	appUUID := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")
 	secretUUID := uuid.MustParse("f7a62a3b-9680-441f-9fa2-6339bb419a47")

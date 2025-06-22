@@ -67,9 +67,9 @@ func main() {
 	userService := &user_crud_svc.UserCRUDService{DbConn: connPool}
 	authService := &authapi.LocalAuthService{DbConn: connPool}
 	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
-	secretProvider := &user_secrets.PgUserSecretStore{DbConn: connPool}
+	secretProvider := user_secrets.NewPgUserSecretStore(connPool)
 	hostServerProvider := host_servers.NewHostServerProvider(infra_db_pg.New(connPool), secretProvider)
-	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool, secretProvider)
+	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool)
 	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
 
 	apiServer := api_server.APIServer{
