@@ -482,29 +482,32 @@ WHERE id = $1;
 
 -- SSH Key to Host Server Mappings CRUD Operations
 -- name: CreateSSHKeyHostMapping :one
-INSERT INTO public.ssh_key_host_mappings (
-    ssh_key_id,
+INSERT INTO public.host_server_ssh_mappings (
     host_server_id,
+    ssh_key_id,
     user_id,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified;
+    $1, $2, $3, $4, $5
+) RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified;
 
 -- name: GetSSHKeyHostMappingById :one
 SELECT 
     id,
-    ssh_key_id,
     host_server_id,
+    ssh_key_id,
     user_id,
     hostserver_username,
+    sudo_password_token_id,
     created_at,
     last_modified
-FROM public.ssh_key_host_mappings
+FROM public.host_server_ssh_mappings
 WHERE id = $1;
 
 -- name: GetSSHKeyHostMappingsByUserId :many
 SELECT 
+    mapping_id,
     user_id,
     username,
     host_server_name,
@@ -513,12 +516,16 @@ SELECT
     ssh_key_id,
     external_auth_token_id,
     ssh_key_type,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
 FROM public.user_ssh_key_mappings
 WHERE user_id = $1;
 
 -- name: GetSSHKeyHostMappingsByHostId :many
 SELECT 
+    mapping_id,
     user_id,
     username,
     host_server_name,
@@ -527,12 +534,16 @@ SELECT
     ssh_key_id,
     external_auth_token_id,
     ssh_key_type,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
 FROM public.user_ssh_key_mappings
 WHERE host_server_id = $1;
 
 -- name: GetSSHKeyHostMappingsByKeyId :many
 SELECT 
+    mapping_id,
     user_id,
     username,
     host_server_name,
@@ -541,24 +552,27 @@ SELECT
     ssh_key_id,
     external_auth_token_id,
     ssh_key_type,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
 FROM public.user_ssh_key_mappings
 WHERE ssh_key_id = $1;
 
 -- name: UpdateSSHKeyHostMapping :one
-UPDATE public.ssh_key_host_mappings
+UPDATE public.host_server_ssh_mappings
 SET 
-    hostserver_username = COALESCE($2, hostserver_username),
+    hostserver_username = $2,
     last_modified = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified;
+RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified;
 
 -- name: DeleteSSHKeyHostMapping :exec
-DELETE FROM public.ssh_key_host_mappings
+DELETE FROM public.host_server_ssh_mappings
 WHERE id = $1;
 
 -- name: DeleteSSHKeyHostMappingsBySshKeyId :exec
-DELETE FROM public.ssh_key_host_mappings
+DELETE FROM public.host_server_ssh_mappings
 WHERE ssh_key_id = $1;
 
 -- Host Servers CRUD Operations

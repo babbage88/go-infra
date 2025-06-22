@@ -10,7 +10,7 @@ mig:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
 SPEC_JSON_SRC_FILE := spec/swagger.local-https.json
 SPEC_YAML_SRC_FILE := spec/swagger.local-https.json
-
+tag := $(shell cat version.yaml | yq -r .version)
 
 check-swagger:
 	which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)

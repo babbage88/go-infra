@@ -594,7 +594,7 @@ func CreateAppPermissionHandleFunc(uc_service *user_crud_svc.UserCRUDService) fu
 		}
 		newAppPermissionInfo := &user_crud_svc.AppPermissionDao{PermissionName: request.PermissionName, PermissionDescription: request.PermissionDescription}
 		response := CreateAppPermissionResponseWrapper{
-			Body: CreateAppPermissionResponse{
+			Body: CreateAppPermissionResult{
 				NewAppPermissionInfo: newAppPermissionInfo,
 				Error:                err,
 			},

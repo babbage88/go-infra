@@ -164,38 +164,53 @@ func (q *Queries) CreateSSHKey(ctx context.Context, arg CreateSSHKeyParams) (Cre
 }
 
 const createSSHKeyHostMapping = `-- name: CreateSSHKeyHostMapping :one
-INSERT INTO public.ssh_key_host_mappings (
-    ssh_key_id,
+INSERT INTO public.host_server_ssh_mappings (
     host_server_id,
+    ssh_key_id,
     user_id,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified
+    $1, $2, $3, $4, $5
+) RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified
 `
 
 type CreateSSHKeyHostMappingParams struct {
-	SshKeyID           uuid.UUID
-	HostServerID       uuid.UUID
-	UserID             uuid.UUID
-	HostserverUsername string
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+}
+
+type CreateSSHKeyHostMappingRow struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
 }
 
 // SSH Key to Host Server Mappings CRUD Operations
-func (q *Queries) CreateSSHKeyHostMapping(ctx context.Context, arg CreateSSHKeyHostMappingParams) (SshKeyHostMapping, error) {
+func (q *Queries) CreateSSHKeyHostMapping(ctx context.Context, arg CreateSSHKeyHostMappingParams) (CreateSSHKeyHostMappingRow, error) {
 	row := q.db.QueryRow(ctx, createSSHKeyHostMapping,
-		arg.SshKeyID,
 		arg.HostServerID,
+		arg.SshKeyID,
 		arg.UserID,
 		arg.HostserverUsername,
+		arg.SudoPasswordTokenID,
 	)
-	var i SshKeyHostMapping
+	var i CreateSSHKeyHostMappingRow
 	err := row.Scan(
 		&i.ID,
-		&i.SshKeyID,
 		&i.HostServerID,
+		&i.SshKeyID,
 		&i.UserID,
 		&i.HostserverUsername,
+		&i.SudoPasswordTokenID,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -342,7 +357,7 @@ func (q *Queries) DeleteSSHKey(ctx context.Context, id uuid.UUID) error {
 }
 
 const deleteSSHKeyHostMapping = `-- name: DeleteSSHKeyHostMapping :exec
-DELETE FROM public.ssh_key_host_mappings
+DELETE FROM public.host_server_ssh_mappings
 WHERE id = $1
 `
 
@@ -352,7 +367,7 @@ func (q *Queries) DeleteSSHKeyHostMapping(ctx context.Context, id uuid.UUID) err
 }
 
 const deleteSSHKeyHostMappingsBySshKeyId = `-- name: DeleteSSHKeyHostMappingsBySshKeyId :exec
-DELETE FROM public.ssh_key_host_mappings
+DELETE FROM public.host_server_ssh_mappings
 WHERE ssh_key_id = $1
 `
 
@@ -1177,25 +1192,38 @@ func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByI
 const getSSHKeyHostMappingById = `-- name: GetSSHKeyHostMappingById :one
 SELECT 
     id,
-    ssh_key_id,
     host_server_id,
+    ssh_key_id,
     user_id,
     hostserver_username,
+    sudo_password_token_id,
     created_at,
     last_modified
-FROM public.ssh_key_host_mappings
+FROM public.host_server_ssh_mappings
 WHERE id = $1
 `
 
-func (q *Queries) GetSSHKeyHostMappingById(ctx context.Context, id uuid.UUID) (SshKeyHostMapping, error) {
+type GetSSHKeyHostMappingByIdRow struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
+}
+
+func (q *Queries) GetSSHKeyHostMappingById(ctx context.Context, id uuid.UUID) (GetSSHKeyHostMappingByIdRow, error) {
 	row := q.db.QueryRow(ctx, getSSHKeyHostMappingById, id)
-	var i SshKeyHostMapping
+	var i GetSSHKeyHostMappingByIdRow
 	err := row.Scan(
 		&i.ID,
-		&i.SshKeyID,
 		&i.HostServerID,
+		&i.SshKeyID,
 		&i.UserID,
 		&i.HostserverUsername,
+		&i.SudoPasswordTokenID,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -1204,6 +1232,7 @@ func (q *Queries) GetSSHKeyHostMappingById(ctx context.Context, id uuid.UUID) (S
 
 const getSSHKeyHostMappingsByHostId = `-- name: GetSSHKeyHostMappingsByHostId :many
 SELECT 
+    mapping_id,
     user_id,
     username,
     host_server_name,
@@ -1212,7 +1241,10 @@ SELECT
     ssh_key_id,
     external_auth_token_id,
     ssh_key_type,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
 FROM public.user_ssh_key_mappings
 WHERE host_server_id = $1
 `
@@ -1227,6 +1259,7 @@ func (q *Queries) GetSSHKeyHostMappingsByHostId(ctx context.Context, hostServerI
 	for rows.Next() {
 		var i UserSshKeyMapping
 		if err := rows.Scan(
+			&i.MappingID,
 			&i.UserID,
 			&i.Username,
 			&i.HostServerName,
@@ -1236,6 +1269,9 @@ func (q *Queries) GetSSHKeyHostMappingsByHostId(ctx context.Context, hostServerI
 			&i.ExternalAuthTokenID,
 			&i.SshKeyType,
 			&i.HostserverUsername,
+			&i.SudoPasswordTokenID,
+			&i.CreatedAt,
+			&i.LastModified,
 		); err != nil {
 			return nil, err
 		}
@@ -1249,6 +1285,7 @@ func (q *Queries) GetSSHKeyHostMappingsByHostId(ctx context.Context, hostServerI
 
 const getSSHKeyHostMappingsByKeyId = `-- name: GetSSHKeyHostMappingsByKeyId :many
 SELECT 
+    mapping_id,
     user_id,
     username,
     host_server_name,
@@ -1257,7 +1294,10 @@ SELECT
     ssh_key_id,
     external_auth_token_id,
     ssh_key_type,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
 FROM public.user_ssh_key_mappings
 WHERE ssh_key_id = $1
 `
@@ -1272,6 +1312,7 @@ func (q *Queries) GetSSHKeyHostMappingsByKeyId(ctx context.Context, sshKeyID uui
 	for rows.Next() {
 		var i UserSshKeyMapping
 		if err := rows.Scan(
+			&i.MappingID,
 			&i.UserID,
 			&i.Username,
 			&i.HostServerName,
@@ -1281,6 +1322,9 @@ func (q *Queries) GetSSHKeyHostMappingsByKeyId(ctx context.Context, sshKeyID uui
 			&i.ExternalAuthTokenID,
 			&i.SshKeyType,
 			&i.HostserverUsername,
+			&i.SudoPasswordTokenID,
+			&i.CreatedAt,
+			&i.LastModified,
 		); err != nil {
 			return nil, err
 		}
@@ -1294,6 +1338,7 @@ func (q *Queries) GetSSHKeyHostMappingsByKeyId(ctx context.Context, sshKeyID uui
 
 const getSSHKeyHostMappingsByUserId = `-- name: GetSSHKeyHostMappingsByUserId :many
 SELECT 
+    mapping_id,
     user_id,
     username,
     host_server_name,
@@ -1302,7 +1347,10 @@ SELECT
     ssh_key_id,
     external_auth_token_id,
     ssh_key_type,
-    hostserver_username
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
 FROM public.user_ssh_key_mappings
 WHERE user_id = $1
 `
@@ -1317,6 +1365,7 @@ func (q *Queries) GetSSHKeyHostMappingsByUserId(ctx context.Context, userID uuid
 	for rows.Next() {
 		var i UserSshKeyMapping
 		if err := rows.Scan(
+			&i.MappingID,
 			&i.UserID,
 			&i.Username,
 			&i.HostServerName,
@@ -1326,6 +1375,9 @@ func (q *Queries) GetSSHKeyHostMappingsByUserId(ctx context.Context, userID uuid
 			&i.ExternalAuthTokenID,
 			&i.SshKeyType,
 			&i.HostserverUsername,
+			&i.SudoPasswordTokenID,
+			&i.CreatedAt,
+			&i.LastModified,
 		); err != nil {
 			return nil, err
 		}
@@ -2252,12 +2304,12 @@ func (q *Queries) UpdateSSHKey(ctx context.Context, arg UpdateSSHKeyParams) (Upd
 }
 
 const updateSSHKeyHostMapping = `-- name: UpdateSSHKeyHostMapping :one
-UPDATE public.ssh_key_host_mappings
+UPDATE public.host_server_ssh_mappings
 SET 
-    hostserver_username = COALESCE($2, hostserver_username),
+    hostserver_username = $2,
     last_modified = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, ssh_key_id, host_server_id, user_id, hostserver_username, created_at, last_modified
+RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified
 `
 
 type UpdateSSHKeyHostMappingParams struct {
@@ -2265,15 +2317,27 @@ type UpdateSSHKeyHostMappingParams struct {
 	HostserverUsername string
 }
 
-func (q *Queries) UpdateSSHKeyHostMapping(ctx context.Context, arg UpdateSSHKeyHostMappingParams) (SshKeyHostMapping, error) {
+type UpdateSSHKeyHostMappingRow struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateSSHKeyHostMapping(ctx context.Context, arg UpdateSSHKeyHostMappingParams) (UpdateSSHKeyHostMappingRow, error) {
 	row := q.db.QueryRow(ctx, updateSSHKeyHostMapping, arg.ID, arg.HostserverUsername)
-	var i SshKeyHostMapping
+	var i UpdateSSHKeyHostMappingRow
 	err := row.Scan(
 		&i.ID,
-		&i.SshKeyID,
 		&i.HostServerID,
+		&i.SshKeyID,
 		&i.UserID,
 		&i.HostserverUsername,
+		&i.SudoPasswordTokenID,
 		&i.CreatedAt,
 		&i.LastModified,
 	)

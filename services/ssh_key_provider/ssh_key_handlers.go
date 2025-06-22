@@ -20,6 +20,14 @@ import (
 //	500: description:Internal Server Error
 func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get user ID from context
+		userID, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			slog.Error("Failed to get user ID from context", slog.String("error", err.Error()))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
 		var req CreateSshKeyRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			slog.Error("Failed to decode request body", slog.String("error", err.Error()))
@@ -33,14 +41,6 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			return
 		}
 
-		// Get user ID from context
-		userID, err := authapi.GetUserIDFromContext(r.Context())
-		if err != nil {
-			slog.Error("Failed to get user ID from context", slog.String("error", err.Error()))
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
 		// Create the SSH key request
 		sshKeyReq := &NewSshKeyRequest{
 			UserID:      userID,
@@ -51,7 +51,9 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			KeyType:     req.KeyType,
 		}
 		slog.Info("User ID", slog.String("user_id", userID.String()))
-		slog.Info("Host server ID", slog.String("host_server_id", req.HostServerId.String()))
+		if req.HostServerId != nil {
+			slog.Info("Host server ID", slog.String("host_server_id", req.HostServerId.String()))
+		}
 		slog.Info("Name", slog.String("name", req.Name))
 		slog.Info("Description", slog.String("description", req.Description))
 		slog.Info("Public key", slog.String("public_key", req.PublicKey))
@@ -63,7 +65,6 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			slog.Info("Host server ID", slog.String("host_server_id", req.HostServerId.String()))
 			sshKeyReq.HostServerId = *req.HostServerId
 		}
-
 		// Create the SSH key
 		result := provider.CreateSshKey(sshKeyReq)
 		slog.Info("Created SSH key", slog.String("result", fmt.Sprintf("%+v", result)))

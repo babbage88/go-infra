@@ -51,7 +51,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	expiry := time.Now().AddDate(1, 0, 0)
 
 	// Get the external app ID for SSH keys
-	sshAppId, err := qry.GetExternalAppIdByName(context.Background(), "ssh_key")
+	sshAppId, err := qry.GetExternalAppIdByName(context.Background(), "ssh_keys")
 	if err != nil {
 		slog.Error("Failed to get SSH app ID", slog.String("error", err.Error()))
 		return NewSshKeyResult{Error: err}
@@ -252,12 +252,13 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByUserId(userId uuid.UUID) ([
 	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
 	for _, mapping := range userSshKeyMappings {
 		result = append(result, CreateSshKeyHostMappingResult{
+			ID:                 mapping.MappingID,
 			SshKeyID:           mapping.SshKeyID,
 			HostServerID:       mapping.HostServerID,
 			UserID:             mapping.UserID,
 			HostserverUsername: mapping.HostserverUsername,
-			// Note: UserSshKeyMapping doesn't have ID, CreatedAt, LastModified fields
-			// These would need to be fetched separately if needed
+			CreatedAt:          mapping.CreatedAt.Time,
+			LastModified:       mapping.LastModified.Time,
 		})
 	}
 
@@ -277,12 +278,13 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByHostId(hostId uuid.UUID) ([
 	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
 	for _, mapping := range userSshKeyMappings {
 		result = append(result, CreateSshKeyHostMappingResult{
+			ID:                 mapping.MappingID,
 			SshKeyID:           mapping.SshKeyID,
 			HostServerID:       mapping.HostServerID,
 			UserID:             mapping.UserID,
 			HostserverUsername: mapping.HostserverUsername,
-			// Note: UserSshKeyMapping doesn't have ID, CreatedAt, LastModified fields
-			// These would need to be fetched separately if needed
+			CreatedAt:          mapping.CreatedAt.Time,
+			LastModified:       mapping.LastModified.Time,
 		})
 	}
 
@@ -302,12 +304,13 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByKeyId(keyId uuid.UUID) ([]C
 	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
 	for _, mapping := range userSshKeyMappings {
 		result = append(result, CreateSshKeyHostMappingResult{
+			ID:                 mapping.MappingID,
 			SshKeyID:           mapping.SshKeyID,
 			HostServerID:       mapping.HostServerID,
 			UserID:             mapping.UserID,
 			HostserverUsername: mapping.HostserverUsername,
-			// Note: UserSshKeyMapping doesn't have ID, CreatedAt, LastModified fields
-			// These would need to be fetched separately if needed
+			CreatedAt:          mapping.CreatedAt.Time,
+			LastModified:       mapping.LastModified.Time,
 		})
 	}
 

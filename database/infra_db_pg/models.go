@@ -79,6 +79,8 @@ type HostServerSshMapping struct {
 	SudoPasswordTokenID pgtype.UUID
 	CreatedAt           pgtype.Timestamptz
 	LastModified        pgtype.Timestamptz
+	UserID              uuid.UUID
+	HostserverUsername  string
 }
 
 type HostedDbPlatform struct {
@@ -113,16 +115,6 @@ type SshKey struct {
 	LastModified pgtype.Timestamptz
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
-}
-
-type SshKeyHostMapping struct {
-	ID                 uuid.UUID
-	SshKeyID           uuid.UUID
-	HostServerID       uuid.UUID
-	UserID             uuid.UUID
-	HostserverUsername string
-	CreatedAt          pgtype.Timestamptz
-	LastModified       pgtype.Timestamptz
 }
 
 type SshKeyType struct {
@@ -235,6 +227,7 @@ type UserRolesActive struct {
 
 // View showing all SSH key mappings for users, including host server details and key information
 type UserSshKeyMapping struct {
+	MappingID           uuid.UUID
 	UserID              uuid.UUID
 	Username            pgtype.Text
 	HostServerName      string
@@ -244,6 +237,9 @@ type UserSshKeyMapping struct {
 	ExternalAuthTokenID pgtype.UUID
 	SshKeyType          string
 	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
 }
 
 type UsersAudit struct {

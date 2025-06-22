@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -878,6 +878,250 @@
         }
       }
     },
+    "/ssh-key-host-mappings/create": {
+      "post": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Create a new SSH key host mapping.",
+        "operationId": "createSshKeyHostMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateSshKeyHostMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateSshKeyHostMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/host/{hostId}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get all SSH key host mappings for a host server.",
+        "operationId": "getSshKeyHostMappingsByHostId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "HostID",
+            "description": "ID of the host server to get mappings for",
+            "name": "hostId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingsByHostIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/key/{keyId}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get all SSH key host mappings for an SSH key.",
+        "operationId": "getSshKeyHostMappingsByKeyId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "KeyID",
+            "description": "ID of the SSH key to get mappings for",
+            "name": "keyId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingsByKeyIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/user/{userId}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get all SSH key host mappings for a user.",
+        "operationId": "getSshKeyHostMappingsByUserId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "ID of the user to get mappings for",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingsByUserIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/{id}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get an SSH key host mapping by ID.",
+        "operationId": "getSshKeyHostMappingById",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key host mapping to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingByIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Update an SSH key host mapping.",
+        "operationId": "updateSshKeyHostMapping",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key host mapping to update",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateSshKeyHostMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdateSshKeyHostMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Delete an SSH key host mapping.",
+        "operationId": "deleteSshKeyHostMapping",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key host mapping to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/DeleteSshKeyHostMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/ssh-keys/create": {
       "post": {
         "tags": [
@@ -1465,16 +1709,21 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "id": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "uuid",
+          "x-go-name": "Id"
         },
-        "newPermissionInfo": {
-          "$ref": "#/definitions/AppPermissionDao"
+        "permissionDescription": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "permissionName": {
+          "type": "string",
+          "x-go-name": "PermissionName"
         }
       },
-      "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "AuthToken": {
       "type": "object",
@@ -1638,6 +1887,19 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "CreateAppPermissionResult": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
     "CreateExternalApplicationRequest": {
       "type": "object",
       "properties": {
@@ -1776,6 +2038,100 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_secrets"
     },
+    "CreateSshKeyHostMappingRequest": {
+      "type": "object",
+      "required": [
+        "sshKeyId",
+        "hostServerId",
+        "userId",
+        "hostserverUsername"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "ID of the host server to map to",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "hostserverUsername": {
+          "description": "Username to use on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "sshKeyId": {
+          "description": "ID of the SSH key to map",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyID"
+        },
+        "userId": {
+          "description": "ID of the user who owns the mapping",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "CreateSshKeyHostMappingResponse": {
+      "type": "object",
+      "required": [
+        "id",
+        "sshKeyId",
+        "hostServerId",
+        "userId",
+        "hostserverUsername",
+        "createdAt",
+        "lastModified"
+      ],
+      "properties": {
+        "createdAt": {
+          "description": "Creation timestamp",
+          "type": "string",
+          "x-go-name": "CreatedAt"
+        },
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "hostServerId": {
+          "description": "ID of the host server",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "hostserverUsername": {
+          "description": "Username on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "id": {
+          "description": "ID of the created mapping",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "lastModified": {
+          "description": "Last modification timestamp",
+          "type": "string",
+          "x-go-name": "LastModified"
+        },
+        "sshKeyId": {
+          "description": "ID of the SSH key",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyID"
+        },
+        "userId": {
+          "description": "ID of the user",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
     "CreateSshKeyRequest": {
       "type": "object",
       "required": [
@@ -1866,6 +2222,20 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "DeleteSshKeyHostMappingResponse": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "description": "Success message",
+          "type": "string",
+          "x-go-name": "Message"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
     },
     "DisableUserRequest": {
       "type": "object",
@@ -2348,6 +2718,27 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
+    "UpdateSshKeyHostMappingRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "hostserverUsername"
+      ],
+      "properties": {
+        "hostserverUsername": {
+          "description": "Username to use on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "id": {
+          "description": "ID of the SSH key host mapping to update",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
     "UpdateUserPasswordRequest": {
       "type": "object",
       "properties": {
@@ -2535,40 +2926,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -2596,7 +2963,7 @@
     "CreateAppPermissionResponse": {
       "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/AppPermissionDao"
+        "$ref": "#/definitions/CreateAppPermissionResult"
       }
     },
     "CreateExternalApplicationResponse": {
@@ -2609,6 +2976,12 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/RolePermissionMappingDao"
+      }
+    },
+    "CreateSshKeyHostMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "CreateSshKeyResponse": {
@@ -2627,6 +3000,12 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserRoleDao"
+      }
+    },
+    "DeleteSshKeyHostMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/DeleteSshKeyHostMappingResponse"
       }
     },
     "DeleteSshKeyResponse": {
@@ -2723,6 +3102,39 @@
         }
       }
     },
+    "GetSshKeyHostMappingByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+      }
+    },
+    "GetSshKeyHostMappingsByHostIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
+    "GetSshKeyHostMappingsByKeyIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
+    "GetSshKeyHostMappingsByUserIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
     "GetUserByIdResponse": {
       "description": "(empty)",
       "schema": {
@@ -2810,6 +3222,12 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "UpdateSshKeyHostMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "UpdateUserRoleMappingResponse": {

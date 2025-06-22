@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -554,6 +554,168 @@ paths:
             summary: Retrieve a user secret by ID.
             tags:
                 - secrets
+    /ssh-key-host-mappings/create:
+        post:
+            operationId: createSshKeyHostMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSshKeyHostMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateSshKeyHostMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a new SSH key host mapping.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/host/{hostId}:
+        get:
+            operationId: getSshKeyHostMappingsByHostId
+            parameters:
+                - description: ID of the host server to get mappings for
+                  in: path
+                  name: hostId
+                  required: true
+                  type: string
+                  x-go-name: HostID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingsByHostIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH key host mappings for a host server.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/key/{keyId}:
+        get:
+            operationId: getSshKeyHostMappingsByKeyId
+            parameters:
+                - description: ID of the SSH key to get mappings for
+                  in: path
+                  name: keyId
+                  required: true
+                  type: string
+                  x-go-name: KeyID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingsByKeyIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH key host mappings for an SSH key.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/user/{userId}:
+        get:
+            operationId: getSshKeyHostMappingsByUserId
+            parameters:
+                - description: ID of the user to get mappings for
+                  in: path
+                  name: userId
+                  required: true
+                  type: string
+                  x-go-name: UserID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingsByUserIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH key host mappings for a user.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/{id}:
+        delete:
+            operationId: deleteSshKeyHostMapping
+            parameters:
+                - description: ID of the SSH key host mapping to delete
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/DeleteSshKeyHostMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Delete an SSH key host mapping.
+            tags:
+                - ssh-key-host-mappings
+        get:
+            operationId: getSshKeyHostMappingById
+            parameters:
+                - description: ID of the SSH key host mapping to retrieve
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingByIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Get an SSH key host mapping by ID.
+            tags:
+                - ssh-key-host-mappings
+        put:
+            operationId: updateSshKeyHostMapping
+            parameters:
+                - description: ID of the SSH key host mapping to update
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateSshKeyHostMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UpdateSshKeyHostMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Update an SSH key host mapping.
+            tags:
+                - ssh-key-host-mappings
     /ssh-keys/create:
         post:
             operationId: createSshKey
@@ -927,14 +1089,18 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     AppPermissionDao:
         properties:
-            error:
+            id:
+                format: uuid
                 type: string
-                x-go-name: Error
-            newPermissionInfo:
-                $ref: '#/definitions/AppPermissionDao'
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
         type: object
-        x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     AuthToken:
         properties:
             accessToken:
@@ -1055,6 +1221,15 @@ definitions:
                 x-go-name: PermissionName
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateAppPermissionResult:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            newPermissionInfo:
+                $ref: '#/definitions/AppPermissionDao'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     CreateExternalApplicationRequest:
         properties:
             appDescription:
@@ -1162,6 +1337,82 @@ definitions:
                 x-go-name: Secret
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    CreateSshKeyHostMappingRequest:
+        properties:
+            hostServerId:
+                description: ID of the host server to map to
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            hostserverUsername:
+                description: Username to use on the host server
+                type: string
+                x-go-name: HostserverUsername
+            sshKeyId:
+                description: ID of the SSH key to map
+                format: uuid
+                type: string
+                x-go-name: SshKeyID
+            userId:
+                description: ID of the user who owns the mapping
+                format: uuid
+                type: string
+                x-go-name: UserID
+        required:
+            - sshKeyId
+            - hostServerId
+            - userId
+            - hostserverUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyHostMappingResponse:
+        properties:
+            createdAt:
+                description: Creation timestamp
+                type: string
+                x-go-name: CreatedAt
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            hostServerId:
+                description: ID of the host server
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            hostserverUsername:
+                description: Username on the host server
+                type: string
+                x-go-name: HostserverUsername
+            id:
+                description: ID of the created mapping
+                format: uuid
+                type: string
+                x-go-name: ID
+            lastModified:
+                description: Last modification timestamp
+                type: string
+                x-go-name: LastModified
+            sshKeyId:
+                description: ID of the SSH key
+                format: uuid
+                type: string
+                x-go-name: SshKeyID
+            userId:
+                description: ID of the user
+                format: uuid
+                type: string
+                x-go-name: UserID
+        required:
+            - id
+            - sshKeyId
+            - hostServerId
+            - userId
+            - hostserverUsername
+            - createdAt
+            - lastModified
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     CreateSshKeyRequest:
         properties:
             description:
@@ -1233,6 +1484,16 @@ definitions:
                 x-go-name: RoleName
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    DeleteSshKeyHostMappingResponse:
+        properties:
+            message:
+                description: Success message
+                type: string
+                x-go-name: Message
+        required:
+            - message
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     DisableUserRequest:
         properties:
             targetUserId:
@@ -1474,14 +1735,32 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newMappingInfo:
-                $ref: '#/definitions/RolePermissionMappingDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            permissionId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -1577,6 +1856,22 @@ definitions:
                 x-go-name: Username
         type: object
         x-go-package: github.com/babbage88/go-infra/services/host_servers
+    UpdateSshKeyHostMappingRequest:
+        properties:
+            hostserverUsername:
+                description: Username to use on the host server
+                type: string
+                x-go-name: HostserverUsername
+            id:
+                description: ID of the SSH key host mapping to update
+                format: uuid
+                type: string
+                x-go-name: ID
+        required:
+            - id
+            - hostserverUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     UpdateUserPasswordRequest:
         properties:
             newPassword:
@@ -1759,7 +2054,7 @@ responses:
     CreateAppPermissionResponse:
         description: (empty)
         schema:
-            $ref: '#/definitions/AppPermissionDao'
+            $ref: '#/definitions/CreateAppPermissionResult'
     CreateExternalApplicationResponse:
         description: (empty)
         schema:
@@ -1768,6 +2063,10 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/RolePermissionMappingDao'
+    CreateSshKeyHostMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyHostMappingResponse'
     CreateSshKeyResponse:
         description: (empty)
         schema:
@@ -1780,6 +2079,10 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/UserRoleDao'
+    DeleteSshKeyHostMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/DeleteSshKeyHostMappingResponse'
     DeleteSshKeyResponse:
         description: (empty)
         schema:
@@ -1843,6 +2146,28 @@ responses:
                     type: string
                     x-go-name: Name
             type: object
+    GetSshKeyHostMappingByIdResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+    GetSshKeyHostMappingsByHostIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
+    GetSshKeyHostMappingsByKeyIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
+    GetSshKeyHostMappingsByUserIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
     GetUserByIdResponse:
         description: (empty)
         schema:
@@ -1905,6 +2230,10 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/ExternalApplicationDao'
+    UpdateSshKeyHostMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyHostMappingResponse'
     UpdateUserRoleMappingResponse:
         description: (empty)
         schema:

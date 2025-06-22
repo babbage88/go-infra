@@ -6,6 +6,7 @@ import (
 	"net/netip"
 	"time"
 
+	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -37,6 +38,11 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 		return nil, fmt.Errorf("failed to create host server: %w", err)
 	}
 
+	userId, err := authapi.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user ID from context: %w", err)
+	}
+
 	// Create SSH key mapping if provided
 	if req.SSHKeyID != nil {
 		username := ""
@@ -44,11 +50,17 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 			username = *req.Username
 		}
 
+		var sudoPasswordToken pgtype.UUID
+		if req.SudoPasswordTokenID != nil {
+			sudoPasswordToken = pgtype.UUID{Bytes: *req.SudoPasswordTokenID, Valid: true}
+		}
+
 		_, err = p.db.CreateSSHKeyHostMapping(ctx, infra_db_pg.CreateSSHKeyHostMappingParams{
-			SshKeyID:           *req.SSHKeyID,
-			HostServerID:       server.ID,
-			UserID:             uuid.Nil, // TODO: Get from context
-			HostserverUsername: username,
+			SshKeyID:            *req.SSHKeyID,
+			HostServerID:        server.ID,
+			UserID:              userId,
+			HostserverUsername:  username,
+			SudoPasswordTokenID: sudoPasswordToken,
 		})
 		if err != nil {
 			// Clean up the host server if mapping fails
@@ -60,7 +72,7 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 	// Create sudo password token if provided
 	if req.SudoPasswordTokenID != nil {
 		err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
-			UserID:        uuid.Nil, // TODO: Get from context
+			UserID:        userId,
 			ExternalAppID: server.ID,
 			Token:         []byte{}, // TODO: Get from secret provider
 			Expiration:    pgtype.Timestamptz{Time: time.Now().Add(24 * time.Hour), Valid: true},
@@ -106,8 +118,9 @@ func (p *HostServerProviderImpl) GetHostServer(ctx context.Context, id uuid.UUID
 
 	// Get sudo password token if exists
 	var sudoPasswordTokenID *uuid.UUID
+	userId, _ := authapi.GetUserIDFromContext(ctx)
 	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        uuid.Nil, // TODO: Get from context
+		UserID:        userId,
 		ExternalAppID: id,
 	})
 	if err == nil && len(tokens) > 0 {
@@ -148,8 +161,9 @@ func (p *HostServerProviderImpl) GetHostServerByHostname(ctx context.Context, ho
 
 	// Get sudo password token if exists
 	var sudoPasswordTokenID *uuid.UUID
+	userId, _ := authapi.GetUserIDFromContext(ctx)
 	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        uuid.Nil, // TODO: Get from context
+		UserID:        userId,
 		ExternalAppID: server.ID,
 	})
 	if err == nil && len(tokens) > 0 {
@@ -190,8 +204,9 @@ func (p *HostServerProviderImpl) GetHostServerByIP(ctx context.Context, ip netip
 
 	// Get sudo password token if exists
 	var sudoPasswordTokenID *uuid.UUID
+	userId, _ := authapi.GetUserIDFromContext(ctx)
 	tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        uuid.Nil, // TODO: Get from context
+		UserID:        userId,
 		ExternalAppID: server.ID,
 	})
 	if err == nil && len(tokens) > 0 {
@@ -234,8 +249,9 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 
 		// Get sudo password token if exists
 		var sudoPasswordTokenID *uuid.UUID
+		userId, _ := authapi.GetUserIDFromContext(ctx)
 		tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-			UserID:        uuid.Nil, // TODO: Get from context
+			UserID:        userId,
 			ExternalAppID: server.ID,
 		})
 		if err == nil && len(tokens) > 0 {
@@ -322,7 +338,7 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 		if len(mappings) > 0 {
 			// Update existing mapping
 			_, err = p.db.UpdateSSHKeyHostMapping(ctx, infra_db_pg.UpdateSSHKeyHostMappingParams{
-				ID:                 mappings[0].SshKeyID,
+				ID:                 mappings[0].MappingID,
 				HostserverUsername: username,
 			})
 			if err != nil {
@@ -330,11 +346,16 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 			}
 		} else if req.SSHKeyID != nil {
 			// Create new mapping
+			var sudoPasswordToken pgtype.UUID
+			if req.SudoPasswordTokenID != nil {
+				sudoPasswordToken = pgtype.UUID{Bytes: *req.SudoPasswordTokenID, Valid: true}
+			}
 			_, err = p.db.CreateSSHKeyHostMapping(ctx, infra_db_pg.CreateSSHKeyHostMappingParams{
-				SshKeyID:           *req.SSHKeyID,
-				HostServerID:       id,
-				UserID:             uuid.Nil, // TODO: Get from context
-				HostserverUsername: username,
+				SshKeyID:            *req.SSHKeyID,
+				HostServerID:        id,
+				UserID:              uuid.Nil, // TODO: Get from context
+				HostserverUsername:  username,
+				SudoPasswordTokenID: sudoPasswordToken,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("failed to create SSH key mapping: %w", err)
