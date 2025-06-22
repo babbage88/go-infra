@@ -1155,6 +1155,39 @@
         }
       }
     },
+    "/ssh-keys/user/{userId}": {
+      "get": {
+        "tags": [
+          "ssh-keys"
+        ],
+        "summary": "Get all SSH keys owned by a user.",
+        "operationId": "getSshKeysByUserId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "ID of the user to get SSH keys for",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeysByUserIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/ssh-keys/{id}": {
       "delete": {
         "tags": [
@@ -2602,38 +2635,16 @@
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "permissionId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
         }
       },
       "x-go-name": "CreateRolePermissionMappingResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -2658,6 +2669,48 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "SshKeyListItem": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "keyType": {
+          "type": "string",
+          "x-go-name": "KeyType"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "ownerUserId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "OwnerUserID"
+        },
+        "publicKey": {
+          "type": "string",
+          "x-go-name": "PublicKey"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
     },
     "TokenRefreshReq": {
       "type": "object",
@@ -2966,16 +3019,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -3185,6 +3262,15 @@
         "type": "array",
         "items": {
           "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
+    "GetSshKeysByUserIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/SshKeyListItem"
         }
       }
     },

@@ -17,6 +17,25 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// hostServerByIDHandler handles GET, PUT, DELETE methods for /host-servers/{ID}
+func hostServerByIDHandler(provider host_servers.HostServerProvider, authService authapi.AuthService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			// Read permission
+			authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetHostServerHandler(provider)).ServeHTTP(w, r)
+		case http.MethodPut:
+			// Manage permission
+			authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.UpdateHostServerHandler(provider)).ServeHTTP(w, r)
+		case http.MethodDelete:
+			// Manage permission
+			authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.DeleteHostServerHandler(provider)).ServeHTTP(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
+
 func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService,
 	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
@@ -51,8 +70,8 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	// Host server routes
 	mux.Handle("/host-servers/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreateHostServerHandler(hostServerProvider))))
 	mux.Handle("/host-servers/{ID}", cors.CORSWithMethods(
-		host_servers.HostServerByIDHandler(hostServerProvider, authService),
-		http.MethodGet, http.MethodPut, http.MethodDelete, http.MethodPost,
+		hostServerByIDHandler(hostServerProvider, authService),
+		http.MethodGet, http.MethodPut, http.MethodDelete,
 	))
 	mux.Handle("/host-servers", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServersHandler(hostServerProvider))))
 

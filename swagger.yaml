@@ -737,6 +737,28 @@ paths:
             summary: Create a new SSH key.
             tags:
                 - ssh-keys
+    /ssh-keys/user/{userId}:
+        get:
+            operationId: getSshKeysByUserId
+            parameters:
+                - description: ID of the user to get SSH keys for
+                  in: path
+                  name: userId
+                  required: true
+                  type: string
+                  x-go-name: UserID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeysByUserIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH keys owned by a user.
+            tags:
+                - ssh-keys
     /ssh-keys/{id}:
         delete:
             operationId: deleteSshKey
@@ -759,28 +781,6 @@ paths:
                 "500":
                     description: Internal Server Error
             summary: Delete an SSH key and its associated secret.
-            tags:
-                - ssh-keys
-    /ssh-keys/user/{userId}:
-        get:
-            operationId: getSshKeysByUserId
-            parameters:
-                - description: ID of the user to get SSH keys for
-                  in: path
-                  name: userId
-                  required: true
-                  type: string
-                  x-go-name: UserID
-            responses:
-                "200":
-                    $ref: '#/responses/GetSshKeysByUserIdResponse'
-                "400":
-                    description: Invalid request
-                "401":
-                    description: Unauthorized
-                "500":
-                    description: Internal Server Error
-            summary: Get all SSH keys owned by a user.
             tags:
                 - ssh-keys
     /token/refresh:
@@ -1528,54 +1528,6 @@ definitions:
             - userId
         type: object
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
-    SshKeyListItem:
-        properties:
-            id:
-                description: ID of the SSH key
-                format: uuid
-                type: string
-                x-go-name: ID
-            name:
-                description: Name of the SSH key
-                type: string
-                x-go-name: Name
-            description:
-                description: Description of the SSH key
-                type: string
-                x-go-name: Description
-            publicKey:
-                description: Public key in OpenSSH format
-                type: string
-                x-go-name: PublicKey
-            keyType:
-                description: Type of the SSH key (e.g., rsa, ed25519)
-                type: string
-                x-go-name: KeyType
-            ownerUserId:
-                description: ID of the user who owns the key
-                format: uuid
-                type: string
-                x-go-name: OwnerUserID
-            createdAt:
-                description: Creation timestamp
-                format: date-time
-                type: string
-                x-go-name: CreatedAt
-            lastModified:
-                description: Last modification timestamp
-                format: date-time
-                type: string
-                x-go-name: LastModified
-        required:
-            - id
-            - name
-            - publicKey
-            - keyType
-            - ownerUserId
-            - createdAt
-            - lastModified
-        type: object
-        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     CreateUserRoleRequest:
         properties:
             roleDesc:
@@ -1837,14 +1789,32 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newMappingInfo:
-                $ref: '#/definitions/RolePermissionMappingDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            permissionId:
+                format: uuid
+                type: string
+                x-go-name: PermissionId
+            roleId:
+                format: uuid
+                type: string
+                x-go-name: RoleId
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -1862,6 +1832,38 @@ definitions:
                 x-go-name: Error
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    SshKeyListItem:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            description:
+                type: string
+                x-go-name: Description
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            keyType:
+                type: string
+                x-go-name: KeyType
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                type: string
+                x-go-name: Name
+            ownerUserId:
+                format: uuid
+                type: string
+                x-go-name: OwnerUserID
+            publicKey:
+                type: string
+                x-go-name: PublicKey
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     TokenRefreshReq:
         properties:
             refreshToken:
@@ -2093,33 +2095,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            isDeleted:
-                type: boolean
-                x-go-name: IsDeleted
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            roleDesc:
-                type: string
-                x-go-name: RoleDescription
-            roleName:
-                type: string
-                x-go-name: RoleName
+                x-go-name: Error
+            newUserRoleInfo:
+                $ref: '#/definitions/UserRoleDao'
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserSecretEntry:
         properties:
             appInfo:
