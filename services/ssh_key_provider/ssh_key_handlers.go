@@ -18,8 +18,8 @@ import (
 //	400: description:Invalid request
 //	401: description:Unauthorized
 //	500: description:Internal Server Error
-func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func CreateSshKeyHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// Get user ID from context
 		userID, err := authapi.GetUserIDFromContext(r.Context())
 		if err != nil {
@@ -88,7 +88,7 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // swagger:route DELETE /ssh-keys/{id} ssh-keys deleteSshKey
@@ -101,8 +101,8 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 //	401: description:Unauthorized
 //	404: description:Not Found
 //	500: description:Internal Server Error
-func DeleteSshKeyHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func DeleteSshKeyHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// Get user ID from context (for authentication)
 		_, err := authapi.GetUserIDFromContext(r.Context())
 		if err != nil {
@@ -140,7 +140,7 @@ func DeleteSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // swagger:route GET /ssh-keys/user/{userId} ssh-keys getSshKeysByUserId
@@ -151,31 +151,22 @@ func DeleteSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 //	400: description:Invalid request
 //	401: description:Unauthorized
 //	500: description:Internal Server Error
-func GetSshKeysByUserIdHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get user ID from context (for future RBAC, not used here)
-		_, err := authapi.GetUserIDFromContext(r.Context())
+func GetSshKeysByUserIdHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get user ID from context. This is the authenticated user.
+		userID, err := authapi.GetUserIDFromContext(r.Context())
 		if err != nil {
 			slog.Error("Failed to get user ID from context", slog.String("error", err.Error()))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		// Get user ID from URL path
-		userIdStr := r.PathValue("userId")
-		if userIdStr == "" {
-			http.Error(w, "Missing user ID", http.StatusBadRequest)
-			return
-		}
-
-		userId, err := uuid.Parse(userIdStr)
-		if err != nil {
-			http.Error(w, "Invalid user ID", http.StatusBadRequest)
-			return
-		}
+		// NOTE: The `{userId}` from the path is intentionally ignored.
+		// We use the userID from the secure authentication token to ensure
+		// users can only access their own keys.
 
 		// Get SSH keys for the user
-		sshKeys, err := provider.GetSshKeysByUserId(userId)
+		sshKeys, err := provider.GetSshKeysByUserId(userID)
 		if err != nil {
 			slog.Error("Failed to get SSH keys by user ID", slog.String("error", err.Error()))
 			http.Error(w, "Failed to get SSH keys", http.StatusInternalServerError)
@@ -189,7 +180,7 @@ func GetSshKeysByUserIdHandler(provider SshKeySecretProvider) http.Handler {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // SSH Key Host Mapping CRUD Handlers
@@ -202,8 +193,8 @@ func GetSshKeysByUserIdHandler(provider SshKeySecretProvider) http.Handler {
 //	400: description:Invalid request
 //	401: description:Unauthorized
 //	500: description:Internal Server Error
-func CreateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func CreateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// Get user ID from context
 		userID, err := authapi.GetUserIDFromContext(r.Context())
 		if err != nil {
@@ -260,7 +251,7 @@ func CreateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // swagger:route GET /ssh-key-host-mappings/{id} ssh-key-host-mappings getSshKeyHostMappingById
@@ -272,8 +263,8 @@ func CreateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 //	401: description:Unauthorized
 //	404: description:Not Found
 //	500: description:Internal Server Error
-func GetSshKeyHostMappingByIdHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func GetSshKeyHostMappingByIdHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
 		if idStr == "" {
 			http.Error(w, "Missing mapping ID", http.StatusBadRequest)
@@ -322,67 +313,7 @@ func GetSshKeyHostMappingByIdHandler(provider SshKeySecretProvider) http.Handler
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
-}
-
-// swagger:route GET /ssh-key-host-mappings/user/{userId} ssh-key-host-mappings getSshKeyHostMappingsByUserId
-// Get all SSH key host mappings for a user.
-// responses:
-//
-//	200: GetSshKeyHostMappingsByUserIdResponse
-//	400: description:Invalid request
-//	401: description:Unauthorized
-//	500: description:Internal Server Error
-func GetSshKeyHostMappingsByUserIdHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userIdStr := r.PathValue("userId")
-		if userIdStr == "" {
-			http.Error(w, "Missing user ID", http.StatusBadRequest)
-			return
-		}
-
-		userId, err := uuid.Parse(userIdStr)
-		if err != nil {
-			http.Error(w, "Invalid user ID", http.StatusBadRequest)
-			return
-		}
-
-		// Get user ID from context (for future RBAC, not used here)
-		_, err = authapi.GetUserIDFromContext(r.Context())
-		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		results, err := provider.GetSshKeyHostMappingsByUserId(userId)
-		if err != nil {
-			slog.Error("Failed to get SSH key host mappings by user ID", slog.String("error", err.Error()))
-			http.Error(w, "Failed to get SSH key host mappings", http.StatusInternalServerError)
-			return
-		}
-
-		// Prepare response
-		resp := make([]CreateSshKeyHostMappingResponse, 0, len(results))
-		for _, result := range results {
-			resp = append(resp, CreateSshKeyHostMappingResponse{
-				ID:                 result.ID,
-				SshKeyID:           result.SshKeyID,
-				HostServerID:       result.HostServerID,
-				UserID:             result.UserID,
-				HostserverUsername: result.HostserverUsername,
-				CreatedAt:          result.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-				LastModified:       result.LastModified.Format("2006-01-02T15:04:05Z07:00"),
-			})
-		}
-
-		// Send response
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			slog.Error("Failed to encode response", slog.String("error", err.Error()))
-			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-			return
-		}
-	}))
+	}
 }
 
 // swagger:route GET /ssh-key-host-mappings/host/{hostId} ssh-key-host-mappings getSshKeyHostMappingsByHostId
@@ -393,8 +324,8 @@ func GetSshKeyHostMappingsByUserIdHandler(provider SshKeySecretProvider) http.Ha
 //	400: description:Invalid request
 //	401: description:Unauthorized
 //	500: description:Internal Server Error
-func GetSshKeyHostMappingsByHostIdHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func GetSshKeyHostMappingsByHostIdHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		hostIdStr := r.PathValue("hostId")
 		if hostIdStr == "" {
 			http.Error(w, "Missing host ID", http.StatusBadRequest)
@@ -442,7 +373,7 @@ func GetSshKeyHostMappingsByHostIdHandler(provider SshKeySecretProvider) http.Ha
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // swagger:route GET /ssh-key-host-mappings/key/{keyId} ssh-key-host-mappings getSshKeyHostMappingsByKeyId
@@ -453,8 +384,8 @@ func GetSshKeyHostMappingsByHostIdHandler(provider SshKeySecretProvider) http.Ha
 //	400: description:Invalid request
 //	401: description:Unauthorized
 //	500: description:Internal Server Error
-func GetSshKeyHostMappingsByKeyIdHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func GetSshKeyHostMappingsByKeyIdHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		keyIdStr := r.PathValue("keyId")
 		if keyIdStr == "" {
 			http.Error(w, "Missing key ID", http.StatusBadRequest)
@@ -502,7 +433,7 @@ func GetSshKeyHostMappingsByKeyIdHandler(provider SshKeySecretProvider) http.Han
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // swagger:route PUT /ssh-key-host-mappings/{id} ssh-key-host-mappings updateSshKeyHostMapping
@@ -514,8 +445,8 @@ func GetSshKeyHostMappingsByKeyIdHandler(provider SshKeySecretProvider) http.Han
 //	401: description:Unauthorized
 //	404: description:Not Found
 //	500: description:Internal Server Error
-func UpdateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func UpdateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
 		if idStr == "" {
 			http.Error(w, "Missing mapping ID", http.StatusBadRequest)
@@ -580,7 +511,7 @@ func UpdateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
-	}))
+	}
 }
 
 // swagger:route DELETE /ssh-key-host-mappings/{id} ssh-key-host-mappings deleteSshKeyHostMapping
@@ -592,8 +523,8 @@ func UpdateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 //	401: description:Unauthorized
 //	404: description:Not Found
 //	500: description:Internal Server Error
-func DeleteSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler {
-	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func DeleteSshKeyHostMappingHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
 		if idStr == "" {
 			http.Error(w, "Missing mapping ID", http.StatusBadRequest)
@@ -629,7 +560,7 @@ func DeleteSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
-	}))
+	}
 }
 
 // SshKeyHostMappingByIDHandler handles GET, PUT, and DELETE operations for SSH key host mappings by ID
@@ -646,4 +577,64 @@ func SshKeyHostMappingByIDHandler(provider SshKeySecretProvider, authService aut
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
+}
+
+// swagger:route GET /ssh-key-host-mappings/user/{userId} ssh-key-host-mappings getSshKeyHostMappingsByUserId
+// Get all SSH key host mappings for a user.
+// responses:
+//
+//	200: GetSshKeyHostMappingsByUserIdResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetSshKeyHostMappingsByUserIdHandler(provider SshKeySecretProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userIdStr := r.PathValue("userId")
+		if userIdStr == "" {
+			http.Error(w, "Missing user ID", http.StatusBadRequest)
+			return
+		}
+
+		userId, err := uuid.Parse(userIdStr)
+		if err != nil {
+			http.Error(w, "Invalid user ID", http.StatusBadRequest)
+			return
+		}
+
+		// Get user ID from context (for future RBAC, not used here)
+		_, err = authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		results, err := provider.GetSshKeyHostMappingsByUserId(userId)
+		if err != nil {
+			slog.Error("Failed to get SSH key host mappings by user ID", slog.String("error", err.Error()))
+			http.Error(w, "Failed to get SSH key host mappings", http.StatusInternalServerError)
+			return
+		}
+
+		// Prepare response
+		resp := make([]CreateSshKeyHostMappingResponse, 0, len(results))
+		for _, result := range results {
+			resp = append(resp, CreateSshKeyHostMappingResponse{
+				ID:                 result.ID,
+				SshKeyID:           result.SshKeyID,
+				HostServerID:       result.HostServerID,
+				UserID:             result.UserID,
+				HostserverUsername: result.HostserverUsername,
+				CreatedAt:          result.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+				LastModified:       result.LastModified.Format("2006-01-02T15:04:05Z07:00"),
+			})
+		}
+
+		// Send response
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			slog.Error("Failed to encode response", slog.String("error", err.Error()))
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}
 }
