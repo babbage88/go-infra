@@ -55,7 +55,14 @@ INSERT INTO public.host_servers (
     id_db_host
 ) VALUES (
     $1, $2, $3, $4, $5, $6
-) RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+)
+ON CONFLICT (hostname, ip_address) DO UPDATE SET
+    is_container_host = EXCLUDED.is_container_host,
+    is_vm_host = EXCLUDED.is_vm_host,
+    is_virtual_machine = EXCLUDED.is_virtual_machine,
+    id_db_host = EXCLUDED.id_db_host,
+    last_modified = CURRENT_TIMESTAMP
+RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
 `
 
 type CreateHostServerParams struct {
@@ -1042,6 +1049,7 @@ type GetHostServerByIdRow struct {
 	LastModified     pgtype.Timestamptz
 }
 
+// Host Servers CRUD Operations
 func (q *Queries) GetHostServerById(ctx context.Context, id uuid.UUID) (GetHostServerByIdRow, error) {
 	row := q.db.QueryRow(ctx, getHostServerById, id)
 	var i GetHostServerByIdRow
@@ -1892,54 +1900,6 @@ func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExterna
 		arg.Expiration,
 	)
 	return err
-}
-
-const insertHostServer = `-- name: InsertHostServer :one
-INSERT INTO host_servers (
-            hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host
-        ) VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (hostname, ip_address)
-        DO UPDATE SET
-            is_container_host = EXCLUDED.is_container_host,
-            is_vm_host = EXCLUDED.is_vm_host,
-            is_virtual_machine = EXCLUDED.is_virtual_machine,
-            id_db_host = EXCLUDED.id_db_host,
-			      last_modified = DEFAULT
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified, username
-`
-
-type InsertHostServerParams struct {
-	Hostname         string
-	IpAddress        netip.Addr
-	IsContainerHost  pgtype.Bool
-	IsVmHost         pgtype.Bool
-	IsVirtualMachine pgtype.Bool
-	IDDbHost         pgtype.Bool
-}
-
-func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerParams) (HostServer, error) {
-	row := q.db.QueryRow(ctx, insertHostServer,
-		arg.Hostname,
-		arg.IpAddress,
-		arg.IsContainerHost,
-		arg.IsVmHost,
-		arg.IsVirtualMachine,
-		arg.IDDbHost,
-	)
-	var i HostServer
-	err := row.Scan(
-		&i.ID,
-		&i.Hostname,
-		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
-		&i.CreatedAt,
-		&i.LastModified,
-		&i.Username,
-	)
-	return i, err
 }
 
 const insertOrUpdateAppPermission = `-- name: InsertOrUpdateAppPermission :one

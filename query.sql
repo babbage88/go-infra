@@ -89,19 +89,6 @@ UPDATE users
 WHERE id = $1
 RETURNING *;
 
--- name: InsertHostServer :one
-INSERT INTO host_servers (
-            hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host
-        ) VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (hostname, ip_address)
-        DO UPDATE SET
-            is_container_host = EXCLUDED.is_container_host,
-            is_vm_host = EXCLUDED.is_vm_host,
-            is_virtual_machine = EXCLUDED.is_virtual_machine,
-            id_db_host = EXCLUDED.id_db_host,
-			      last_modified = DEFAULT
-RETURNING *;
-
 -- name: InsertUserHostedDb :one
 INSERT INTO public.user_hosted_db (
   price_tier_code_id,
@@ -576,18 +563,6 @@ DELETE FROM public.host_server_ssh_mappings
 WHERE ssh_key_id = $1;
 
 -- Host Servers CRUD Operations
--- name: CreateHostServer :one
-INSERT INTO public.host_servers (
-    hostname,
-    ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host
-) VALUES (
-    $1, $2, $3, $4, $5, $6
-) RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
-
 -- name: GetHostServerById :one
 SELECT 
     id,
@@ -699,3 +674,23 @@ RETURNING id, name, description, created_at, last_modified;
 -- name: DeleteSSHKeyType :exec
 DELETE FROM public.ssh_key_types
 WHERE name = $1;
+
+-- Host Servers CRUD Operations
+-- name: CreateHostServer :one
+INSERT INTO public.host_servers (
+    hostname,
+    ip_address,
+    is_container_host,
+    is_vm_host,
+    is_virtual_machine,
+    id_db_host
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+ON CONFLICT (hostname, ip_address) DO UPDATE SET
+    is_container_host = EXCLUDED.is_container_host,
+    is_vm_host = EXCLUDED.is_vm_host,
+    is_virtual_machine = EXCLUDED.is_virtual_machine,
+    id_db_host = EXCLUDED.id_db_host,
+    last_modified = CURRENT_TIMESTAMP
+RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
