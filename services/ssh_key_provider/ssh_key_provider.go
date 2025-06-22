@@ -164,6 +164,39 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 	return nil
 }
 
+func (p *PgSshKeySecretStore) GetSshKeysByUserId(userId uuid.UUID) ([]SshKeyListItem, error) {
+	qry := infra_db_pg.New(p.DbConn)
+
+	// Get the SSH keys by user ID
+	sshKeys, err := qry.GetSSHKeysByOwnerId(context.Background(), userId)
+	if err != nil {
+		slog.Error("Failed to get SSH keys by user ID", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	result := make([]SshKeyListItem, 0, len(sshKeys))
+	for _, key := range sshKeys {
+		item := SshKeyListItem{
+			ID:           key.ID,
+			Name:         key.Name,
+			PublicKey:    key.PublicKey,
+			KeyType:      key.KeyType,
+			OwnerUserID:  key.OwnerUserID,
+			CreatedAt:    key.CreatedAt.Time,
+			LastModified: key.LastModified.Time,
+		}
+
+		// Handle optional description field
+		if key.Description.Valid {
+			item.Description = key.Description.String
+		}
+
+		result = append(result, item)
+	}
+
+	return result, nil
+}
+
 // SSH Key Host Mapping CRUD operations
 
 func (p *PgSshKeySecretStore) CreateSshKeyHostMapping(mapping *CreateSshKeyHostMappingRequest) CreateSshKeyHostMappingResult {

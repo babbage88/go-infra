@@ -761,6 +761,28 @@ paths:
             summary: Delete an SSH key and its associated secret.
             tags:
                 - ssh-keys
+    /ssh-keys/user/{userId}:
+        get:
+            operationId: getSshKeysByUserId
+            parameters:
+                - description: ID of the user to get SSH keys for
+                  in: path
+                  name: userId
+                  required: true
+                  type: string
+                  x-go-name: UserID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeysByUserIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH keys owned by a user.
+            tags:
+                - ssh-keys
     /token/refresh:
         post:
             operationId: RefreshAccessToken
@@ -1506,6 +1528,54 @@ definitions:
             - userId
         type: object
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    SshKeyListItem:
+        properties:
+            id:
+                description: ID of the SSH key
+                format: uuid
+                type: string
+                x-go-name: ID
+            name:
+                description: Name of the SSH key
+                type: string
+                x-go-name: Name
+            description:
+                description: Description of the SSH key
+                type: string
+                x-go-name: Description
+            publicKey:
+                description: Public key in OpenSSH format
+                type: string
+                x-go-name: PublicKey
+            keyType:
+                description: Type of the SSH key (e.g., rsa, ed25519)
+                type: string
+                x-go-name: KeyType
+            ownerUserId:
+                description: ID of the user who owns the key
+                format: uuid
+                type: string
+                x-go-name: OwnerUserID
+            createdAt:
+                description: Creation timestamp
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            lastModified:
+                description: Last modification timestamp
+                format: date-time
+                type: string
+                x-go-name: LastModified
+        required:
+            - id
+            - name
+            - publicKey
+            - keyType
+            - ownerUserId
+            - createdAt
+            - lastModified
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     CreateUserRoleRequest:
         properties:
             roleDesc:
@@ -2023,14 +2093,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:
@@ -2171,6 +2260,12 @@ responses:
         schema:
             items:
                 $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
+    GetSshKeysByUserIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/SshKeyListItem'
             type: array
     GetUserByIdResponse:
         description: (empty)

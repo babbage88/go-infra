@@ -416,41 +416,33 @@ INSERT INTO public.ssh_keys (
 ) RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified;
 
 -- name: GetSSHKeyById :one
-SELECT 
+SELECT
     sk.id,
     sk.name,
     sk.description,
-    sk.priv_secret_id,
     sk.public_key,
-    sk.key_type_id,
+    skt.name as key_type,
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    skt.name as key_type_name,
-    skt.description as key_type_description,
-    u.username as owner_username
-FROM public.ssh_keys sk
-JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
-JOIN public.users u ON sk.owner_user_id = u.id
+    sk.priv_secret_id
+FROM ssh_keys sk
+JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.id = $1;
 
 -- name: GetSSHKeysByOwnerId :many
-SELECT 
+SELECT
     sk.id,
     sk.name,
     sk.description,
-    sk.priv_secret_id,
     sk.public_key,
-    sk.key_type_id,
+    skt.name as key_type,
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    skt.name as key_type_name,
-    skt.description as key_type_description,
-    u.username as owner_username
-FROM public.ssh_keys sk
-JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
-JOIN public.users u ON sk.owner_user_id = u.id
+    sk.priv_secret_id
+FROM ssh_keys sk
+JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.owner_user_id = $1;
 
 -- name: UpdateSSHKey :one
@@ -465,7 +457,7 @@ WHERE id = $1
 RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified;
 
 -- name: DeleteSSHKey :exec
-DELETE FROM public.ssh_keys
+DELETE FROM ssh_keys
 WHERE id = $1;
 
 -- SSH Key to Host Server Mappings CRUD Operations

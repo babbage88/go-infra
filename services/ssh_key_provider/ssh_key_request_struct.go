@@ -259,3 +259,19 @@ type CreateSshKeyHostMappingRequestWithoutUserID struct {
 	// required: false
 	SudoPasswordTokenId *uuid.UUID `json:"sudoPasswordTokenId,omitempty"`
 }
+
+// SSH Key List Request/Response structs
+
+// swagger:parameters getSshKeysByUserId
+type GetSshKeysByUserIdRequestWrapper struct {
+	// ID of the user to get SSH keys for
+	// in: path
+	// required: true
+	UserID string `json:"userId"`
+}
+
+// swagger:response GetSshKeysByUserIdResponse
+type GetSshKeysByUserIdResponseWrapper struct {
+	// in:body
+	Body []SshKeyListItem `json:"body"`
+}

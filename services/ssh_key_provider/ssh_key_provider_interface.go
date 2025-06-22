@@ -25,6 +25,18 @@ type NewSshKeyResult struct {
 	Error           error     `json:"error"`
 }
 
+// swagger:model SshKeyListItem
+type SshKeyListItem struct {
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	PublicKey    string    `json:"publicKey"`
+	KeyType      string    `json:"keyType"`
+	OwnerUserID  uuid.UUID `json:"ownerUserId"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastModified time.Time `json:"lastModified"`
+}
+
 type CreateSshKeyHostMappingResult struct {
 	ID                 uuid.UUID `json:"id"`
 	SshKeyID           uuid.UUID `json:"sshKeyId"`
@@ -51,6 +63,7 @@ type SshKeySecretProvider interface {
 	StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error)
 	CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyResult
 	DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error
+	GetSshKeysByUserId(userId uuid.UUID) ([]SshKeyListItem, error)
 
 	// SSH Key Host Mapping CRUD operations
 	CreateSshKeyHostMapping(mapping *CreateSshKeyHostMappingRequest) CreateSshKeyHostMappingResult

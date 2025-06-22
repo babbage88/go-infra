@@ -59,6 +59,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	// SSH key routes
 	mux.Handle("/ssh-keys/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.CreateSshKeyHandler(sshKeyProvider))))
 	mux.Handle("/ssh-keys/{id}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.DeleteSshKeyHandler(sshKeyProvider))))
+	mux.Handle("/ssh-keys/user/{userId}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadSshKeys", ssh_key_provider.GetSshKeysByUserIdHandler(sshKeyProvider))))
 
 	// SSH key host mapping routes
 	mux.Handle("/ssh-key-host-mappings/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.CreateSshKeyHostMappingHandler(sshKeyProvider))))

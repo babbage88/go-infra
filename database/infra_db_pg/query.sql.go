@@ -360,7 +360,7 @@ func (q *Queries) DeleteHostServer(ctx context.Context, id uuid.UUID) error {
 }
 
 const deleteSSHKey = `-- name: DeleteSSHKey :exec
-DELETE FROM public.ssh_keys
+DELETE FROM ssh_keys
 WHERE id = $1
 `
 
@@ -1149,38 +1149,31 @@ func (q *Queries) GetRoleIdByName(ctx context.Context, roleName string) (uuid.UU
 }
 
 const getSSHKeyById = `-- name: GetSSHKeyById :one
-SELECT 
+SELECT
     sk.id,
     sk.name,
     sk.description,
-    sk.priv_secret_id,
     sk.public_key,
-    sk.key_type_id,
+    skt.name as key_type,
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    skt.name as key_type_name,
-    skt.description as key_type_description,
-    u.username as owner_username
-FROM public.ssh_keys sk
-JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
-JOIN public.users u ON sk.owner_user_id = u.id
+    sk.priv_secret_id
+FROM ssh_keys sk
+JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.id = $1
 `
 
 type GetSSHKeyByIdRow struct {
-	ID                 uuid.UUID
-	Name               string
-	Description        pgtype.Text
-	PrivSecretID       pgtype.UUID
-	PublicKey          string
-	KeyTypeID          uuid.UUID
-	OwnerUserID        uuid.UUID
-	CreatedAt          pgtype.Timestamptz
-	LastModified       pgtype.Timestamptz
-	KeyTypeName        string
-	KeyTypeDescription pgtype.Text
-	OwnerUsername      pgtype.Text
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PublicKey    string
+	KeyType      string
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	PrivSecretID pgtype.UUID
 }
 
 func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByIdRow, error) {
@@ -1190,15 +1183,12 @@ func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByI
 		&i.ID,
 		&i.Name,
 		&i.Description,
-		&i.PrivSecretID,
 		&i.PublicKey,
-		&i.KeyTypeID,
+		&i.KeyType,
 		&i.OwnerUserID,
 		&i.CreatedAt,
 		&i.LastModified,
-		&i.KeyTypeName,
-		&i.KeyTypeDescription,
-		&i.OwnerUsername,
+		&i.PrivSecretID,
 	)
 	return i, err
 }
@@ -1428,38 +1418,31 @@ func (q *Queries) GetSSHKeyTypeByName(ctx context.Context, name string) (SshKeyT
 }
 
 const getSSHKeysByOwnerId = `-- name: GetSSHKeysByOwnerId :many
-SELECT 
+SELECT
     sk.id,
     sk.name,
     sk.description,
-    sk.priv_secret_id,
     sk.public_key,
-    sk.key_type_id,
+    skt.name as key_type,
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    skt.name as key_type_name,
-    skt.description as key_type_description,
-    u.username as owner_username
-FROM public.ssh_keys sk
-JOIN public.ssh_key_types skt ON sk.key_type_id = skt.id
-JOIN public.users u ON sk.owner_user_id = u.id
+    sk.priv_secret_id
+FROM ssh_keys sk
+JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.owner_user_id = $1
 `
 
 type GetSSHKeysByOwnerIdRow struct {
-	ID                 uuid.UUID
-	Name               string
-	Description        pgtype.Text
-	PrivSecretID       pgtype.UUID
-	PublicKey          string
-	KeyTypeID          uuid.UUID
-	OwnerUserID        uuid.UUID
-	CreatedAt          pgtype.Timestamptz
-	LastModified       pgtype.Timestamptz
-	KeyTypeName        string
-	KeyTypeDescription pgtype.Text
-	OwnerUsername      pgtype.Text
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PublicKey    string
+	KeyType      string
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	PrivSecretID pgtype.UUID
 }
 
 func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID) ([]GetSSHKeysByOwnerIdRow, error) {
@@ -1475,15 +1458,12 @@ func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID
 			&i.ID,
 			&i.Name,
 			&i.Description,
-			&i.PrivSecretID,
 			&i.PublicKey,
-			&i.KeyTypeID,
+			&i.KeyType,
 			&i.OwnerUserID,
 			&i.CreatedAt,
 			&i.LastModified,
-			&i.KeyTypeName,
-			&i.KeyTypeDescription,
-			&i.OwnerUsername,
+			&i.PrivSecretID,
 		); err != nil {
 			return nil, err
 		}

@@ -103,43 +103,92 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 //	500: description:Internal Server Error
 func DeleteSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.PathValue("id")
-		if idStr == "" {
+		// Get user ID from context (for authentication)
+		_, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			slog.Error("Failed to get user ID from context", slog.String("error", err.Error()))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Get SSH key ID from URL path
+		sshKeyIdStr := r.PathValue("id")
+		if sshKeyIdStr == "" {
 			http.Error(w, "Missing SSH key ID", http.StatusBadRequest)
 			return
 		}
 
-		sshKeyId, err := uuid.Parse(idStr)
+		sshKeyId, err := uuid.Parse(sshKeyIdStr)
 		if err != nil {
 			http.Error(w, "Invalid SSH key ID", http.StatusBadRequest)
 			return
 		}
 
-		// Get user ID from context (for future RBAC, not used here)
-		_, err = authapi.GetUserIDFromContext(r.Context())
+		// Delete the SSH key
+		err = provider.DeleteSShKeyAndSecret(sshKeyId)
 		if err != nil {
+			slog.Error("Failed to delete SSH key", slog.String("error", err.Error()))
+			http.Error(w, "Failed to delete SSH key", http.StatusInternalServerError)
+			return
+		}
+
+		// Send success response
+		w.Header().Set("Content-Type", "application/json")
+		resp := map[string]string{"message": "SSH key deleted successfully"}
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			slog.Error("Failed to encode response", slog.String("error", err.Error()))
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}))
+}
+
+// swagger:route GET /ssh-keys/user/{userId} ssh-keys getSshKeysByUserId
+// Get all SSH keys owned by a user.
+// responses:
+//
+//	200: GetSshKeysByUserIdResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetSshKeysByUserIdHandler(provider SshKeySecretProvider) http.Handler {
+	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get user ID from context (for future RBAC, not used here)
+		_, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			slog.Error("Failed to get user ID from context", slog.String("error", err.Error()))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		err = provider.DeleteSShKeyAndSecret(sshKeyId)
-		if err != nil {
-			slog.Error("Failed to delete SSH key and secret", slog.String("error", err.Error()))
-			if err.Error() == "no rows in result set" {
-				http.Error(w, "SSH key not found", http.StatusNotFound)
-				return
-			}
-			http.Error(w, "Failed to delete SSH key and secret", http.StatusInternalServerError)
+		// Get user ID from URL path
+		userIdStr := r.PathValue("userId")
+		if userIdStr == "" {
+			http.Error(w, "Missing user ID", http.StatusBadRequest)
 			return
 		}
 
-		resp := DeleteSshKeyResponse{
-			Body: struct {
-				Message string `json:"message"`
-			}{Message: "SSH key and secret deleted successfully"},
+		userId, err := uuid.Parse(userIdStr)
+		if err != nil {
+			http.Error(w, "Invalid user ID", http.StatusBadRequest)
+			return
 		}
+
+		// Get SSH keys for the user
+		sshKeys, err := provider.GetSshKeysByUserId(userId)
+		if err != nil {
+			slog.Error("Failed to get SSH keys by user ID", slog.String("error", err.Error()))
+			http.Error(w, "Failed to get SSH keys", http.StatusInternalServerError)
+			return
+		}
+
+		// Send response
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		if err := json.NewEncoder(w).Encode(sshKeys); err != nil {
+			slog.Error("Failed to encode response", slog.String("error", err.Error()))
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
 	}))
 }
 
