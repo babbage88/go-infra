@@ -54,12 +54,12 @@ func testPgSecretStore() {
 	devuserUUID := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
 	appUUID := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")
 	secretUUID := uuid.MustParse("f7a62a3b-9680-441f-9fa2-6339bb419a47")
-	err := pgSecretStore.StoreSecret("TestPgSecretStoreExample", devuserUUID, appUUID, time.Now().AddDate(0, 0, 1))
+	secretId, err := pgSecretStore.StoreSecret("TestPgSecretStoreExample", devuserUUID, appUUID, time.Now().AddDate(0, 0, 1))
 	if err != nil {
 		slog.Error("Error storing secret", "error", err.Error())
 		os.Exit(1)
 	}
-	slog.Info("Secret successfully storeed in Pg Database")
+	slog.Info("Secret successfully stored in Pg Database", slog.String("secretId", secretId.String()))
 
 	retrievedSecret, err := pgSecretStore.RetrieveSecret(secretUUID)
 	if err != nil {

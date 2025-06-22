@@ -71,7 +71,7 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 
 	// Create sudo password token if provided
 	if req.SudoPasswordTokenID != nil {
-		err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
+		_, err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
 			UserID:        userId,
 			ExternalAppID: server.ID,
 			Token:         []byte{}, // TODO: Get from secret provider
@@ -285,6 +285,12 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 		return nil, err
 	}
 
+	// Get user ID from context
+	userId, err := authapi.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user ID from context: %w", err)
+	}
+
 	params := infra_db_pg.UpdateHostServerParams{
 		ID:               id,
 		Hostname:         current.Hostname,
@@ -353,7 +359,7 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 			_, err = p.db.CreateSSHKeyHostMapping(ctx, infra_db_pg.CreateSSHKeyHostMappingParams{
 				SshKeyID:            *req.SSHKeyID,
 				HostServerID:        id,
-				UserID:              uuid.Nil, // TODO: Get from context
+				UserID:              userId,
 				HostserverUsername:  username,
 				SudoPasswordTokenID: sudoPasswordToken,
 			})
@@ -367,7 +373,7 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 	if req.SudoPasswordTokenID != nil {
 		// Delete existing tokens
 		tokens, err := p.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-			UserID:        uuid.Nil, // TODO: Get from context
+			UserID:        userId,
 			ExternalAppID: id,
 		})
 		if err == nil {
@@ -377,8 +383,8 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 		}
 
 		// Create new token
-		err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
-			UserID:        uuid.Nil, // TODO: Get from context
+		_, err = p.db.InsertExternalAuthToken(ctx, infra_db_pg.InsertExternalAuthTokenParams{
+			UserID:        userId,
 			ExternalAppID: id,
 			Token:         []byte{}, // TODO: Get from secret provider
 			Expiration:    pgtype.Timestamptz{Time: time.Now().Add(24 * time.Hour), Valid: true},

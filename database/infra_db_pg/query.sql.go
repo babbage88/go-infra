@@ -179,7 +179,13 @@ INSERT INTO public.host_server_ssh_mappings (
     sudo_password_token_id
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified
+)
+ON CONFLICT (host_server_id, ssh_key_id) DO UPDATE SET
+    hostserver_username = EXCLUDED.hostserver_username,
+    user_id = EXCLUDED.user_id,
+    sudo_password_token_id = EXCLUDED.sudo_password_token_id,
+    last_modified = CURRENT_TIMESTAMP
+RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified
 `
 
 type CreateSSHKeyHostMappingParams struct {
@@ -1872,7 +1878,7 @@ func (q *Queries) InsertExternalAppIntegrationByName(ctx context.Context, arg In
 	return i, err
 }
 
-const insertExternalAuthToken = `-- name: InsertExternalAuthToken :exec
+const insertExternalAuthToken = `-- name: InsertExternalAuthToken :one
 INSERT INTO public.external_auth_tokens (
     id,
     user_id,
@@ -1883,6 +1889,7 @@ INSERT INTO public.external_auth_tokens (
 VALUES (
   gen_random_uuid(),  $1, $2, $3, $4
 )
+RETURNING id
 `
 
 type InsertExternalAuthTokenParams struct {
@@ -1892,14 +1899,16 @@ type InsertExternalAuthTokenParams struct {
 	Expiration    pgtype.Timestamptz
 }
 
-func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExternalAuthTokenParams) error {
-	_, err := q.db.Exec(ctx, insertExternalAuthToken,
+func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExternalAuthTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertExternalAuthToken,
 		arg.UserID,
 		arg.ExternalAppID,
 		arg.Token,
 		arg.Expiration,
 	)
-	return err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const insertOrUpdateAppPermission = `-- name: InsertOrUpdateAppPermission :one

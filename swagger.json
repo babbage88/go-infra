@@ -891,7 +891,7 @@
             "name": "body",
             "in": "body",
             "schema": {
-              "$ref": "#/definitions/CreateSshKeyHostMappingRequest"
+              "$ref": "#/definitions/CreateSshKeyHostMappingRequestWithoutUserID"
             }
           }
         ],
@@ -2064,11 +2064,51 @@
           "format": "uuid",
           "x-go-name": "SshKeyID"
         },
+        "sudoPasswordTokenId": {
+          "description": "ID of the sudo password token",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenId"
+        },
         "userId": {
           "description": "ID of the user who owns the mapping",
           "type": "string",
           "format": "uuid",
           "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "CreateSshKeyHostMappingRequestWithoutUserID": {
+      "type": "object",
+      "required": [
+        "sshKeyId",
+        "hostServerId",
+        "hostserverUsername"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "ID of the host server to map to",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "hostserverUsername": {
+          "description": "Username to use on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "sshKeyId": {
+          "description": "ID of the SSH key to map",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyID"
+        },
+        "sudoPasswordTokenId": {
+          "description": "ID of the sudo password token",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenId"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"

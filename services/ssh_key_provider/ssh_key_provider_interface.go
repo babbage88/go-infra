@@ -48,7 +48,7 @@ type UpdateSshKeyHostMappingResult struct {
 }
 
 type SshKeySecretProvider interface {
-	StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error
+	StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error)
 	CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyResult
 	DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error
 

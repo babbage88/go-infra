@@ -19,11 +19,11 @@ func NewMockUserSecretProvider() *MockUserSecretProvider {
 	}
 }
 
-func (m *MockUserSecretProvider) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error {
+func (m *MockUserSecretProvider) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error) {
 	// Generate a mock secret ID
 	secretId := uuid.New()
 	m.secrets[secretId] = true
-	return nil
+	return secretId, nil
 }
 
 func (m *MockUserSecretProvider) RetrieveSecret(secretId uuid.UUID) (*user_secrets.RetrievedUserSecret, error) {

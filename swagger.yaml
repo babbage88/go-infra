@@ -561,7 +561,7 @@ paths:
                 - in: body
                   name: body
                   schema:
-                    $ref: '#/definitions/CreateSshKeyHostMappingRequest'
+                    $ref: '#/definitions/CreateSshKeyHostMappingRequestWithoutUserID'
                   x-go-name: Body
             responses:
                 "200":
@@ -1353,6 +1353,11 @@ definitions:
                 format: uuid
                 type: string
                 x-go-name: SshKeyID
+            sudoPasswordTokenId:
+                description: ID of the sudo password token
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenId
             userId:
                 description: ID of the user who owns the mapping
                 format: uuid
@@ -1362,6 +1367,33 @@ definitions:
             - sshKeyId
             - hostServerId
             - userId
+            - hostserverUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyHostMappingRequestWithoutUserID:
+        properties:
+            hostServerId:
+                description: ID of the host server to map to
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            hostserverUsername:
+                description: Username to use on the host server
+                type: string
+                x-go-name: HostserverUsername
+            sshKeyId:
+                description: ID of the SSH key to map
+                format: uuid
+                type: string
+                x-go-name: SshKeyID
+            sudoPasswordTokenId:
+                description: ID of the sudo password token
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenId
+        required:
+            - sshKeyId
+            - hostServerId
             - hostserverUsername
         type: object
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
@@ -1735,32 +1767,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
@@ -2009,14 +2023,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:

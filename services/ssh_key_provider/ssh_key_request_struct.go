@@ -67,7 +67,7 @@ type CreateSshKeyResponse struct {
 // swagger:parameters createSshKeyHostMapping
 type CreateSshKeyHostMappingRequestWrapper struct {
 	// in:body
-	Body CreateSshKeyHostMappingRequest `json:"body"`
+	Body CreateSshKeyHostMappingRequestWithoutUserID `json:"body"`
 }
 
 // swagger:response CreateSshKeyHostMappingResponse
@@ -235,4 +235,27 @@ type CreateSshKeyHostMappingRequest struct {
 	// Username to use on the host server
 	// required: true
 	HostserverUsername string `json:"hostserverUsername"`
+
+	// ID of the sudo password token
+	// required: false
+	SudoPasswordTokenId *uuid.UUID `json:"sudoPasswordTokenId,omitempty"`
+}
+
+// swagger:model CreateSshKeyHostMappingRequestWithoutUserID
+type CreateSshKeyHostMappingRequestWithoutUserID struct {
+	// ID of the SSH key to map
+	// required: true
+	SshKeyID uuid.UUID `json:"sshKeyId"`
+
+	// ID of the host server to map to
+	// required: true
+	HostServerID uuid.UUID `json:"hostServerId"`
+
+	// Username to use on the host server
+	// required: true
+	HostserverUsername string `json:"hostserverUsername"`
+
+	// ID of the sudo password token
+	// required: false
+	SudoPasswordTokenId *uuid.UUID `json:"sudoPasswordTokenId,omitempty"`
 }

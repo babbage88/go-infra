@@ -24,7 +24,7 @@ func NewPgSshKeySecretStore(dbConn *pgxpool.Pool, secretProvider user_secrets.Us
 	}
 }
 
-func (p *PgSshKeySecretStore) StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error {
+func (p *PgSshKeySecretStore) StoreSshKeySecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error) {
 	return p.SecretProvider.StoreSecret(plaintextSecret, userId, appId, expiry)
 }
 
@@ -58,19 +58,9 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	}
 
 	// Store the private key as a secret
-	err = p.StoreSshKeySecret(sshKey.PrivateKey, sshKey.UserID, sshAppId, expiry)
+	secretId, err := p.StoreSshKeySecret(sshKey.PrivateKey, sshKey.UserID, sshAppId, expiry)
 	if err != nil {
 		slog.Error("Failed to store SSH key secret", slog.String("error", err.Error()))
-		return NewSshKeyResult{Error: err}
-	}
-
-	// Get the latest token ID for the stored secret
-	token, err := qry.GetLatestExternalAuthToken(context.Background(), infra_db_pg.GetLatestExternalAuthTokenParams{
-		UserID:        sshKey.UserID,
-		ExternalAppID: sshAppId,
-	})
-	if err != nil {
-		slog.Error("Failed to get stored secret token", slog.String("error", err.Error()))
 		return NewSshKeyResult{Error: err}
 	}
 
@@ -78,7 +68,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	sshKeyRecord, err := qry.CreateSSHKey(context.Background(), infra_db_pg.CreateSSHKeyParams{
 		Name:         sshKey.Name,
 		Description:  pgtype.Text{String: sshKey.Description, Valid: true},
-		PrivSecretID: pgtype.UUID{Bytes: token.ID, Valid: true},
+		PrivSecretID: pgtype.UUID{Bytes: secretId, Valid: true},
 		PublicKey:    sshKey.PublicKey,
 		KeyTypeID:    keyType.ID,
 		OwnerUserID:  sshKey.UserID,
@@ -118,7 +108,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 
 	return NewSshKeyResult{
 		SshKeyId:        sshKeyRecord.ID,
-		PrivKeySecretId: token.ID,
+		PrivKeySecretId: secretId,
 		UserId:          sshKey.UserID,
 		Error:           nil,
 	}
@@ -177,31 +167,29 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 // SSH Key Host Mapping CRUD operations
 
 func (p *PgSshKeySecretStore) CreateSshKeyHostMapping(mapping *CreateSshKeyHostMappingRequest) CreateSshKeyHostMappingResult {
-	// Start a transaction
-	tx, err := p.DbConn.Begin(context.Background())
-	if err != nil {
-		slog.Error("Failed to begin transaction", slog.String("error", err.Error()))
-		return CreateSshKeyHostMappingResult{Error: err}
+	qry := infra_db_pg.New(p.DbConn)
+
+	var sudoPasswordTokenID pgtype.UUID
+	if mapping.SudoPasswordTokenId != nil {
+		sudoPasswordTokenID = pgtype.UUID{
+			Bytes: *mapping.SudoPasswordTokenId,
+			Valid: true,
+		}
+	} else {
+		sudoPasswordTokenID = pgtype.UUID{
+			Valid: false,
+		}
 	}
-	defer tx.Rollback(context.Background())
-
-	qry := infra_db_pg.New(tx)
-
-	// Create the SSH key host mapping
+	// Create or update the SSH key host mapping
 	sshKeyHostMapping, err := qry.CreateSSHKeyHostMapping(context.Background(), infra_db_pg.CreateSSHKeyHostMappingParams{
-		SshKeyID:           mapping.SshKeyID,
-		HostServerID:       mapping.HostServerID,
-		UserID:             mapping.UserID,
-		HostserverUsername: mapping.HostserverUsername,
+		SshKeyID:            mapping.SshKeyID,
+		HostServerID:        mapping.HostServerID,
+		UserID:              mapping.UserID,
+		HostserverUsername:  mapping.HostserverUsername,
+		SudoPasswordTokenID: sudoPasswordTokenID,
 	})
 	if err != nil {
-		slog.Error("Failed to create SSH key host mapping", slog.String("error", err.Error()))
-		return CreateSshKeyHostMappingResult{Error: err}
-	}
-
-	// Commit the transaction
-	if err := tx.Commit(context.Background()); err != nil {
-		slog.Error("Failed to commit transaction", slog.String("error", err.Error()))
+		slog.Error("Failed to create or update SSH key host mapping", slog.String("error", err.Error()))
 		return CreateSshKeyHostMappingResult{Error: err}
 	}
 

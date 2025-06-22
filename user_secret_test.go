@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,7 +36,6 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 	}
 	defer pool.Close()
 
-	qry := infra_db_pg.New(pool)
 	provider := &user_secrets.PgUserSecretStore{DbConn: pool}
 
 	userId := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
@@ -48,21 +46,12 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 
 	t.Logf("Storing %d secrets...", totalSecrets)
 	for i := 0; i < totalSecrets; i++ {
-		err := provider.StoreSecret(samplePlaintext, userId, appId, time.Now())
+		secretId, err := provider.StoreSecret(samplePlaintext, userId, appId, time.Now())
 		if err != nil {
 			t.Fatalf("failed to store secret at iteration %d: %v", i, err)
 		}
 
-		// Retrieve latest ID by user & app (this assumes latest ID wins, otherwise tweak schema/indexing)
-		row, err := qry.GetLatestExternalAuthToken(context.Background(), infra_db_pg.GetLatestExternalAuthTokenParams{
-			UserID:        userId,
-			ExternalAppID: appId,
-		})
-		if err != nil {
-			t.Fatalf("failed to fetch stored secret id at iteration %d: %v", i, err)
-		}
-
-		secretIDs = append(secretIDs, row.ID)
+		secretIDs = append(secretIDs, secretId)
 	}
 
 	t.Log("Retrieving and checking uniqueness of encrypted secrets...")

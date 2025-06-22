@@ -41,7 +41,7 @@ type ExternalAppSecretMetadata struct {
 }
 
 type UserSecretProvider interface {
-	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error
+	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error)
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
 	GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error)
 	GetUserSecretEntriesByAppId(userId uuid.UUID, appId uuid.UUID) ([]UserSecretEntry, error)
@@ -61,11 +61,11 @@ type PgEncrytpedSecret struct {
 	UserSecret    *EncryptedUserSecretsAES256GCM `json:"userSecret"`
 }
 
-func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error {
+func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error) {
 	userCipherText, err := Encrypt(plaintextSecret)
 	if err != nil {
 		slog.Error("Error encrypting user secret", slog.String("Error", err.Error()))
-		return err
+		return uuid.Nil, err
 	}
 
 	userSecret := PgEncrytpedSecret{
@@ -77,7 +77,7 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 	jsonData, err := json.Marshal(userSecret)
 	if err != nil {
 		slog.Error("Failed to marshal encrypted secret to JSON", slog.String("error", err.Error()))
-		return err
+		return uuid.Nil, err
 	}
 
 	if expiry.IsZero() {
@@ -92,7 +92,11 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 		Token:         jsonData,
 		Expiration:    pgtype.Timestamptz{Time: expiry, Valid: true},
 	}
-	return qry.InsertExternalAuthToken(context.Background(), params)
+	secretId, err := qry.InsertExternalAuthToken(context.Background(), params)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return secretId, nil
 }
 
 func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error) {

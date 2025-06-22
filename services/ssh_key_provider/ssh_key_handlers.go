@@ -155,7 +155,15 @@ func DeleteSshKeyHandler(provider SshKeySecretProvider) http.Handler {
 //	500: description:Internal Server Error
 func CreateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler {
 	return authapi.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var req CreateSshKeyHostMappingRequest
+		// Get user ID from context
+		userID, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			slog.Error("Failed to get user ID from context", slog.String("error", err.Error()))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var req CreateSshKeyHostMappingRequestWithoutUserID
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			slog.Error("Failed to decode request body", slog.String("error", err.Error()))
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -163,13 +171,22 @@ func CreateSshKeyHostMappingHandler(provider SshKeySecretProvider) http.Handler 
 		}
 
 		// Validate required fields
-		if req.SshKeyID == uuid.Nil || req.HostServerID == uuid.Nil || req.UserID == uuid.Nil || req.HostserverUsername == "" {
+		if req.SshKeyID == uuid.Nil || req.HostServerID == uuid.Nil || req.HostserverUsername == "" {
 			http.Error(w, "Missing required fields", http.StatusBadRequest)
 			return
 		}
 
+		// Create the full request with user ID from JWT token
+		fullReq := CreateSshKeyHostMappingRequest{
+			SshKeyID:            req.SshKeyID,
+			HostServerID:        req.HostServerID,
+			HostserverUsername:  req.HostserverUsername,
+			UserID:              userID,
+			SudoPasswordTokenId: req.SudoPasswordTokenId,
+		}
+
 		// Create the SSH key host mapping
-		result := provider.CreateSshKeyHostMapping(&req)
+		result := provider.CreateSshKeyHostMapping(&fullReq)
 		if result.Error != nil {
 			slog.Error("Failed to create SSH key host mapping", slog.String("error", result.Error.Error()))
 			http.Error(w, "Failed to create SSH key host mapping", http.StatusInternalServerError)
