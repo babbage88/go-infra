@@ -63,7 +63,7 @@ check-builder:
 
 create-builder: check-builder
 
-buildandpushdev: dev-swagger
+buildandpush: dev-swagger
 	docker buildx use infrabuilder
 	docker buildx build --platform linux/amd64,linux/arm64 -t $(GHCR_REPO)$(tag) . --push
 
