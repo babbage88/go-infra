@@ -11,7 +11,7 @@ require (
 
 require (
 	github.com/babbage88/go-acme-cli v1.0.26
-	github.com/goccy/go-yaml v1.17.1
+	github.com/goccy/go-yaml v1.18.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/prometheus/client_golang v1.22.0
