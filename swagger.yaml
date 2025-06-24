@@ -1789,32 +1789,14 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     RolePermissionMappingDao:
         properties:
-            createdAt:
-                format: date-time
+            error:
                 type: string
-                x-go-name: CreatedAt
-            enabled:
-                type: boolean
-                x-go-name: Enabled
-            id:
-                format: uuid
-                type: string
-                x-go-name: Id
-            lastModified:
-                format: date-time
-                type: string
-                x-go-name: LastModified
-            permissionId:
-                format: uuid
-                type: string
-                x-go-name: PermissionId
-            roleId:
-                format: uuid
-                type: string
-                x-go-name: RoleId
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-name: CreateRolePermissionMappingResponse
-        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     SoftDeleteUserByIdRequest:
         properties:
             targetUserId:
