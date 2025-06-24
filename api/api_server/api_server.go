@@ -10,6 +10,7 @@ import (
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
+	"github.com/babbage88/go-infra/services/node_networking"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
@@ -112,6 +113,45 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 
 	// Add Swagger UI handler
 	mux.Handle("/swaggerui/", http.StripPrefix("/swaggerui", swaggerui.ServeSwaggerUI(swaggerSpec)))
+
+	// Register network pinger routes
+	SetupNetworkPingerRoutes(mux, hostServerProvider, authService)
+}
+
+// SetupNetworkPingerRoutes sets up all the network pinger routes
+func SetupNetworkPingerRoutes(
+	router *http.ServeMux,
+	hostServerProvider host_servers.HostServerProvider,
+	authService authapi.AuthService,
+) {
+	pinger := node_networking.NewNetworkPinger(hostServerProvider)
+
+	router.Handle("POST /network/ping",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkPing", node_networking.PingHandler(pinger)))
+
+	router.Handle("POST /network/ping-host-server",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkPing", node_networking.PingHostServerHandler(pinger)))
+
+	router.Handle("POST /network/probe-tcp-hostname",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeTCPByHostnameHandler(pinger)))
+
+	router.Handle("POST /network/probe-udp-hostname",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeUDPByHostnameHandler(pinger)))
+
+	router.Handle("POST /network/probe-tcp-host-id",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeTCPByHostIdHandler(pinger)))
+
+	router.Handle("POST /network/probe-udp-host-id",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeUDPByHostIdHandler(pinger)))
+
+	router.Handle("GET /network/ping/{target}",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkPing", node_networking.PingGetHandler(pinger)))
+
+	router.Handle("GET /network/probe-tcp/{target}/{port}",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeTCPGetHandler(pinger)))
+
+	router.Handle("GET /network/probe-udp/{target}/{port}",
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeUDPGetHandler(pinger)))
 }
 
 func (api *APIServer) StartAPIServices(srvadr *string) error {
