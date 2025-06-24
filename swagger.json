@@ -2051,6 +2051,19 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "CreateRolePermissionMappingResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
     "CreateSecretRequest": {
       "type": "object",
       "properties": {
@@ -2665,7 +2678,6 @@
           "x-go-name": "RoleId"
         }
       },
-      "x-go-name": "CreateRolePermissionMappingResponse",
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "SoftDeleteUserByIdRequest": {
@@ -3114,7 +3126,7 @@
     "CreateRolePermissionMapptingResponse": {
       "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/RolePermissionMappingDao"
+        "$ref": "#/definitions/CreateRolePermissionMappingResponse"
       }
     },
     "CreateSecretResponse": {

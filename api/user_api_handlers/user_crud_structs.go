@@ -210,7 +210,6 @@ type CreateRolePermissionMappingResponseWrapper struct {
 	Body CreateRolePermissionMappingResponse `json:"body"`
 }
 
-// swagger:model RolePermissionMappingDao
 type CreateRolePermissionMappingResponse struct {
 	NewMappingInfo *user_crud_svc.RolePermissionMappingDao `json:"newMappingInfo"`
 	Error          error                                   `json:"error"`
