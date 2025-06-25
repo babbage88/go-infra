@@ -84,7 +84,17 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	// Parse request
 	var req SshConnectionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate required fields
+	if req.HostServerID == "" {
+		http.Error(w, "hostServerId is required", http.StatusBadRequest)
+		return
+	}
+	if req.Username == "" {
+		http.Error(w, "username is required", http.StatusBadRequest)
 		return
 	}
 
@@ -98,7 +108,7 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	// Parse host server ID
 	hostServerID, err := uuid.Parse(req.HostServerID)
 	if err != nil {
-		http.Error(w, "Invalid host server ID", http.StatusBadRequest)
+		http.Error(w, "Invalid host server ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -179,12 +189,17 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 //	500: description:Internal Server Error
 func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract connection ID from URL path
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(pathParts) < 3 || pathParts[len(pathParts)-2] != "connect" {
 		http.Error(w, "Invalid connection ID", http.StatusBadRequest)
 		return
 	}
 	connectionID := pathParts[len(pathParts)-1]
+
+	if connectionID == "" {
+		http.Error(w, "Connection ID is required", http.StatusBadRequest)
+		return
+	}
 
 	session, exists := m.GetSession(connectionID)
 	if !exists {
@@ -226,17 +241,35 @@ func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, 
 //	404: description:Session not found
 func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract connection ID from URL path
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(pathParts) < 3 || pathParts[len(pathParts)-2] != "websocket" {
 		http.Error(w, "Invalid connection ID", http.StatusBadRequest)
 		return
 	}
 	connectionID := pathParts[len(pathParts)-1]
 
+	if connectionID == "" {
+		http.Error(w, "Connection ID is required", http.StatusBadRequest)
+		return
+	}
+
 	// Get session
 	session, exists := m.GetSession(connectionID)
 	if !exists {
 		http.Error(w, "Session not found", http.StatusNotFound)
+		return
+	}
+
+	// Validate user permissions
+	userID, err := authapi.GetUserIDFromContext(r.Context())
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if user owns this session
+	if session.UserID != userID {
+		http.Error(w, "Access denied", http.StatusForbidden)
 		return
 	}
 
