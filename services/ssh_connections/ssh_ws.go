@@ -19,17 +19,45 @@ type WebSocketMessage struct {
 }
 
 // SSH Connection Request
+// swagger:model SshConnectionRequest
 type SshConnectionRequest struct {
-	HostServerID string `json:"hostServerId"`
-	Username     string `json:"username"`
+	// Host server ID to connect to
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	HostServerID string `json:"hostServerId" validate:"required"`
+
+	// Username to connect as on the remote server
+	// required: true
+	// example: admin
+	Username string `json:"username" validate:"required"`
 }
 
 // SSH Connection Response
+// swagger:model SshConnectionResponse
 type SshConnectionResponse struct {
+	// Unique connection identifier
+	// example: abc123def456ghi789
 	ConnectionID string `json:"connectionId"`
+
+	// WebSocket URL for terminal communication
+	// example: ws://localhost:8080/ssh/websocket/abc123def456ghi789
 	WebsocketURL string `json:"websocketUrl"`
-	Success      bool   `json:"success"`
-	Error        string `json:"error,omitempty"`
+
+	// Whether the connection was successful
+	// example: true
+	Success bool `json:"success"`
+
+	// Error message if connection failed
+	// example: SSH key not found
+	Error string `json:"error,omitempty"`
+}
+
+// SSH Connection Close Response
+// swagger:model SshConnectionCloseResponse
+type SshConnectionCloseResponse struct {
+	// Success message
+	// example: Connection closed successfully
+	Message string `json:"message"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -41,6 +69,17 @@ var upgrader = websocket.Upgrader{
 }
 
 // HTTP handlers for standard library
+
+// swagger:route POST /ssh/connect ssh createSshConnection
+// Create a new SSH connection to a host server.
+// responses:
+//
+//	200: SshConnectionResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	403: description:Access denied
+//	404: description:Host server not found
+//	500: description:Internal Server Error
 func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse request
 	var req SshConnectionRequest
@@ -128,6 +167,16 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	json.NewEncoder(w).Encode(response)
 }
 
+// swagger:route DELETE /ssh/connect/{connectionId} ssh closeSshConnection
+// Close an SSH connection.
+// responses:
+//
+//	200: SshConnectionCloseResponse
+//	400: description:Invalid connection ID
+//	401: description:Unauthorized
+//	403: description:Access denied
+//	404: description:Session not found
+//	500: description:Internal Server Error
 func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract connection ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
@@ -164,10 +213,17 @@ func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, 
 	m.RemoveSession(connectionID)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "Connection closed successfully"})
+	json.NewEncoder(w).Encode(SshConnectionCloseResponse{Message: "Connection closed successfully"})
 }
 
-// WebSocket handler for SSH communication
+// swagger:route GET /ssh/websocket/{connectionId} ssh sshWebSocket
+// WebSocket endpoint for SSH terminal communication.
+// responses:
+//
+//	101: description:Switching Protocols
+//	400: description:Invalid connection ID
+//	401: description:Unauthorized
+//	404: description:Session not found
 func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract connection ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")

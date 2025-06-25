@@ -4,6 +4,7 @@ import (
 	authapi "github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
+	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
@@ -18,6 +19,7 @@ type APIServer struct {
 	HostServerProvider      host_servers.HostServerProvider
 	SshKeyProvider          ssh_key_provider.SshKeySecretProvider
 	ExternalAppsService     external_applications.ExternalApplications
+	SSHConnectionManager    *ssh_connections.SSHConnectionManager
 	UseSsl                  bool
 	Certificate             string
 	CertKey                 string

@@ -27,15 +27,18 @@
 package main
 
 import (
+	"database/sql"
 	_ "embed"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/babbage88/go-infra/api/api_server"
 	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
+	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
@@ -72,6 +75,27 @@ func main() {
 	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool)
 	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
 
+	// Initialize SSH connection manager
+	// Create a separate sql.DB connection for SSH manager
+	sshRawDB, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		slog.Error("Failed to create SSH database connection", "error", err)
+		return
+	}
+	defer sshRawDB.Close()
+
+	sshConnectionManager := ssh_connections.NewSSHConnectionManager(
+		infra_db_pg.New(connPool),
+		sshRawDB,
+		secretProvider,
+		&ssh_connections.SSHConfig{
+			KnownHostsPath: "/dev/null", // Disable known hosts checking for now
+			SSHTimeout:     30 * time.Second,
+			MaxSessions:    100,
+			RateLimit:      10, // 10 requests per second
+		},
+	)
+
 	apiServer := api_server.APIServer{
 		HealthCheckService:      healthCheckService,
 		AuthService:             authService,
@@ -80,6 +104,7 @@ func main() {
 		HostServerProvider:      hostServerProvider,
 		SshKeyProvider:          sshKeyProvider,
 		ExternalAppsService:     externalAppsService,
+		SSHConnectionManager:    sshConnectionManager,
 		UseSsl:                  userHttps,
 		Certificate:             certFile,
 		CertKey:                 certKey,

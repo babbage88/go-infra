@@ -11,6 +11,7 @@ import (
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	"github.com/babbage88/go-infra/services/node_networking"
+	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
@@ -38,7 +39,7 @@ func hostServerByIDHandler(provider host_servers.HostServerProvider, authService
 }
 
 func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService,
-	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte) {
+	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(authapi.LoginHandler(authService)))
 	mux.Handle("/dbhealth", cors.CORSWithGET(healthCheckService.DbReadHealthCheckHandler()))
@@ -90,6 +91,13 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/ssh-key-host-mappings/user/{userId}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadSshKeys", ssh_key_provider.GetSshKeyHostMappingsByUserIdHandler(sshKeyProvider))))
 	mux.Handle("/ssh-key-host-mappings/host/{hostId}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadSshKeys", ssh_key_provider.GetSshKeyHostMappingsByHostIdHandler(sshKeyProvider))))
 	mux.Handle("/ssh-key-host-mappings/key/{keyId}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadSshKeys", ssh_key_provider.GetSshKeyHostMappingsByKeyIdHandler(sshKeyProvider))))
+
+	// SSH connection routes
+	if sshConnectionManager != nil {
+		mux.Handle("POST /ssh/connect", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CreateSSHConnectionHandler))))
+		mux.Handle("DELETE /ssh/connect/{connectionId}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CloseSSHConnectionHandler))))
+		mux.Handle("GET /ssh/websocket/{connectionId}", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(sshConnectionManager.SSHWebSocketHandler))))
+	}
 
 	// External applications routes
 	mux.Handle("/external-applications", cors.CORSWithMethods(
@@ -151,12 +159,12 @@ func SetupNetworkPingerRoutes(
 		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeTCPGetHandler(pinger)))
 
 	router.Handle("GET /network/probe-udp/{target}/{port}",
-		authapi.AuthMiddlewareRequirePermission(authService, "NetworkProbe", node_networking.ProbeUDPGetHandler(pinger)))
+		authapi.AuthMiddlewareRequirePermission(authService, "NetworkPing", node_networking.ProbeUDPGetHandler(pinger)))
 }
 
 func (api *APIServer) StartAPIServices(srvadr *string) error {
 	mux := http.NewServeMux()
-	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec)
+	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
 
 	switch {
 	case api.UseSsl:
