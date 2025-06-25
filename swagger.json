@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/permission": {
       "post": {
@@ -641,6 +641,328 @@
           },
           "500": {
             "description": "Insernal Server Error"
+          }
+        }
+      }
+    },
+    "/network/ping": {
+      "post": {
+        "tags": [
+          "network-ping"
+        ],
+        "summary": "Ping an arbitrary hostname or IP address.",
+        "operationId": "pingHost",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/PingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/ping-host-server": {
+      "post": {
+        "tags": [
+          "network-ping"
+        ],
+        "summary": "Ping a managed host server by its ID.",
+        "operationId": "pingHostServer",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/PingHostServerRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/ping/{target}": {
+      "get": {
+        "tags": [
+          "network-ping"
+        ],
+        "summary": "Ping an arbitrary hostname or IP address using GET method.",
+        "operationId": "pingHostGet",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Target",
+            "description": "Target hostname or IP address to ping",
+            "name": "target",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-tcp-host-id": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a TCP port on a managed host server by its ID.",
+        "operationId": "probeTCPByHostId",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-tcp-hostname": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a TCP port on a host by hostname.",
+        "operationId": "probeTCPByHostname",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostnameRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-tcp/{target}/{port}": {
+      "get": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a TCP port on a host using GET method.",
+        "operationId": "probeTCPGet",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Target",
+            "description": "Target hostname to probe",
+            "name": "target",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Port",
+            "description": "Port number to probe",
+            "name": "port",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-udp-host-id": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a UDP port on a managed host server by its ID.",
+        "operationId": "probeUDPByHostId",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-udp-hostname": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a UDP port on a host by hostname.",
+        "operationId": "probeUDPByHostname",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostnameRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-udp/{target}/{port}": {
+      "get": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a UDP port on a host using GET method.",
+        "operationId": "probeUDPGet",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Target",
+            "description": "Target hostname to probe",
+            "name": "target",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Port",
+            "description": "Port number to probe",
+            "name": "port",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -2645,6 +2967,159 @@
       "x-go-name": "LocalLoginResponse",
       "x-go-package": "github.com/babbage88/go-infra/api/authapi"
     },
+    "NetworkProbeResponse": {
+      "type": "object",
+      "required": [
+        "targetHostName",
+        "targetPort",
+        "success",
+        "latency"
+      ],
+      "properties": {
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "latency": {
+          "description": "Latency of the probe operation",
+          "type": "string",
+          "x-go-name": "Latency"
+        },
+        "success": {
+          "description": "Whether the probe was successful",
+          "type": "boolean",
+          "x-go-name": "Success"
+        },
+        "targetHostId": {
+          "description": "ID of the target host server (if applicable)",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetHostId"
+        },
+        "targetHostName": {
+          "description": "Name of the target host",
+          "type": "string",
+          "x-go-name": "TargetHostName"
+        },
+        "targetPort": {
+          "description": "Port number that was probed",
+          "type": "integer",
+          "format": "uint16",
+          "x-go-name": "TargetPort"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PingHostServerRequest": {
+      "type": "object",
+      "required": [
+        "hostServerId"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "ID of the host server to ping",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PingRequest": {
+      "type": "object",
+      "required": [
+        "target"
+      ],
+      "properties": {
+        "target": {
+          "description": "Target hostname or IP address to ping",
+          "type": "string",
+          "x-go-name": "Target"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PingResponse": {
+      "type": "object",
+      "required": [
+        "targetHostName",
+        "success",
+        "latency"
+      ],
+      "properties": {
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "latency": {
+          "description": "Latency of the ping operation",
+          "type": "string",
+          "x-go-name": "Latency"
+        },
+        "success": {
+          "description": "Whether the ping was successful",
+          "type": "boolean",
+          "x-go-name": "Success"
+        },
+        "targetHostId": {
+          "description": "ID of the target host server (if applicable)",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetHostId"
+        },
+        "targetHostName": {
+          "description": "Name of the target host",
+          "type": "string",
+          "x-go-name": "TargetHostName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "ProbeByHostIdRequest": {
+      "type": "object",
+      "required": [
+        "targetHostId",
+        "port"
+      ],
+      "properties": {
+        "port": {
+          "description": "Port number to probe",
+          "type": "integer",
+          "format": "uint16",
+          "x-go-name": "Port"
+        },
+        "targetHostId": {
+          "description": "ID of the target host server",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetHostId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "ProbeByHostnameRequest": {
+      "type": "object",
+      "required": [
+        "targetHostName",
+        "port"
+      ],
+      "properties": {
+        "port": {
+          "description": "Port number to probe",
+          "type": "integer",
+          "format": "uint16",
+          "x-go-name": "Port"
+        },
+        "targetHostName": {
+          "description": "Target hostname to probe",
+          "type": "string",
+          "x-go-name": "TargetHostName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
@@ -3345,6 +3820,18 @@
       },
       "headers": {
         "Body": {}
+      }
+    },
+    "NetworkProbeResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/NetworkProbeResponse"
+      }
+    },
+    "PingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/PingResponse"
       }
     },
     "RefreshAccessTokenResponse": {

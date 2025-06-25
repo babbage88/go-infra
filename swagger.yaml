@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: localhost:8993
+host: infra.trahan.dev
 paths:
     /create/permission:
         post:
@@ -407,6 +407,216 @@ paths:
                     description: Insernal Server Error
             tags:
                 - Authentication
+    /network/ping:
+        post:
+            operationId: pingHost
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/PingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/PingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Ping an arbitrary hostname or IP address.
+            tags:
+                - network-ping
+    /network/ping-host-server:
+        post:
+            operationId: pingHostServer
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/PingHostServerRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/PingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Ping a managed host server by its ID.
+            tags:
+                - network-ping
+    /network/ping/{target}:
+        get:
+            operationId: pingHostGet
+            parameters:
+                - description: Target hostname or IP address to ping
+                  in: path
+                  name: target
+                  required: true
+                  type: string
+                  x-go-name: Target
+            responses:
+                "200":
+                    $ref: '#/responses/PingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Ping an arbitrary hostname or IP address using GET method.
+            tags:
+                - network-ping
+    /network/probe-tcp-host-id:
+        post:
+            operationId: probeTCPByHostId
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Probe a TCP port on a managed host server by its ID.
+            tags:
+                - network-probe
+    /network/probe-tcp-hostname:
+        post:
+            operationId: probeTCPByHostname
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostnameRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a TCP port on a host by hostname.
+            tags:
+                - network-probe
+    /network/probe-tcp/{target}/{port}:
+        get:
+            operationId: probeTCPGet
+            parameters:
+                - description: Target hostname to probe
+                  in: path
+                  name: target
+                  required: true
+                  type: string
+                  x-go-name: Target
+                - description: Port number to probe
+                  in: path
+                  name: port
+                  required: true
+                  type: string
+                  x-go-name: Port
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a TCP port on a host using GET method.
+            tags:
+                - network-probe
+    /network/probe-udp-host-id:
+        post:
+            operationId: probeUDPByHostId
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Probe a UDP port on a managed host server by its ID.
+            tags:
+                - network-probe
+    /network/probe-udp-hostname:
+        post:
+            operationId: probeUDPByHostname
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostnameRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a UDP port on a host by hostname.
+            tags:
+                - network-probe
+    /network/probe-udp/{target}/{port}:
+        get:
+            operationId: probeUDPGet
+            parameters:
+                - description: Target hostname to probe
+                  in: path
+                  name: target
+                  required: true
+                  type: string
+                  x-go-name: Target
+                - description: Port number to probe
+                  in: path
+                  name: port
+                  required: true
+                  type: string
+                  x-go-name: Port
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a UDP port on a host using GET method.
+            tags:
+                - network-probe
     /permissions:
         get:
             description: Returns all App Permissions
@@ -1796,6 +2006,124 @@ definitions:
         type: object
         x-go-name: LocalLoginResponse
         x-go-package: github.com/babbage88/go-infra/api/authapi
+    NetworkProbeResponse:
+        properties:
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            latency:
+                description: Latency of the probe operation
+                type: string
+                x-go-name: Latency
+            success:
+                description: Whether the probe was successful
+                type: boolean
+                x-go-name: Success
+            targetHostId:
+                description: ID of the target host server (if applicable)
+                format: uuid
+                type: string
+                x-go-name: TargetHostId
+            targetHostName:
+                description: Name of the target host
+                type: string
+                x-go-name: TargetHostName
+            targetPort:
+                description: Port number that was probed
+                format: uint16
+                type: integer
+                x-go-name: TargetPort
+        required:
+            - targetHostName
+            - targetPort
+            - success
+            - latency
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PingHostServerRequest:
+        properties:
+            hostServerId:
+                description: ID of the host server to ping
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+        required:
+            - hostServerId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PingRequest:
+        properties:
+            target:
+                description: Target hostname or IP address to ping
+                type: string
+                x-go-name: Target
+        required:
+            - target
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PingResponse:
+        properties:
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            latency:
+                description: Latency of the ping operation
+                type: string
+                x-go-name: Latency
+            success:
+                description: Whether the ping was successful
+                type: boolean
+                x-go-name: Success
+            targetHostId:
+                description: ID of the target host server (if applicable)
+                format: uuid
+                type: string
+                x-go-name: TargetHostId
+            targetHostName:
+                description: Name of the target host
+                type: string
+                x-go-name: TargetHostName
+        required:
+            - targetHostName
+            - success
+            - latency
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    ProbeByHostIdRequest:
+        properties:
+            port:
+                description: Port number to probe
+                format: uint16
+                type: integer
+                x-go-name: Port
+            targetHostId:
+                description: ID of the target host server
+                format: uuid
+                type: string
+                x-go-name: TargetHostId
+        required:
+            - targetHostId
+            - port
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    ProbeByHostnameRequest:
+        properties:
+            port:
+                description: Port number to probe
+                format: uint16
+                type: integer
+                x-go-name: Port
+            targetHostName:
+                description: Target hostname to probe
+                type: string
+                x-go-name: TargetHostName
+        required:
+            - targetHostName
+            - port
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
     RolePermissionMappingDao:
         properties:
             createdAt:
@@ -2284,6 +2612,14 @@ responses:
             Body: {}
         schema:
             $ref: '#/definitions/LoginResponseInfo'
+    NetworkProbeResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/NetworkProbeResponse'
+    PingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/PingResponse'
     RefreshAccessTokenResponse:
         description: (empty)
         schema:
