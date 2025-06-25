@@ -3,7 +3,6 @@ package ssh_connections
 import (
 	"context"
 	"crypto/rand"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -29,7 +29,8 @@ type SSHSession struct {
 	CreatedAt    time.Time
 	LastActivity time.Time
 	mu           sync.Mutex
-	db           *sql.DB
+	db           *infra_db_pg.Queries
+	dbtx         infra_db_pg.DBTX
 }
 
 type SSHConnectionLog struct {
@@ -63,7 +64,7 @@ type SSHConnectionManager struct {
 	sessions       map[string]*SSHSession
 	mu             sync.RWMutex
 	db             *infra_db_pg.Queries
-	rawDB          *sql.DB
+	pool           *pgxpool.Pool
 	config         *SSHConfig
 	secretProvider user_secrets.UserSecretProvider
 }
@@ -75,11 +76,11 @@ type SSHConfig struct {
 	RateLimit      int // requests per second
 }
 
-func NewSSHConnectionManager(db *infra_db_pg.Queries, rawDB *sql.DB, secretProvider user_secrets.UserSecretProvider, config *SSHConfig) *SSHConnectionManager {
+func NewSSHConnectionManager(db *infra_db_pg.Queries, pool *pgxpool.Pool, secretProvider user_secrets.UserSecretProvider, config *SSHConfig) *SSHConnectionManager {
 	manager := &SSHConnectionManager{
 		sessions:       make(map[string]*SSHSession),
 		db:             db,
-		rawDB:          rawDB,
+		pool:           pool,
 		config:         config,
 		secretProvider: secretProvider,
 	}
@@ -106,7 +107,8 @@ func (m *SSHConnectionManager) CreateSession(id string, userID uuid.UUID, hostSe
 		Username:     username,
 		CreatedAt:    time.Now(),
 		LastActivity: time.Now(),
-		db:           m.rawDB,
+		db:           m.db,
+		dbtx:         m.pool,
 	}
 
 	m.mu.Lock()
@@ -157,12 +159,15 @@ func (m *SSHConnectionManager) cleanupExpiredSessions() {
 }
 
 func (m *SSHConnectionManager) cleanupDatabaseSessions() {
-	query := `
+	ctx := context.Background()
+	_, err := m.pool.Exec(ctx, `
         UPDATE ssh_sessions 
         SET is_active = false 
         WHERE last_activity < NOW() - INTERVAL '1 hour'
-    `
-	m.rawDB.ExecContext(context.Background(), query)
+    `)
+	if err != nil {
+		// Log error if needed
+	}
 }
 
 // Check if user has SSH access to specific host
@@ -238,21 +243,21 @@ func (m *SSHConnectionManager) getHostServerInfo(hostServerID uuid.UUID) (*HostS
 // Track SSH session in database
 func (m *SSHConnectionManager) trackSSHSession(sessionID string, userID, hostServerID uuid.UUID, username, clientIP, userAgent string) error {
 	query := `
-        INSERT INTO ssh_sessions (id, user_id, host_server_id, username, client_ip, user_agent)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO ssh_sessions (id, user_id, host_server_id, username, client_ip, user_agent, is_active, created_at, last_activity)
+        VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
         ON CONFLICT (id) DO UPDATE SET
             last_activity = NOW(),
             is_active = true,
             client_ip = $5,
             user_agent = $6
     `
-	_, err := m.rawDB.ExecContext(context.Background(), query, sessionID, userID, hostServerID, username, clientIP, userAgent)
+	_, err := m.pool.Exec(context.Background(), query, sessionID, userID, hostServerID, username, clientIP, userAgent)
 	return err
 }
 
 // Mark session as inactive
 func (m *SSHConnectionManager) markSessionInactive(sessionID string) error {
 	query := `UPDATE ssh_sessions SET is_active = false WHERE id = $1`
-	_, err := m.rawDB.ExecContext(context.Background(), query, sessionID)
+	_, err := m.pool.Exec(context.Background(), query, sessionID)
 	return err
 }

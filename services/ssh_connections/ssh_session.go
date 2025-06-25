@@ -178,7 +178,7 @@ func (s *SSHSession) updateActivity() {
 
 	// Update database
 	query := `UPDATE ssh_sessions SET last_activity = NOW() WHERE id = $1`
-	s.db.ExecContext(context.Background(), query, s.ID)
+	s.dbtx.Exec(context.Background(), query, s.ID)
 }
 
 // Close session
@@ -207,7 +207,7 @@ func (s *SSHSession) logConnection(action string, details map[string]interface{}
         INSERT INTO ssh_connection_logs (session_id, user_id, host_server_id, action, details)
         VALUES ($1, $2, $3, $4, $5)
     `
-	s.db.ExecContext(context.Background(), query, s.ID, s.UserID, s.HostServerID, action, detailsJSON)
+	s.dbtx.Exec(context.Background(), query, s.ID, s.UserID, s.HostServerID, action, detailsJSON)
 }
 
 // GetHostKeyCallback returns a host key callback for SSH connections

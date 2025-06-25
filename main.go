@@ -27,7 +27,6 @@
 package main
 
 import (
-	"database/sql"
 	_ "embed"
 	"log/slog"
 	"os"
@@ -76,17 +75,9 @@ func main() {
 	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
 
 	// Initialize SSH connection manager
-	// Create a separate sql.DB connection for SSH manager
-	sshRawDB, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
-	if err != nil {
-		slog.Error("Failed to create SSH database connection", "error", err)
-		return
-	}
-	defer sshRawDB.Close()
-
 	sshConnectionManager := ssh_connections.NewSSHConnectionManager(
 		infra_db_pg.New(connPool),
-		sshRawDB,
+		connPool,
 		secretProvider,
 		&ssh_connections.SSHConfig{
 			KnownHostsPath: "/dev/null", // Disable known hosts checking for now

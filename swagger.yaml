@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -993,6 +993,63 @@ paths:
             summary: Delete an SSH key and its associated secret.
             tags:
                 - ssh-keys
+    /ssh/connect:
+        post:
+            operationId: createSshConnection
+            responses:
+                "200":
+                    description: SshConnectionResponse
+                    schema:
+                        $ref: '#/definitions/SshConnectionResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Access denied
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Create a new SSH connection to a host server.
+            tags:
+                - ssh
+    /ssh/connect/{connectionId}:
+        delete:
+            operationId: closeSshConnection
+            responses:
+                "200":
+                    description: SshConnectionCloseResponse
+                    schema:
+                        $ref: '#/definitions/SshConnectionCloseResponse'
+                "400":
+                    description: Invalid connection ID
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Access denied
+                "404":
+                    description: Session not found
+                "500":
+                    description: Internal Server Error
+            summary: Close an SSH connection.
+            tags:
+                - ssh
+    /ssh/websocket/{connectionId}:
+        get:
+            operationId: sshWebSocket
+            responses:
+                "101":
+                    description: Switching Protocols
+                "400":
+                    description: Invalid connection ID
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Session not found
+            summary: WebSocket endpoint for SSH terminal communication.
+            tags:
+                - ssh
     /token/refresh:
         post:
             operationId: RefreshAccessToken
@@ -2168,6 +2225,59 @@ definitions:
                 x-go-name: Error
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    SshConnectionCloseResponse:
+        description: SSH Connection Close Response
+        properties:
+            message:
+                description: Success message
+                example: Connection closed successfully
+                type: string
+                x-go-name: Message
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
+    SshConnectionRequest:
+        description: SSH Connection Request
+        properties:
+            hostServerId:
+                description: Host server ID to connect to
+                example: 123e4567-e89b-12d3-a456-426614174000
+                type: string
+                x-go-name: HostServerID
+            username:
+                description: Username to connect as on the remote server
+                example: admin
+                type: string
+                x-go-name: Username
+        required:
+            - hostServerId
+            - username
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
+    SshConnectionResponse:
+        description: SSH Connection Response
+        properties:
+            connectionId:
+                description: Unique connection identifier
+                example: abc123def456ghi789
+                type: string
+                x-go-name: ConnectionID
+            error:
+                description: Error message if connection failed
+                example: SSH key not found
+                type: string
+                x-go-name: Error
+            success:
+                description: Whether the connection was successful
+                example: true
+                type: boolean
+                x-go-name: Success
+            websocketUrl:
+                description: WebSocket URL for terminal communication
+                example: ws://localhost:8080/ssh/websocket/abc123def456ghi789
+                type: string
+                x-go-name: WebsocketURL
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
     SshKeyListItem:
         properties:
             createdAt:

@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -1542,6 +1542,93 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/connect": {
+      "post": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "Create a new SSH connection to a host server.",
+        "operationId": "createSshConnection",
+        "responses": {
+          "200": {
+            "description": "SshConnectionResponse",
+            "schema": {
+              "$ref": "#/definitions/SshConnectionResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/connect/{connectionId}": {
+      "delete": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "Close an SSH connection.",
+        "operationId": "closeSshConnection",
+        "responses": {
+          "200": {
+            "description": "SshConnectionCloseResponse",
+            "schema": {
+              "$ref": "#/definitions/SshConnectionCloseResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid connection ID"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Session not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/websocket/{connectionId}": {
+      "get": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "WebSocket endpoint for SSH terminal communication.",
+        "operationId": "sshWebSocket",
+        "responses": {
+          "101": {
+            "description": "Switching Protocols"
+          },
+          "400": {
+            "description": "Invalid connection ID"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Session not found"
           }
         }
       }
@@ -3178,6 +3265,73 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "SshConnectionCloseResponse": {
+      "description": "SSH Connection Close Response",
+      "type": "object",
+      "properties": {
+        "message": {
+          "description": "Success message",
+          "type": "string",
+          "x-go-name": "Message",
+          "example": "Connection closed successfully"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
+    "SshConnectionRequest": {
+      "description": "SSH Connection Request",
+      "type": "object",
+      "required": [
+        "hostServerId",
+        "username"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "Host server ID to connect to",
+          "type": "string",
+          "x-go-name": "HostServerID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "username": {
+          "description": "Username to connect as on the remote server",
+          "type": "string",
+          "x-go-name": "Username",
+          "example": "admin"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
+    "SshConnectionResponse": {
+      "description": "SSH Connection Response",
+      "type": "object",
+      "properties": {
+        "connectionId": {
+          "description": "Unique connection identifier",
+          "type": "string",
+          "x-go-name": "ConnectionID",
+          "example": "abc123def456ghi789"
+        },
+        "error": {
+          "description": "Error message if connection failed",
+          "type": "string",
+          "x-go-name": "Error",
+          "example": "SSH key not found"
+        },
+        "success": {
+          "description": "Whether the connection was successful",
+          "type": "boolean",
+          "x-go-name": "Success",
+          "example": true
+        },
+        "websocketUrl": {
+          "description": "WebSocket URL for terminal communication",
+          "type": "string",
+          "x-go-name": "WebsocketURL",
+          "example": "ws://localhost:8080/ssh/websocket/abc123def456ghi789"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
     },
     "SshKeyListItem": {
       "type": "object",
