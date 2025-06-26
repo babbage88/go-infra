@@ -196,8 +196,8 @@ Content-Type: application/json
 **Response:**
 ```json
 {
-  "connectionId": "abc123def456...",
-  "websocketUrl": "ws://localhost:8080/ssh/websocket/abc123def456...",
+  "connectionId": "123e4567-e89b-12d3-a456-426614174000",
+  "websocketUrl": "ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000",
   "success": true
 }
 ```

@@ -408,12 +408,13 @@ INSERT INTO public.ssh_keys (
     name,
     description,
     priv_secret_id,
+    passphrase_id,
     public_key,
     key_type_id,
     owner_user_id
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
-) RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified;
+    $1, $2, $3, $4, $5, $6, $7
+) RETURNING id, name, description, priv_secret_id, passphrase_id, public_key, key_type_id, owner_user_id, created_at, last_modified;
 
 -- name: GetSSHKeyById :one
 SELECT
@@ -425,7 +426,8 @@ SELECT
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    sk.priv_secret_id
+    sk.priv_secret_id,
+    sk.passphrase_id
 FROM ssh_keys sk
 JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.id = $1;
@@ -440,7 +442,8 @@ SELECT
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    sk.priv_secret_id
+    sk.priv_secret_id,
+    sk.passphrase_id
 FROM ssh_keys sk
 JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.owner_user_id = $1;

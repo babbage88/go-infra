@@ -49,6 +49,7 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.HandlerFunc {
 			PublicKey:   req.PublicKey,
 			PrivateKey:  req.PrivateKey,
 			KeyType:     req.KeyType,
+			Passphrase:  req.Passphrase,
 		}
 		slog.Info("User ID", slog.String("user_id", userID.String()))
 		if req.HostServerId != nil {
@@ -57,7 +58,6 @@ func CreateSshKeyHandler(provider SshKeySecretProvider) http.HandlerFunc {
 		slog.Info("Name", slog.String("name", req.Name))
 		slog.Info("Description", slog.String("description", req.Description))
 		slog.Info("Public key", slog.String("public_key", req.PublicKey))
-		slog.Info("Private key", slog.String("private_key", req.PrivateKey))
 		slog.Info("Key type", slog.String("key_type", req.KeyType))
 
 		// Add host server ID if provided

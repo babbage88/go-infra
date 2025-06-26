@@ -996,6 +996,12 @@ paths:
     /ssh/connect:
         post:
             operationId: createSshConnection
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/SshConnectionRequestDetails'
+                  x-go-name: Body
             responses:
                 "200":
                     description: SshConnectionResponse
@@ -1017,6 +1023,13 @@ paths:
     /ssh/connect/{connectionId}:
         delete:
             operationId: closeSshConnection
+            parameters:
+                - format: uuid
+                  in: path
+                  name: connectionId
+                  required: true
+                  type: string
+                  x-go-name: CONNID
             responses:
                 "200":
                     description: SshConnectionCloseResponse
@@ -1762,6 +1775,10 @@ definitions:
                 description: Name of the SSH key
                 type: string
                 x-go-name: Name
+            passphrase:
+                description: Optional ssh key passphrase
+                type: string
+                x-go-name: Passphrase
             privateKey:
                 description: Private key in PEM format
                 type: string
@@ -1783,6 +1800,11 @@ definitions:
                 description: Error message if the operation failed
                 type: string
                 x-go-name: Error
+            passphraseSecretId:
+                description: ID of the stored private key secret
+                format: uuid
+                type: string
+                x-go-name: PassphraseSecretId
             privKeySecretId:
                 description: ID of the stored private key secret
                 format: uuid
@@ -1801,6 +1823,7 @@ definitions:
         required:
             - sshKeyId
             - privKeySecretId
+            - passphraseSecretId
             - userId
         type: object
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
@@ -2235,12 +2258,13 @@ definitions:
                 x-go-name: Message
         type: object
         x-go-package: github.com/babbage88/go-infra/services/ssh_connections
-    SshConnectionRequest:
+    SshConnectionRequestDetails:
         description: SSH Connection Request
         properties:
             hostServerId:
                 description: Host server ID to connect to
                 example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
                 type: string
                 x-go-name: HostServerID
             username:
@@ -2252,13 +2276,15 @@ definitions:
             - hostServerId
             - username
         type: object
+        x-go-name: SshConnectionRequest
         x-go-package: github.com/babbage88/go-infra/services/ssh_connections
     SshConnectionResponse:
         description: SSH Connection Response
         properties:
             connectionId:
                 description: Unique connection identifier
-                example: abc123def456ghi789
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
                 type: string
                 x-go-name: ConnectionID
             error:
@@ -2273,7 +2299,7 @@ definitions:
                 x-go-name: Success
             websocketUrl:
                 description: WebSocket URL for terminal communication
-                example: ws://localhost:8080/ssh/websocket/abc123def456ghi789
+                example: ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000
                 type: string
                 x-go-name: WebsocketURL
         type: object

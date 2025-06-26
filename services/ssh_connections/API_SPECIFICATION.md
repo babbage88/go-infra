@@ -19,8 +19,8 @@ This document outlines the SSH Connections API endpoints and their implementatio
 **Response:**
 ```json
 {
-  "connectionId": "abc123def456ghi789",
-  "websocketUrl": "ws://localhost:8080/ssh/websocket/abc123def456ghi789",
+  "connectionId": "123e4567-e89b-12d3-a456-426614174000",
+  "websocketUrl": "ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000",
   "success": true
 }
 ```
@@ -40,7 +40,7 @@ This document outlines the SSH Connections API endpoints and their implementatio
 **Endpoint:** `DELETE /ssh/connect/{connectionId}`
 
 **Path Parameters:**
-- `connectionId` (string, required): The connection ID to close
+- `connectionId` (UUID, required): The connection ID to close
 
 **Response:**
 ```json
@@ -62,7 +62,7 @@ This document outlines the SSH Connections API endpoints and their implementatio
 **Endpoint:** `GET /ssh/websocket/{connectionId}`
 
 **Path Parameters:**
-- `connectionId` (string, required): The connection ID for WebSocket upgrade
+- `connectionId` (UUID, required): The connection ID for WebSocket upgrade
 
 **Response:** Upgrades to WebSocket connection for terminal communication
 
@@ -80,18 +80,18 @@ This document outlines the SSH Connections API endpoints and their implementatio
 ### SshConnectionRequest
 ```go
 type SshConnectionRequest struct {
-    HostServerID string `json:"hostServerId" validate:"required"`
-    Username     string `json:"username" validate:"required"`
+    HostServerID uuid.UUID `json:"hostServerId" validate:"required"`
+    Username     string    `json:"username" validate:"required"`
 }
 ```
 
 ### SshConnectionResponse
 ```go
 type SshConnectionResponse struct {
-    ConnectionID  string `json:"connectionId"`
-    WebsocketURL  string `json:"websocketUrl"`
-    Success       bool   `json:"success"`
-    Error         string `json:"error,omitempty"`
+    ConnectionID  uuid.UUID `json:"connectionId"`
+    WebsocketURL  string    `json:"websocketUrl"`
+    Success       bool      `json:"success"`
+    Error         string    `json:"error,omitempty"`
 }
 ```
 

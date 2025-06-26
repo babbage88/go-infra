@@ -16,13 +16,15 @@ type NewSshKeyRequest struct {
 	KeyType      string    `json:"keyType"`
 	CreatedAt    time.Time `json:"createdAt"`
 	LastModified time.Time `json:"lastModified"`
+	Passphrase   string    `json:"passphrase"`
 }
 
 type NewSshKeyResult struct {
-	SshKeyId        uuid.UUID `json:"id"`
-	PrivKeySecretId uuid.UUID `json:"privKeySecretId"`
-	UserId          uuid.UUID `json:"userId"`
-	Error           error     `json:"error"`
+	SshKeyId           uuid.UUID `json:"id"`
+	PrivKeySecretId    uuid.UUID `json:"privKeySecretId"`
+	PassphraseSecretId uuid.UUID `json:"passphraseSecretId"`
+	UserId             uuid.UUID `json:"userId"`
+	Error              error     `json:"error"`
 }
 
 // swagger:model SshKeyListItem

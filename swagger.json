@@ -1553,6 +1553,16 @@
         ],
         "summary": "Create a new SSH connection to a host server.",
         "operationId": "createSshConnection",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SshConnectionRequestDetails"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "SshConnectionResponse",
@@ -1585,6 +1595,16 @@
         ],
         "summary": "Close an SSH connection.",
         "operationId": "closeSshConnection",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "x-go-name": "CONNID",
+            "name": "connectionId",
+            "in": "path",
+            "required": true
+          }
+        ],
         "responses": {
           "200": {
             "description": "SshConnectionCloseResponse",
@@ -2657,6 +2677,11 @@
           "type": "string",
           "x-go-name": "Name"
         },
+        "passphrase": {
+          "description": "Optional ssh key passphrase",
+          "type": "string",
+          "x-go-name": "Passphrase"
+        },
         "privateKey": {
           "description": "Private key in PEM format",
           "type": "string",
@@ -2675,6 +2700,7 @@
       "required": [
         "sshKeyId",
         "privKeySecretId",
+        "passphraseSecretId",
         "userId"
       ],
       "properties": {
@@ -2682,6 +2708,12 @@
           "description": "Error message if the operation failed",
           "type": "string",
           "x-go-name": "Error"
+        },
+        "passphraseSecretId": {
+          "description": "ID of the stored private key secret",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PassphraseSecretId"
         },
         "privKeySecretId": {
           "description": "ID of the stored private key secret",
@@ -3279,7 +3311,7 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
     },
-    "SshConnectionRequest": {
+    "SshConnectionRequestDetails": {
       "description": "SSH Connection Request",
       "type": "object",
       "required": [
@@ -3290,6 +3322,7 @@
         "hostServerId": {
           "description": "Host server ID to connect to",
           "type": "string",
+          "format": "uuid",
           "x-go-name": "HostServerID",
           "example": "123e4567-e89b-12d3-a456-426614174000"
         },
@@ -3300,6 +3333,7 @@
           "example": "admin"
         }
       },
+      "x-go-name": "SshConnectionRequest",
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
     },
     "SshConnectionResponse": {
@@ -3309,8 +3343,9 @@
         "connectionId": {
           "description": "Unique connection identifier",
           "type": "string",
+          "format": "uuid",
           "x-go-name": "ConnectionID",
-          "example": "abc123def456ghi789"
+          "example": "123e4567-e89b-12d3-a456-426614174000"
         },
         "error": {
           "description": "Error message if connection failed",
@@ -3328,7 +3363,7 @@
           "description": "WebSocket URL for terminal communication",
           "type": "string",
           "x-go-name": "WebsocketURL",
-          "example": "ws://localhost:8080/ssh/websocket/abc123def456ghi789"
+          "example": "ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
@@ -3682,16 +3717,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",

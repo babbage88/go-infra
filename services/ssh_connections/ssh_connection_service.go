@@ -2,8 +2,6 @@ package ssh_connections
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -19,7 +17,7 @@ import (
 
 // SSH Session represents an active SSH connection
 type SSHSession struct {
-	ID           string
+	ID           uuid.UUID
 	UserID       uuid.UUID
 	HostServerID uuid.UUID
 	Username     string
@@ -61,7 +59,7 @@ type HostServerInfo struct {
 
 // SSH Connection Manager
 type SSHConnectionManager struct {
-	sessions       map[string]*SSHSession
+	sessions       map[uuid.UUID]*SSHSession
 	mu             sync.RWMutex
 	db             *infra_db_pg.Queries
 	pool           *pgxpool.Pool
@@ -78,7 +76,7 @@ type SSHConfig struct {
 
 func NewSSHConnectionManager(db *infra_db_pg.Queries, pool *pgxpool.Pool, secretProvider user_secrets.UserSecretProvider, config *SSHConfig) *SSHConnectionManager {
 	manager := &SSHConnectionManager{
-		sessions:       make(map[string]*SSHSession),
+		sessions:       make(map[uuid.UUID]*SSHSession),
 		db:             db,
 		pool:           pool,
 		config:         config,
@@ -92,14 +90,12 @@ func NewSSHConnectionManager(db *infra_db_pg.Queries, pool *pgxpool.Pool, secret
 }
 
 // Generate random connection ID
-func generateConnectionID() string {
-	b := make([]byte, 16)
-	rand.Read(b)
-	return base64.URLEncoding.EncodeToString(b)
+func generateConnectionID() uuid.UUID {
+	return uuid.New()
 }
 
 // Create new SSH session
-func (m *SSHConnectionManager) CreateSession(id string, userID uuid.UUID, hostServerID uuid.UUID, username string) *SSHSession {
+func (m *SSHConnectionManager) CreateSession(id uuid.UUID, userID uuid.UUID, hostServerID uuid.UUID, username string) *SSHSession {
 	session := &SSHSession{
 		ID:           id,
 		UserID:       userID,
@@ -119,7 +115,7 @@ func (m *SSHConnectionManager) CreateSession(id string, userID uuid.UUID, hostSe
 }
 
 // Get session by ID
-func (m *SSHConnectionManager) GetSession(id string) (*SSHSession, bool) {
+func (m *SSHConnectionManager) GetSession(id uuid.UUID) (*SSHSession, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	session, exists := m.sessions[id]
@@ -127,7 +123,7 @@ func (m *SSHConnectionManager) GetSession(id string) (*SSHSession, bool) {
 }
 
 // Remove session
-func (m *SSHConnectionManager) RemoveSession(id string) {
+func (m *SSHConnectionManager) RemoveSession(id uuid.UUID) {
 	m.mu.Lock()
 	if session, exists := m.sessions[id]; exists {
 		session.Close()
@@ -241,7 +237,7 @@ func (m *SSHConnectionManager) getHostServerInfo(hostServerID uuid.UUID) (*HostS
 }
 
 // Track SSH session in database
-func (m *SSHConnectionManager) trackSSHSession(sessionID string, userID, hostServerID uuid.UUID, username, clientIP, userAgent string) error {
+func (m *SSHConnectionManager) trackSSHSession(sessionID uuid.UUID, userID, hostServerID uuid.UUID, username, clientIP, userAgent string) error {
 	query := `
         INSERT INTO ssh_sessions (id, user_id, host_server_id, username, client_ip, user_agent, is_active, created_at, last_activity)
         VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
@@ -256,7 +252,7 @@ func (m *SSHConnectionManager) trackSSHSession(sessionID string, userID, hostSer
 }
 
 // Mark session as inactive
-func (m *SSHConnectionManager) markSessionInactive(sessionID string) error {
+func (m *SSHConnectionManager) markSessionInactive(sessionID uuid.UUID) error {
 	query := `UPDATE ssh_sessions SET is_active = false WHERE id = $1`
 	_, err := m.pool.Exec(context.Background(), query, sessionID)
 	return err

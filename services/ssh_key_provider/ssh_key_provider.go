@@ -52,6 +52,12 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 		return NewSshKeyResult{Error: err}
 	}
 
+	sshPassphraseAppId, err := qry.GetExternalAppIdByName(context.Background(), "ssh_passphrase")
+	if err != nil {
+		slog.Error("Failed to get SSH app ID", slog.String("error", err.Error()))
+		return NewSshKeyResult{Error: err}
+	}
+
 	// Store the private key as a secret
 	secretId, err := txSecretProvider.StoreSecret(sshKey.PrivateKey, sshKey.UserID, sshAppId, expiry)
 	if err != nil {
@@ -59,11 +65,23 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 		return NewSshKeyResult{Error: err}
 	}
 
+	var sshPassphraseId uuid.UUID = uuid.Nil
+	if sshKey.Passphrase != "" {
+		qryPassphraseId, err := txSecretProvider.StoreSecret(sshKey.Passphrase, sshKey.UserID, sshPassphraseAppId, expiry)
+		if err != nil {
+			slog.Error("Failed to store SSH key secret", slog.String("error", err.Error()))
+			return NewSshKeyResult{Error: err}
+		}
+		sshPassphraseId = qryPassphraseId
+
+	}
+
 	// Create the SSH key record
 	sshKeyRecord, err := qry.CreateSSHKey(context.Background(), infra_db_pg.CreateSSHKeyParams{
 		Name:         sshKey.Name,
 		Description:  pgtype.Text{String: sshKey.Description, Valid: true},
 		PrivSecretID: pgtype.UUID{Bytes: secretId, Valid: true},
+		PassphraseID: pgtype.UUID{Bytes: sshPassphraseId, Valid: true},
 		PublicKey:    sshKey.PublicKey,
 		KeyTypeID:    keyType.ID,
 		OwnerUserID:  sshKey.UserID,
@@ -102,10 +120,11 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	}
 
 	return NewSshKeyResult{
-		SshKeyId:        sshKeyRecord.ID,
-		PrivKeySecretId: secretId,
-		UserId:          sshKey.UserID,
-		Error:           nil,
+		SshKeyId:           sshKeyRecord.ID,
+		PrivKeySecretId:    secretId,
+		PassphraseSecretId: sshPassphraseId,
+		UserId:             sshKey.UserID,
+		Error:              nil,
 	}
 }
 

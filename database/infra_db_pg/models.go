@@ -105,6 +105,16 @@ type RolePermissionsView struct {
 	Permission   pgtype.Text
 }
 
+type SshConnectionLog struct {
+	ID           uuid.UUID
+	SessionID    uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Action       string
+	Details      []byte
+	CreatedAt    pgtype.Timestamp
+}
+
 type SshKey struct {
 	ID           uuid.UUID
 	Name         string
@@ -115,6 +125,7 @@ type SshKey struct {
 	LastModified pgtype.Timestamptz
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
+	PassphraseID pgtype.UUID
 }
 
 type SshKeyType struct {
@@ -123,6 +134,18 @@ type SshKeyType struct {
 	Description  pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
+}
+
+type SshSession struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+	IsActive     bool
+	ClientIp     *netip.Addr
+	UserAgent    pgtype.Text
 }
 
 type TempAdminInfo struct {

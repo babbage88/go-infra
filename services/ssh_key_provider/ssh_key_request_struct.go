@@ -35,6 +35,10 @@ type CreateSshKeyRequest struct {
 	// Optional host server ID to associate the key with
 	// required: false
 	HostServerId *uuid.UUID `json:"hostServerId,omitempty"`
+
+	// Optional ssh key passphrase
+	// required: false
+	Passphrase string `json:"passphrase"`
 }
 
 // swagger:response CreateSshKeyResponse
@@ -52,6 +56,10 @@ type CreateSshKeyResponse struct {
 	// ID of the stored private key secret
 	// required: true
 	PrivKeySecretId uuid.UUID `json:"privKeySecretId"`
+
+	// ID of the stored private key secret
+	// required: true
+	PassphraseSecretId uuid.UUID `json:"passphraseSecretId"`
 
 	// ID of the user who owns the key
 	// required: true

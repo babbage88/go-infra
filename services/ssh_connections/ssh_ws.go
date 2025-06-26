@@ -19,12 +19,19 @@ type WebSocketMessage struct {
 }
 
 // SSH Connection Request
-// swagger:model SshConnectionRequest
+// swagger:parameters createSshConnection
+type SshConnectRequestWrapper struct {
+	// in: body
+	Body SshConnectionRequest `json:"body"`
+}
+
+// SSH Connection Request
+// swagger:model SshConnectionRequestDetails
 type SshConnectionRequest struct {
 	// Host server ID to connect to
 	// required: true
 	// example: 123e4567-e89b-12d3-a456-426614174000
-	HostServerID string `json:"hostServerId" validate:"required"`
+	HostServerID uuid.UUID `json:"hostServerId" validate:"required"`
 
 	// Username to connect as on the remote server
 	// required: true
@@ -36,11 +43,11 @@ type SshConnectionRequest struct {
 // swagger:model SshConnectionResponse
 type SshConnectionResponse struct {
 	// Unique connection identifier
-	// example: abc123def456ghi789
-	ConnectionID string `json:"connectionId"`
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ConnectionID uuid.UUID `json:"connectionId"`
 
 	// WebSocket URL for terminal communication
-	// example: ws://localhost:8080/ssh/websocket/abc123def456ghi789
+	// example: ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000
 	WebsocketURL string `json:"websocketUrl"`
 
 	// Whether the connection was successful
@@ -50,6 +57,13 @@ type SshConnectionResponse struct {
 	// Error message if connection failed
 	// example: SSH key not found
 	Error string `json:"error,omitempty"`
+}
+
+// SSH Close Parameter
+// swagger:parameters closeSshConnection
+type SshCloseParam struct {
+	// In: path
+	CONNID uuid.UUID `json:"connectionId"`
 }
 
 // SSH Connection Close Response
@@ -89,7 +103,7 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	}
 
 	// Validate required fields
-	if req.HostServerID == "" {
+	if req.HostServerID == uuid.Nil {
 		http.Error(w, "hostServerId is required", http.StatusBadRequest)
 		return
 	}
@@ -105,15 +119,8 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 		return
 	}
 
-	// Parse host server ID
-	hostServerID, err := uuid.Parse(req.HostServerID)
-	if err != nil {
-		http.Error(w, "Invalid host server ID format", http.StatusBadRequest)
-		return
-	}
-
 	// Check if user has access to this host
-	hasAccess, err := m.HasSSHAccessToHost(userID, hostServerID)
+	hasAccess, err := m.HasSSHAccessToHost(userID, req.HostServerID)
 	if err != nil {
 		slog.Error("Failed to check SSH access", "error", err)
 		http.Error(w, "Failed to check permissions", http.StatusInternalServerError)
@@ -125,14 +132,14 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	}
 
 	// Get host server info
-	hostInfo, err := m.getHostServerInfo(hostServerID)
+	hostInfo, err := m.getHostServerInfo(req.HostServerID)
 	if err != nil {
 		http.Error(w, "Host server not found", http.StatusNotFound)
 		return
 	}
 
 	// Get SSH key for this user/host combination
-	sshKey, err := m.GetSSHKeyForHost(userID, hostServerID)
+	sshKey, err := m.GetSSHKeyForHost(userID, req.HostServerID)
 	if err != nil {
 		slog.Error("Failed to get SSH key", "error", err)
 		http.Error(w, "SSH key not found", http.StatusInternalServerError)
@@ -143,7 +150,7 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	connectionID := generateConnectionID()
 
 	// Create session
-	session := m.CreateSession(connectionID, userID, hostServerID, req.Username)
+	session := m.CreateSession(connectionID, userID, req.HostServerID, req.Username)
 
 	// Connect to SSH server
 	if err := session.Connect(hostInfo, sshKey, m.config); err != nil {
@@ -156,7 +163,7 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	// Track session in database
 	clientIP := getClientIP(r)
 	userAgent := r.Header.Get("User-Agent")
-	if err := m.trackSSHSession(connectionID, userID, hostServerID, req.Username, clientIP, userAgent); err != nil {
+	if err := m.trackSSHSession(connectionID, userID, req.HostServerID, req.Username, clientIP, userAgent); err != nil {
 		slog.Error("Failed to track SSH session", "error", err)
 	}
 
@@ -188,16 +195,17 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 //	404: description:Session not found
 //	500: description:Internal Server Error
 func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract connection ID from URL path
-	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if len(pathParts) < 3 || pathParts[len(pathParts)-2] != "connect" {
-		http.Error(w, "Invalid connection ID", http.StatusBadRequest)
+	connectionIDStr := r.PathValue("CONNID")
+
+	if connectionIDStr == "" {
+		http.Error(w, "Connection ID is required", http.StatusBadRequest)
 		return
 	}
-	connectionID := pathParts[len(pathParts)-1]
 
-	if connectionID == "" {
-		http.Error(w, "Connection ID is required", http.StatusBadRequest)
+	// Parse connection ID as UUID
+	connectionID, err := uuid.Parse(connectionIDStr)
+	if err != nil {
+		http.Error(w, "Invalid connection ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -246,10 +254,17 @@ func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *htt
 		http.Error(w, "Invalid connection ID", http.StatusBadRequest)
 		return
 	}
-	connectionID := pathParts[len(pathParts)-1]
+	connectionIDStr := pathParts[len(pathParts)-1]
 
-	if connectionID == "" {
+	if connectionIDStr == "" {
 		http.Error(w, "Connection ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Parse connection ID as UUID
+	connectionID, err := uuid.Parse(connectionIDStr)
+	if err != nil {
+		http.Error(w, "Invalid connection ID format", http.StatusBadRequest)
 		return
 	}
 

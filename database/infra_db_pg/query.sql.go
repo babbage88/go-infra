@@ -116,18 +116,20 @@ INSERT INTO public.ssh_keys (
     name,
     description,
     priv_secret_id,
+    passphrase_id,
     public_key,
     key_type_id,
     owner_user_id
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
-) RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified
+    $1, $2, $3, $4, $5, $6, $7
+) RETURNING id, name, description, priv_secret_id, passphrase_id, public_key, key_type_id, owner_user_id, created_at, last_modified
 `
 
 type CreateSSHKeyParams struct {
 	Name         string
 	Description  pgtype.Text
 	PrivSecretID pgtype.UUID
+	PassphraseID pgtype.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
@@ -138,6 +140,7 @@ type CreateSSHKeyRow struct {
 	Name         string
 	Description  pgtype.Text
 	PrivSecretID pgtype.UUID
+	PassphraseID pgtype.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
@@ -151,6 +154,7 @@ func (q *Queries) CreateSSHKey(ctx context.Context, arg CreateSSHKeyParams) (Cre
 		arg.Name,
 		arg.Description,
 		arg.PrivSecretID,
+		arg.PassphraseID,
 		arg.PublicKey,
 		arg.KeyTypeID,
 		arg.OwnerUserID,
@@ -161,6 +165,7 @@ func (q *Queries) CreateSSHKey(ctx context.Context, arg CreateSSHKeyParams) (Cre
 		&i.Name,
 		&i.Description,
 		&i.PrivSecretID,
+		&i.PassphraseID,
 		&i.PublicKey,
 		&i.KeyTypeID,
 		&i.OwnerUserID,
@@ -1158,7 +1163,8 @@ SELECT
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    sk.priv_secret_id
+    sk.priv_secret_id,
+    sk.passphrase_id
 FROM ssh_keys sk
 JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.id = $1
@@ -1174,6 +1180,7 @@ type GetSSHKeyByIdRow struct {
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	PrivSecretID pgtype.UUID
+	PassphraseID pgtype.UUID
 }
 
 func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByIdRow, error) {
@@ -1189,6 +1196,7 @@ func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByI
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.PrivSecretID,
+		&i.PassphraseID,
 	)
 	return i, err
 }
@@ -1427,7 +1435,8 @@ SELECT
     sk.owner_user_id,
     sk.created_at,
     sk.last_modified,
-    sk.priv_secret_id
+    sk.priv_secret_id,
+    sk.passphrase_id
 FROM ssh_keys sk
 JOIN ssh_key_types skt ON sk.key_type_id = skt.id
 WHERE sk.owner_user_id = $1
@@ -1443,6 +1452,7 @@ type GetSSHKeysByOwnerIdRow struct {
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	PrivSecretID pgtype.UUID
+	PassphraseID pgtype.UUID
 }
 
 func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID) ([]GetSSHKeysByOwnerIdRow, error) {
@@ -1464,6 +1474,7 @@ func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID
 			&i.CreatedAt,
 			&i.LastModified,
 			&i.PrivSecretID,
+			&i.PassphraseID,
 		); err != nil {
 			return nil, err
 		}

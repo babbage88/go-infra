@@ -90,15 +90,28 @@ API Endpoints Summary:
 
 POST /ssh/connect
 - Request Body: {"hostServerId": "uuid", "username": "string"}
-- Response: {"connectionId": "string", "websocketUrl": "string", "success": true}
+- Response: {"connectionId": "uuid", "websocketUrl": "string", "success": true}
 
 DELETE /ssh/connect/{connectionId}
-- Path Parameter: connectionId (string)
+- Path Parameter: connectionId (uuid)
 - Response: {"message": "Connection closed successfully"}
 
 GET /ssh/websocket/{connectionId}
-- Path Parameter: connectionId (string)
+- Path Parameter: connectionId (uuid)
 - Upgrades to WebSocket connection for terminal communication
 
 All endpoints require authentication via the authapi.AuthMiddleware.
+
+Example API usage:
+POST /ssh/connect
+- Request: {"hostServerId": "123e4567-e89b-12d3-a456-426614174000", "username": "admin"}
+- Response: {"connectionId": "123e4567-e89b-12d3-a456-426614174000", "websocketUrl": "ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000", "success": true}
+
+DELETE /ssh/connect/{connectionId}
+- Path Parameter: connectionId (UUID)
+- Response: {"message": "Connection closed successfully"}
+
+GET /ssh/websocket/{connectionId}
+- Path Parameter: connectionId (UUID)
+- Response: WebSocket upgrade for terminal communication
 */
