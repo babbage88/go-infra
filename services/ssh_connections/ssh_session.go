@@ -17,13 +17,25 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+func parsePrivateSshKey(sshKey *SSHKeyInfo) (ssh.Signer, error) {
+	// initialize signer with passphrase if one is present
+	if sshKey.Passphrase != "" {
+		signer, err := ssh.ParsePrivateKeyWithPassphrase([]byte(sshKey.PrivateKey), []byte(sshKey.Passphrase))
+		return signer, err
+	}
+
+	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKey))
+	return signer, err
+}
+
 func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	// Parse SSH private key
-	//ssh.ParsePrivateKeyWithPassphrase()
-	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKey))
+	// ssh.ParsePrivateKeyWithPassphrase()
+
+	signer, err := parsePrivateSshKey(sshKey)
 	if err != nil {
 		return fmt.Errorf("failed to parse SSH key: %w", err)
 	}

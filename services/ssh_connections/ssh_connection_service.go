@@ -45,6 +45,7 @@ type SSHKeyInfo struct {
 	ID         uuid.UUID `json:"id"`
 	PrivateKey string    `json:"private_key"`
 	PublicKey  string    `json:"public_key"`
+	Passphrase string    `json:"passphrase"`
 	KeyType    string    `json:"key_type"`
 	Username   string    `json:"username"`
 }
@@ -207,9 +208,21 @@ func (m *SSHConnectionManager) GetSSHKeyForHost(userID, hostServerID uuid.UUID) 
 				privateKey = string(secret.ExternalAuthToken.Token)
 			}
 
+			var passphrase string
+			// Get passphrase if key needs one from secrets
+
+			if sshKey.PassphraseID.Valid {
+				secret, err := m.secretProvider.RetrieveSecret(sshKey.PrivSecretID.Bytes)
+				if err != nil {
+					return nil, fmt.Errorf("failed to retrieve SSH key secret: %w", err)
+				}
+				passphrase = string(secret.ExternalAuthToken.Token)
+			}
+
 			return &SSHKeyInfo{
 				ID:         sshKey.ID,
 				PrivateKey: privateKey,
+				Passphrase: passphrase,
 				PublicKey:  sshKey.PublicKey,
 				KeyType:    sshKey.KeyType,
 				Username:   mapping.HostserverUsername,
