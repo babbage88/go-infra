@@ -22,6 +22,7 @@ func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, confi
 	defer s.mu.Unlock()
 
 	// Parse SSH private key
+	//ssh.ParsePrivateKeyWithPassphrase()
 	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKey))
 	if err != nil {
 		return fmt.Errorf("failed to parse SSH key: %w", err)
