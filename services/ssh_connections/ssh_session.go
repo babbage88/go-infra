@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -13,58 +14,100 @@ import (
 	"strings"
 	"time"
 
+	"github.com/babbage88/goph/v2"
 	"github.com/gorilla/websocket"
 	"golang.org/x/crypto/ssh"
 )
 
-func parsePrivateSshKey(sshKey *SSHKeyInfo) (ssh.Signer, error) {
-	// initialize signer with passphrase if one is present
-	if sshKey.Passphrase != "" {
-		signer, err := ssh.ParsePrivateKeyWithPassphrase([]byte(sshKey.PrivateKey), []byte(sshKey.Passphrase))
-		return signer, err
+func VerifyHost(host string, remote net.Addr, key ssh.PublicKey) error {
+	//
+	// If you want to connect to new hosts.
+	// here your should check new connections public keys
+	// if the key not trusted you shuld return an error
+	//
+
+	// hostFound: is host in known hosts file.
+	// err: error if key not in known hosts file OR host in known hosts file but key changed!
+	hostFound, err := goph.CheckKnownHost(host, remote, key, "")
+
+	// Host in known hosts but key mismatch!
+	// Maybe because of MAN IN THE MIDDLE ATTACK!
+	if hostFound && err != nil {
+		return err
 	}
 
-	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKey))
-	return signer, err
+	// handshake because public key already exists.
+	if hostFound && err == nil {
+		return nil
+	}
+
+	// Ask user to check if he trust the host public key.
+	if askIsHostTrusted(host, key) == false {
+		// Make sure to return error on non trusted keys.
+		return errors.New("you typed no, aborted!")
+	}
+
+	// Add the new host to known hosts file.
+	return goph.AddKnownHost(host, remote, key, "")
+}
+
+func initializeSshClient(host string, user string, port uint, sshKeyPath string, sshPassphrase string, agent bool) (*goph.Client, error) {
+	var auth goph.Auth
+	var err error
+	if agent || goph.HasAgent() {
+		auth, err = goph.UseAgent()
+		if err != nil {
+			slog.Error("Failed to initialize SSH client", "error", err)
+		}
+
+	} else {
+		auth, err = goph.Key(sshKeyPath, sshPassphrase)
+	}
+
+	if err != nil {
+		slog.Error("Failed to initialize SSH client", "error", err)
+		return nil, err
+	}
+
+	client, err := goph.NewConn(&goph.Config{
+		User:     user,
+		Addr:     host,
+		Port:     port,
+		Auth:     auth,
+		Callback: VerifyHost,
+	})
+	if err != nil {
+		slog.Error("Failed to initialize SSH client", "error", err)
+		return nil, err
+	}
+	// Defer closing the network connection.
+	return client, err
+}
+
+func newGophClient(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig) (*goph.Client, error) {
+	if sshKey.Passphrase != "" {
+		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, sshKey.Passphrase, false)
+	} else {
+		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, "", false)
+	}
 }
 
 func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Parse SSH private key
-	// ssh.ParsePrivateKeyWithPassphrase()
-
-	signer, err := parsePrivateSshKey(sshKey)
+	gophClient, err := newGophClient(hostInfo, sshKey, config)
 	if err != nil {
-		return fmt.Errorf("failed to parse SSH key: %w", err)
+		return fmt.Errorf("failed to create SSH client: %w", err)
 	}
 
-	// SSH client configuration
-	sshConfig := &ssh.ClientConfig{
-		User: sshKey.Username,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: GetHostKeyCallback(config.KnownHostsPath),
-		Timeout:         config.SSHTimeout,
-	}
-
-	// Connect to SSH server
-	port := hostInfo.Port
-	if port == 0 {
-		port = 22
-	}
-
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", hostInfo.IPAddress, port), sshConfig)
-	if err != nil {
-		return fmt.Errorf("failed to connect to SSH server: %w", err)
-	}
+	// Close the client when the session is closed
+	defer gophClient.Close()
 
 	// Create SSH session
-	session, err := client.NewSession()
+	session, err := gophClient.NewSession()
 	if err != nil {
-		client.Close()
+		gophClient.Close()
 		return fmt.Errorf("failed to create SSH session: %w", err)
 	}
 
@@ -77,11 +120,11 @@ func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, confi
 
 	if err := session.RequestPty("xterm", 40, 80, modes); err != nil {
 		session.Close()
-		client.Close()
+		gophClient.Close()
 		return fmt.Errorf("failed to request PTY: %w", err)
 	}
 
-	s.SSHClient = client
+	s.SSHClient = gophClient.Client
 	s.SSHSession = session
 
 	// Log connection
