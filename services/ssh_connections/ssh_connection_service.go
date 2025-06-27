@@ -200,8 +200,8 @@ func (m *SSHConnectionManager) GetSSHKeyForHost(userID, hostServerID uuid.UUID) 
 
 			// Get private key from secrets
 			var privateKey string
-			if sshKey.PrivSecretID.Valid {
-				secret, err := m.secretProvider.RetrieveSecret(sshKey.PrivSecretID.Bytes)
+			if sshKey.PrivSecretID != uuid.Nil {
+				secret, err := m.secretProvider.RetrieveSecret(sshKey.PrivSecretID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to retrieve SSH key secret: %w", err)
 				}
@@ -211,8 +211,8 @@ func (m *SSHConnectionManager) GetSSHKeyForHost(userID, hostServerID uuid.UUID) 
 			var passphrase string
 			// Get passphrase if key needs one from secrets
 
-			if sshKey.PassphraseID.Valid {
-				secret, err := m.secretProvider.RetrieveSecret(sshKey.PrivSecretID.Bytes)
+			if sshKey.PassphraseID != uuid.Nil {
+				secret, err := m.secretProvider.RetrieveSecret(sshKey.PrivSecretID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to retrieve SSH key secret: %w", err)
 				}

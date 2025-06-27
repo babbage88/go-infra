@@ -119,13 +119,13 @@ type SshKey struct {
 	ID           uuid.UUID
 	Name         string
 	Description  pgtype.Text
-	PrivSecretID pgtype.UUID
+	PrivSecretID uuid.UUID
 	PublicKey    string
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
-	PassphraseID pgtype.UUID
+	PassphraseID uuid.UUID
 }
 
 type SshKeyType struct {

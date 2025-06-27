@@ -128,8 +128,8 @@ INSERT INTO public.ssh_keys (
 type CreateSSHKeyParams struct {
 	Name         string
 	Description  pgtype.Text
-	PrivSecretID pgtype.UUID
-	PassphraseID pgtype.UUID
+	PrivSecretID uuid.UUID
+	PassphraseID uuid.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
@@ -139,8 +139,8 @@ type CreateSSHKeyRow struct {
 	ID           uuid.UUID
 	Name         string
 	Description  pgtype.Text
-	PrivSecretID pgtype.UUID
-	PassphraseID pgtype.UUID
+	PrivSecretID uuid.UUID
+	PassphraseID uuid.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
@@ -1179,8 +1179,8 @@ type GetSSHKeyByIdRow struct {
 	OwnerUserID  uuid.UUID
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
-	PrivSecretID pgtype.UUID
-	PassphraseID pgtype.UUID
+	PrivSecretID uuid.UUID
+	PassphraseID uuid.UUID
 }
 
 func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByIdRow, error) {
@@ -1451,8 +1451,8 @@ type GetSSHKeysByOwnerIdRow struct {
 	OwnerUserID  uuid.UUID
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
-	PrivSecretID pgtype.UUID
-	PassphraseID pgtype.UUID
+	PrivSecretID uuid.UUID
+	PassphraseID uuid.UUID
 }
 
 func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID) ([]GetSSHKeysByOwnerIdRow, error) {
@@ -2232,7 +2232,7 @@ type UpdateSSHKeyRow struct {
 	ID           uuid.UUID
 	Name         string
 	Description  pgtype.Text
-	PrivSecretID pgtype.UUID
+	PrivSecretID uuid.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID

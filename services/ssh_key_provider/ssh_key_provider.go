@@ -80,8 +80,8 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	sshKeyRecord, err := qry.CreateSSHKey(context.Background(), infra_db_pg.CreateSSHKeyParams{
 		Name:         sshKey.Name,
 		Description:  pgtype.Text{String: sshKey.Description, Valid: true},
-		PrivSecretID: pgtype.UUID{Bytes: secretId, Valid: true},
-		PassphraseID: pgtype.UUID{Bytes: sshPassphraseId, Valid: true},
+		PrivSecretID: secretId,
+		PassphraseID: sshPassphraseId,
 		PublicKey:    sshKey.PublicKey,
 		KeyTypeID:    keyType.ID,
 		OwnerUserID:  sshKey.UserID,
@@ -161,13 +161,10 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 		return err
 	}
 
-	// Delete the associated secret if it exists
-	if sshKey.PrivSecretID.Valid {
-		var secretUUID uuid.UUID
-		copy(secretUUID[:], sshKey.PrivSecretID.Bytes[:])
-		err = txSecretProvider.DeleteSecret(secretUUID)
+	if sshKey.PassphraseID != uuid.Nil {
+		err = txSecretProvider.DeleteSecret(sshKey.PassphraseID)
 		if err != nil {
-			slog.Error("Failed to delete SSH key secret", slog.String("error", err.Error()))
+			slog.Error("Failed to delete SSH key passphrase secret", slog.String("error", err.Error()))
 			return err
 		}
 	}
@@ -197,6 +194,7 @@ func (p *PgSshKeySecretStore) GetSshKeysByUserId(userId uuid.UUID) ([]SshKeyList
 			ID:           key.ID,
 			Name:         key.Name,
 			PublicKey:    key.PublicKey,
+			PrivateKeyId: key.PrivSecretID,
 			KeyType:      key.KeyType,
 			OwnerUserID:  key.OwnerUserID,
 			CreatedAt:    key.CreatedAt.Time,

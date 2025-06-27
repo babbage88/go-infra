@@ -16,6 +16,10 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+          - column: "ssh_keys.passphrase_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
           - column: "users_with_roles.role_ids"
             go_type:
               import: "github.com/google/uuid"
