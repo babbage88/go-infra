@@ -12,6 +12,10 @@ sql:
           - column: "users_with_roles.roles"
             go_type:
               type: "[]string"
+          - column: "ssh_keys.priv_secret_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
           - column: "users_with_roles.role_ids"
             go_type:
               import: "github.com/google/uuid"
