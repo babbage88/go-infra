@@ -1,13 +1,17 @@
 package ssh_connections
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/babbage88/go-infra/api/authapi"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -101,7 +105,11 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	if r.TLS != nil {
 		scheme = "wss"
 	}
-	websocketURL := fmt.Sprintf("%s://%s/ssh/websocket/%s", scheme, r.Host, connectionID)
+	wsHostPort := os.Getenv("WEBSOCKET_HOSTPORT")
+	if wsHostPort == "" {
+		wsHostPort = "localhost:8090"
+	}
+	websocketURL := fmt.Sprintf("%s://%s/ssh/websocket/%s", scheme, wsHostPort, connectionID)
 
 	response := SshConnectionResponse{
 		ConnectionID: connectionID,
@@ -177,6 +185,57 @@ func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, 
 //	401: description:Unauthorized
 //	404: description:Session not found
 func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract JWT from header or query param
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		token = r.URL.Query().Get("token")
+		if token != "" {
+			token = "Bearer " + token
+		}
+	}
+	if token == "" {
+		http.Error(w, "Unauthorized: missing token", http.StatusUnauthorized)
+		return
+	}
+
+	// Inline JWT validation logic
+	if !strings.HasPrefix(token, "Bearer ") {
+		http.Error(w, "Unauthorized: malformed Authorization header", http.StatusUnauthorized)
+		return
+	}
+	jwtToken := strings.TrimPrefix(token, "Bearer ")
+	secret := os.Getenv("JWT_KEY")
+	if secret == "" {
+		http.Error(w, "Unauthorized: JWT_KEY not set", http.StatusUnauthorized)
+		return
+	}
+	tok, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		slog.Error("JWT parse error", "error", err)
+		http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)
+		return
+	}
+	claims, ok := tok.Claims.(jwt.MapClaims)
+	if !ok {
+		http.Error(w, "Unauthorized: invalid token claims", http.StatusUnauthorized)
+		return
+	}
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		http.Error(w, "Unauthorized: missing sub claim", http.StatusUnauthorized)
+		return
+	}
+	userID, err := uuid.Parse(sub)
+	if err != nil {
+		http.Error(w, "Unauthorized: invalid user id", http.StatusUnauthorized)
+		return
+	}
+
 	// Extract connection ID from URL path
 	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	if len(pathParts) < 3 || pathParts[len(pathParts)-2] != "websocket" {
@@ -205,13 +264,6 @@ func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *htt
 	}
 
 	// Validate user permissions
-	userID, err := authapi.GetUserIDFromContext(r.Context())
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	// Check if user owns this session
 	if session.UserID != userID {
 		http.Error(w, "Access denied", http.StatusForbidden)
 		return
@@ -230,11 +282,21 @@ func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *htt
 	// Start data transfer
 	session.StartDataTransfer()
 
-	// Clean up when WebSocket closes
-	defer func() {
-		m.RemoveSession(connectionID)
-		session.Close()
-	}()
+	// Block until the WebSocket is closed
+	for {
+		_, _, err := ws.ReadMessage()
+		if err != nil {
+			break // WebSocket closed or error occurred
+		}
+	}
+
+	// Clean up after WebSocket closes
+	m.RemoveSession(connectionID)
+	session.Close()
+
+	// Put claims in context
+	ctx := context.WithValue(r.Context(), authapi.ClaimsContextKey, claims)
+	r = r.WithContext(ctx)
 }
 
 // Helper function to get client IP
@@ -253,5 +315,9 @@ func getClientIP(r *http.Request) string {
 	}
 
 	// Fall back to remote address
-	return r.RemoteAddr
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr // fallback, but this may still cause DB error
+	}
+	return host
 }

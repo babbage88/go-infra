@@ -396,3 +396,39 @@ await SshConnectionService.closeSshConnection(response.connectionId);
 ## 📄 License
 
 This service is part of the go-infra project and follows the same licensing terms. 
+
+## Next Steps: Diagnosing the Interactive Shell
+
+### 1. **Try a Minimal Shell**
+Instead of s.SSHSession.Shell(), try running `/bin/bash -i` or `/bin/sh -i` as a command to see if an interactive shell will stay open.
+
+### 2. **Check for Forced Commands or Restricted Shells**
+- Ensure the SSH server is not configured to force a command or restrict the shell for this user/key.
+
+### 3. **Check Remote Shell Configs**
+- Temporarily move `.bashrc`, `.profile`, etc. out of the way for the SSH user and try again.
+
+### 4. **Restore Interactive Shell Attempt**
+- After the above, restore the code to use s.SSHSession.Shell() and see if the shell stays open.
+
+## Code Suggestion: Try an Interactive Shell as a Command
+
+Let's try running `/bin/bash -i` as a command instead of Shell():
+
+```go
+if err := s.SSHSession.Start("/bin/bash", "-i"); err != nil {
+    slog.Error("Failed to start interactive bash", "error", err)
+    return
+}
+```
+
+Or for sh:
+```go
+if err := s.SSHSession.Start("/bin/sh", "-i"); err != nil {
+    slog.Error("Failed to start interactive sh", "error", err)
+    return
+}
+```
+
+Would you like me to update your code to try this approach?  
+Or do you want to try restoring Shell() and checking the remote shell configs first? 

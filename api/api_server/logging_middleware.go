@@ -3,6 +3,7 @@ package api_server
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -20,6 +21,11 @@ func (r *statusRecorder) WriteHeader(code int) {
 // requestLoggingMiddleware logs request paths and warns on 404s
 func requestLoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Bypass logging logic for WebSocket upgrade requests
+		if strings.ToLower(r.Header.Get("Connection")) == "upgrade" && strings.ToLower(r.Header.Get("Upgrade")) == "websocket" {
+			next.ServeHTTP(w, r)
+			return
+		}
 		start := time.Now()
 		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 

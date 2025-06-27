@@ -51,17 +51,26 @@ func VerifyHost(host string, remote net.Addr, key ssh.PublicKey) error {
 	return goph.AddKnownHost(host, remote, key, "")
 }
 
-func initializeSshClient(host string, user string, port uint, sshKeyPath string, sshPassphrase string, agent bool) (*goph.Client, error) {
+func initializeSshClient(host string, user string, port uint, privateKey string, sshPassphrase string, agent bool) (*goph.Client, error) {
 	var auth goph.Auth
 	var err error
-	if agent || goph.HasAgent() {
+	slog.Info("host", "host", host)
+	slog.Info("user", "user", user)
+	slog.Info("port", "port", port)
+	slog.Info("privateKey", "privateKey", privateKey)
+	slog.Info("sshPassphrase", "sshPassphrase", sshPassphrase)
+	slog.Info("agent", "agent", agent)
+
+	if agent {
 		auth, err = goph.UseAgent()
 		if err != nil {
 			slog.Error("Failed to initialize SSH client", "error", err)
 		}
 
 	} else {
-		auth, err = goph.Key(sshKeyPath, sshPassphrase)
+		// privKeyBytes := []byte(privateKey)
+		// auth, err = goph.GetSignerForRawKey(privKeyBytes, sshPassphrase)
+		auth, err = goph.RawKey(privateKey, sshPassphrase)
 	}
 
 	if err != nil {
@@ -101,9 +110,6 @@ func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, confi
 		return fmt.Errorf("failed to create SSH client: %w", err)
 	}
 
-	// Close the client when the session is closed
-	defer gophClient.Close()
-
 	// Create SSH session
 	session, err := gophClient.NewSession()
 	if err != nil {
@@ -118,7 +124,9 @@ func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, confi
 		ssh.TTY_OP_OSPEED: 14400,
 	}
 
-	if err := session.RequestPty("xterm", 40, 80, modes); err != nil {
+	// Increase PTY size to 80x24 and add detailed error logging
+	if err := session.RequestPty("xterm", 80, 24, modes); err != nil {
+		slog.Error("Failed to request PTY", "error", err)
 		session.Close()
 		gophClient.Close()
 		return fmt.Errorf("failed to request PTY: %w", err)
@@ -151,8 +159,12 @@ func (s *SSHSession) StartDataTransfer() {
 	stdout, _ := s.SSHSession.StdoutPipe()
 	stderr, _ := s.SSHSession.StderrPipe()
 
-	// Start SSH session
+	// Start SSH session (interactive shell)
 	if err := s.SSHSession.Shell(); err != nil {
+		if err == io.EOF {
+			// Ignore EOF errors as they are expected when the session closes
+			return
+		}
 		slog.Error("Failed to start SSH shell", "error", err)
 		return
 	}
@@ -209,19 +221,23 @@ func (s *SSHSession) handleSSHOutput(reader io.Reader, msgType string) {
 	buffer := make([]byte, 1024)
 	for {
 		n, err := reader.Read(buffer)
-		if err != nil {
-			slog.Error("SSH read error", "type", msgType, "error", err)
-			return
-		}
 		if n > 0 {
 			s.updateActivity()
-
 			wsMsg := WebSocketMessage{
 				Type: msgType,
 				Data: string(buffer[:n]),
 			}
 			msgBytes, _ := json.Marshal(wsMsg)
 			s.WebSocket.WriteMessage(websocket.TextMessage, msgBytes)
+			slog.Info("SSH output", "type", msgType, "data", string(buffer[:n]))
+		}
+		if err != nil {
+			if err == io.EOF {
+				// Ignore EOF, just exit the loop gracefully
+				return
+			}
+			slog.Error("SSH read error", "type", msgType, "error", err)
+			return
 		}
 	}
 }

@@ -96,7 +96,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	if sshConnectionManager != nil {
 		mux.Handle("POST /ssh/connect", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CreateSSHConnectionHandler))))
 		mux.Handle("DELETE /ssh/connect/{connectionId}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CloseSSHConnectionHandler))))
-		mux.Handle("GET /ssh/websocket/{connectionId}", cors.CORSWithGET(authapi.AuthMiddleware(http.HandlerFunc(sshConnectionManager.SSHWebSocketHandler))))
+		mux.Handle("GET /ssh/websocket/{connectionId}", http.HandlerFunc(sshConnectionManager.SSHWebSocketHandler))
 	}
 
 	// External applications routes
@@ -165,6 +165,16 @@ func SetupNetworkPingerRoutes(
 func (api *APIServer) StartAPIServices(srvadr *string) error {
 	mux := http.NewServeMux()
 	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
+
+	// Start a dedicated WebSocket server on :8090 with no middleware for /ssh/websocket/{connectionId}
+	go func() {
+		wsMux := http.NewServeMux()
+		if api.SSHConnectionManager != nil {
+			wsMux.Handle("/ssh/websocket/", http.HandlerFunc(api.SSHConnectionManager.SSHWebSocketHandler))
+		}
+		slog.Info("Starting dedicated WebSocket server on :8090 (no middleware)")
+		http.ListenAndServe(":8090", wsMux)
+	}()
 
 	switch {
 	case api.UseSsl:

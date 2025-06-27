@@ -210,11 +210,10 @@ func (m *SSHConnectionManager) GetSSHKeyForHost(userID, hostServerID uuid.UUID) 
 
 			var passphrase string
 			// Get passphrase if key needs one from secrets
-
 			if sshKey.PassphraseID != uuid.Nil {
-				secret, err := m.secretProvider.RetrieveSecret(sshKey.PrivSecretID)
+				secret, err := m.secretProvider.RetrieveSecret(sshKey.PassphraseID)
 				if err != nil {
-					return nil, fmt.Errorf("failed to retrieve SSH key secret: %w", err)
+					return nil, fmt.Errorf("failed to retrieve SSH key passphrase: %w", err)
 				}
 				passphrase = string(secret.ExternalAuthToken.Token)
 			}

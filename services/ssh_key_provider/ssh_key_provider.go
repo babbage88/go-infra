@@ -66,7 +66,9 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 	}
 
 	var sshPassphraseId uuid.UUID = uuid.Nil
+	slog.Info("sshKey.Passphrase", "sshKey.Passphrase", sshKey.Passphrase)
 	if sshKey.Passphrase != "" {
+		slog.Info("Storing passphrase", "sshKey.Passphrase", sshKey.Passphrase)
 		qryPassphraseId, err := txSecretProvider.StoreSecret(sshKey.Passphrase, sshKey.UserID, sshPassphraseAppId, expiry)
 		if err != nil {
 			slog.Error("Failed to store SSH key secret", slog.String("error", err.Error()))
@@ -191,14 +193,15 @@ func (p *PgSshKeySecretStore) GetSshKeysByUserId(userId uuid.UUID) ([]SshKeyList
 	result := make([]SshKeyListItem, 0, len(sshKeys))
 	for _, key := range sshKeys {
 		item := SshKeyListItem{
-			ID:           key.ID,
-			Name:         key.Name,
-			PublicKey:    key.PublicKey,
-			PrivateKeyId: key.PrivSecretID,
-			KeyType:      key.KeyType,
-			OwnerUserID:  key.OwnerUserID,
-			CreatedAt:    key.CreatedAt.Time,
-			LastModified: key.LastModified.Time,
+			ID:                 key.ID,
+			Name:               key.Name,
+			PublicKey:          key.PublicKey,
+			PrivateKeyId:       key.PrivSecretID,
+			PassphraseSecretId: key.PassphraseID,
+			KeyType:            key.KeyType,
+			OwnerUserID:        key.OwnerUserID,
+			CreatedAt:          key.CreatedAt.Time,
+			LastModified:       key.LastModified.Time,
 		}
 
 		// Handle optional description field
