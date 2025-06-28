@@ -3319,12 +3319,26 @@
         "username"
       ],
       "properties": {
+        "columns": {
+          "description": "Terminal column width",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Columns",
+          "example": 120
+        },
         "hostServerId": {
           "description": "Host server ID to connect to",
           "type": "string",
           "format": "uuid",
           "x-go-name": "HostServerID",
           "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "rows": {
+          "description": "Terminal row height",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Rows",
+          "example": 30
         },
         "username": {
           "description": "Username to connect as on the remote server",
@@ -3727,40 +3741,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",

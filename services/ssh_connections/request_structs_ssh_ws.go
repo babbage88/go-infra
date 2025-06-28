@@ -32,6 +32,14 @@ type SshConnectionRequest struct {
 	// required: true
 	// example: admin
 	Username string `json:"username" validate:"required"`
+
+	// Terminal column width
+	// example: 120
+	Columns int `json:"columns,omitempty" default:"80"`
+
+	// Terminal row height
+	// example: 30
+	Rows int `json:"rows,omitempty" default:"24"`
 }
 
 // SSH Connection Response

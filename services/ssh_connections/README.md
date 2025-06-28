@@ -189,7 +189,9 @@ Content-Type: application/json
 
 {
   "hostServerId": "123e4567-e89b-12d3-a456-426614174000",
-  "username": "admin"
+  "username": "admin",
+  "columns": 120,
+  "rows": 30
 }
 ```
 
@@ -362,7 +364,9 @@ import { SshConnectionService } from './generated-client';
 // Create SSH connection
 const response = await SshConnectionService.createSshConnection({
   hostServerId: "123e4567-e89b-12d3-a456-426614174000",
-  username: "admin"
+  username: "admin",
+  columns: 120,
+  rows: 30
 });
 
 // Connect to WebSocket

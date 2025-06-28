@@ -85,8 +85,8 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	// Create session
 	session := m.CreateSession(connectionID, userID, req.HostServerID, req.Username)
 
-	// Connect to SSH server
-	if err := session.Connect(hostInfo, sshKey, m.config); err != nil {
+	// Connect to SSH server with terminal dimensions
+	if err := session.Connect(hostInfo, sshKey, m.config, req.Columns, req.Rows); err != nil {
 		m.RemoveSession(connectionID)
 		slog.Error("Failed to connect to SSH server", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

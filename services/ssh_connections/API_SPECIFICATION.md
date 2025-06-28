@@ -12,7 +12,9 @@ This document outlines the SSH Connections API endpoints and their implementatio
 ```json
 {
   "hostServerId": "123e4567-e89b-12d3-a456-426614174000",
-  "username": "admin"
+  "username": "admin",
+  "columns": 120,
+  "rows": 30
 }
 ```
 
@@ -31,7 +33,7 @@ This document outlines the SSH Connections API endpoints and their implementatio
 - Validates request body with required fields
 - Checks user authentication and permissions
 - Verifies SSH access to the specified host server
-- Creates SSH session and establishes connection
+- Creates SSH session and establishes connection with specified terminal dimensions (defaults to 80x24 if not provided)
 - Tracks session in database with client IP and user agent
 - Returns connection ID and WebSocket URL
 
@@ -82,6 +84,8 @@ This document outlines the SSH Connections API endpoints and their implementatio
 type SshConnectionRequest struct {
     HostServerID uuid.UUID `json:"hostServerId" validate:"required"`
     Username     string    `json:"username" validate:"required"`
+    Columns      int       `json:"columns,omitempty"`
+    Rows         int       `json:"rows,omitempty"`
 }
 ```
 

@@ -75,7 +75,7 @@ func newGophClient(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConf
 	}
 }
 
-func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig) error {
+func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig, columns, rows int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -98,9 +98,17 @@ func (s *SSHSession) Connect(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, confi
 		ssh.TTY_OP_OSPEED: 14400,
 	}
 
-	// Increase PTY size to 80x24 and add detailed error logging
-	if err := session.RequestPty("xterm", 80, 24, modes); err != nil {
-		slog.Error("Failed to request PTY", "error", err)
+	// Use provided column and row sizes, with defaults if not specified
+	if columns <= 0 {
+		columns = 80
+	}
+	if rows <= 0 {
+		rows = 24
+	}
+
+	// Request PTY with specified size and add detailed error logging
+	if err := session.RequestPty("xterm", rows, columns, modes); err != nil {
+		slog.Error("Failed to request PTY", "error", err, "columns", columns, "rows", rows)
 		session.Close()
 		gophClient.Close()
 		return fmt.Errorf("failed to request PTY: %w", err)

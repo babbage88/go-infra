@@ -2261,12 +2261,24 @@ definitions:
     SshConnectionRequestDetails:
         description: SSH Connection Request
         properties:
+            columns:
+                description: Terminal column width
+                example: !!float 120
+                format: int64
+                type: integer
+                x-go-name: Columns
             hostServerId:
                 description: Host server ID to connect to
                 example: 123e4567-e89b-12d3-a456-426614174000
                 format: uuid
                 type: string
                 x-go-name: HostServerID
+            rows:
+                description: Terminal row height
+                example: !!float 30
+                format: int64
+                type: integer
+                x-go-name: Rows
             username:
                 description: Username to connect as on the remote server
                 example: admin
@@ -2575,14 +2587,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:
