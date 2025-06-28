@@ -65,7 +65,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 		return NewSshKeyResult{Error: err}
 	}
 
-	var sshPassphraseId uuid.UUID = uuid.Nil
+	var sshPassphraseId *uuid.UUID = nil
 	slog.Info("sshKey.Passphrase", "sshKey.Passphrase", sshKey.Passphrase)
 	if sshKey.Passphrase != "" {
 		slog.Info("Storing passphrase", "sshKey.Passphrase", sshKey.Passphrase)
@@ -74,7 +74,7 @@ func (p *PgSshKeySecretStore) CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyRe
 			slog.Error("Failed to store SSH key secret", slog.String("error", err.Error()))
 			return NewSshKeyResult{Error: err}
 		}
-		sshPassphraseId = qryPassphraseId
+		sshPassphraseId = &qryPassphraseId
 
 	}
 
@@ -163,8 +163,8 @@ func (p *PgSshKeySecretStore) DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error {
 		return err
 	}
 
-	if sshKey.PassphraseID != uuid.Nil {
-		err = txSecretProvider.DeleteSecret(sshKey.PassphraseID)
+	if sshKey.PassphraseID != nil {
+		err = txSecretProvider.DeleteSecret(*sshKey.PassphraseID)
 		if err != nil {
 			slog.Error("Failed to delete SSH key passphrase secret", slog.String("error", err.Error()))
 			return err

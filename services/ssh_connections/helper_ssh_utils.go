@@ -35,6 +35,7 @@ func getPassphrase(ask bool) string {
 
 	return ""
 }
+
 func askIsHostTrusted(host string, key ssh.PublicKey) bool {
 
 	reader := bufio.NewReader(os.Stdin)

@@ -20,25 +20,25 @@ type NewSshKeyRequest struct {
 }
 
 type NewSshKeyResult struct {
-	SshKeyId           uuid.UUID `json:"id"`
-	PrivKeySecretId    uuid.UUID `json:"privKeySecretId"`
-	PassphraseSecretId uuid.UUID `json:"passphraseSecretId"`
-	UserId             uuid.UUID `json:"userId"`
-	Error              error     `json:"error"`
+	SshKeyId           uuid.UUID  `json:"id"`
+	PrivKeySecretId    uuid.UUID  `json:"privKeySecretId"`
+	PassphraseSecretId *uuid.UUID `json:"passphraseSecretId"`
+	UserId             uuid.UUID  `json:"userId"`
+	Error              error      `json:"error"`
 }
 
 // swagger:model SshKeyListItem
 type SshKeyListItem struct {
-	ID                 uuid.UUID `json:"id"`
-	Name               string    `json:"name"`
-	Description        string    `json:"description"`
-	PublicKey          string    `json:"publicKey"`
-	PrivateKeyId       uuid.UUID `json:"privateKeyId"`
-	PassphraseSecretId uuid.UUID `json:"passphraseId"`
-	KeyType            string    `json:"keyType"`
-	OwnerUserID        uuid.UUID `json:"ownerUserId"`
-	CreatedAt          time.Time `json:"createdAt"`
-	LastModified       time.Time `json:"lastModified"`
+	ID                 uuid.UUID  `json:"id"`
+	Name               string     `json:"name"`
+	Description        string     `json:"description"`
+	PublicKey          string     `json:"publicKey"`
+	PrivateKeyId       uuid.UUID  `json:"privateKeyId"`
+	PassphraseSecretId *uuid.UUID `json:"passphraseId"`
+	KeyType            string     `json:"keyType"`
+	OwnerUserID        uuid.UUID  `json:"ownerUserId"`
+	CreatedAt          time.Time  `json:"createdAt"`
+	LastModified       time.Time  `json:"lastModified"`
 }
 
 type CreateSshKeyHostMappingResult struct {

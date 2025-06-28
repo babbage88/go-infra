@@ -125,7 +125,7 @@ type SshKey struct {
 	LastModified pgtype.Timestamptz
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
-	PassphraseID uuid.UUID
+	PassphraseID *uuid.UUID
 }
 
 type SshKeyType struct {

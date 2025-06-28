@@ -129,7 +129,7 @@ type CreateSSHKeyParams struct {
 	Name         string
 	Description  pgtype.Text
 	PrivSecretID uuid.UUID
-	PassphraseID uuid.UUID
+	PassphraseID *uuid.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
@@ -140,7 +140,7 @@ type CreateSSHKeyRow struct {
 	Name         string
 	Description  pgtype.Text
 	PrivSecretID uuid.UUID
-	PassphraseID uuid.UUID
+	PassphraseID *uuid.UUID
 	PublicKey    string
 	KeyTypeID    uuid.UUID
 	OwnerUserID  uuid.UUID
@@ -1180,7 +1180,7 @@ type GetSSHKeyByIdRow struct {
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	PrivSecretID uuid.UUID
-	PassphraseID uuid.UUID
+	PassphraseID *uuid.UUID
 }
 
 func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByIdRow, error) {
@@ -1452,7 +1452,7 @@ type GetSSHKeysByOwnerIdRow struct {
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 	PrivSecretID uuid.UUID
-	PassphraseID uuid.UUID
+	PassphraseID *uuid.UUID
 }
 
 func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID) ([]GetSSHKeysByOwnerIdRow, error) {
