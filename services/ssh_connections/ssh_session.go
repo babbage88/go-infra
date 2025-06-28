@@ -150,7 +150,9 @@ func (s *SSHSession) SetWebSocket(ws *websocket.Conn) {
 
 // Start bidirectional data transfer
 func (s *SSHSession) StartDataTransfer() {
+	slog.Info("StartDataTransfer: starting")
 	if s.SSHSession == nil || s.WebSocket == nil {
+		slog.Error("StartDataTransfer: missing SSHSession or WebSocket")
 		return
 	}
 
@@ -160,33 +162,31 @@ func (s *SSHSession) StartDataTransfer() {
 	stderr, _ := s.SSHSession.StderrPipe()
 
 	// Start SSH session (interactive shell)
-	if err := s.SSHSession.Shell(); err != nil {
-		if err == io.EOF {
-			// Ignore EOF errors as they are expected when the session closes
-			return
-		}
+	err := s.SSHSession.Shell()
+	if err != nil && err != io.EOF {
 		slog.Error("Failed to start SSH shell", "error", err)
 		return
 	}
 
-	// Handle WebSocket messages (input from browser)
+	// Start input/output goroutines (do NOT close session in these)
 	go s.handleWebSocketInput(stdin)
-
-	// Handle SSH output (to browser)
 	go s.handleSSHOutput(stdout, "data")
-
-	// Handle SSH errors (to browser)
 	go s.handleSSHOutput(stderr, "error")
+
+	// Wait for the shell process to exit
+	err = s.SSHSession.Wait()
+	slog.Info("Shell process exited", "error", err)
+
+	// Now close everything
+	s.Close()
 }
 
 // Handle WebSocket input
 func (s *SSHSession) handleWebSocketInput(stdin io.WriteCloser) {
-	defer s.Close()
-
 	for {
 		_, message, err := s.WebSocket.ReadMessage()
-		if err != nil {
-			slog.Error("WebSocket read error", "error", err)
+		if err != nil && err != io.EOF {
+			slog.Error("handleWebSocketInput: WebSocket closed or error", "error", err.Error())
 			return
 		}
 
@@ -202,7 +202,16 @@ func (s *SSHSession) handleWebSocketInput(stdin io.WriteCloser) {
 		switch wsMsg.Type {
 		case "input":
 			if data, ok := wsMsg.Data.(string); ok {
-				stdin.Write([]byte(data))
+				slog.Info("Writing to SSH stdin", "data", data)
+				n, err := stdin.Write([]byte(data))
+				if err != nil {
+					if err == io.EOF {
+						slog.Info("EOF on handleInput")
+					}
+					slog.Error("Failed to write to SSH stdin", "error", err)
+				} else {
+					slog.Info("Wrote bytes to SSH stdin", "count", n)
+				}
 			}
 		case "resize":
 			if resizeData, ok := wsMsg.Data.(map[string]interface{}); ok {
@@ -216,8 +225,6 @@ func (s *SSHSession) handleWebSocketInput(stdin io.WriteCloser) {
 
 // Handle SSH output
 func (s *SSHSession) handleSSHOutput(reader io.Reader, msgType string) {
-	defer s.Close()
-
 	buffer := make([]byte, 1024)
 	for {
 		n, err := reader.Read(buffer)
@@ -230,10 +237,11 @@ func (s *SSHSession) handleSSHOutput(reader io.Reader, msgType string) {
 			msgBytes, _ := json.Marshal(wsMsg)
 			s.WebSocket.WriteMessage(websocket.TextMessage, msgBytes)
 			slog.Info("SSH output", "type", msgType, "data", string(buffer[:n]))
+			slog.Info("Sending to WebSocket", "data", string(buffer[:n]))
 		}
 		if err != nil {
 			if err == io.EOF {
-				// Ignore EOF, just exit the loop gracefully
+				slog.Info("EOF Reached")
 				return
 			}
 			slog.Error("SSH read error", "type", msgType, "error", err)

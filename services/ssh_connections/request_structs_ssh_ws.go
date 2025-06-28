@@ -58,7 +58,7 @@ type SshConnectionResponse struct {
 // swagger:parameters closeSshConnection
 type SshCloseParam struct {
 	// In: path
-	CONNID uuid.UUID `json:"connectionId"`
+	CONNID uuid.UUID `json:"CONNID"`
 }
 
 // SSH Connection Close Response

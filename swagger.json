@@ -1589,7 +1589,7 @@
         }
       }
     },
-    "/ssh/connect/{connectionId}": {
+    "/ssh/connect/{CONNID}": {
       "delete": {
         "tags": [
           "ssh"
@@ -1600,8 +1600,7 @@
           {
             "type": "string",
             "format": "uuid",
-            "x-go-name": "CONNID",
-            "name": "connectionId",
+            "name": "CONNID",
             "in": "path",
             "required": true
           }

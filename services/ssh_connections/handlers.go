@@ -121,7 +121,7 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	json.NewEncoder(w).Encode(response)
 }
 
-// swagger:route DELETE /ssh/connect/{connectionId} ssh closeSshConnection
+// swagger:route DELETE /ssh/connect/{CONNID} ssh closeSshConnection
 // Close an SSH connection.
 // responses:
 //
