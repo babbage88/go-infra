@@ -176,7 +176,7 @@ func (m *SSHConnectionManager) CloseSSHConnectionHandler(w http.ResponseWriter, 
 	json.NewEncoder(w).Encode(SshConnectionCloseResponse{Message: "Connection closed successfully"})
 }
 
-// swagger:route GET /ssh/websocket/{connectionId} ssh sshWebSocket
+// swagger:route GET /ssh/websocket/{CONNID} ssh sshWebSocket
 // WebSocket endpoint for SSH terminal communication.
 // responses:
 //

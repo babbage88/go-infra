@@ -1048,7 +1048,7 @@ paths:
             summary: Close an SSH connection.
             tags:
                 - ssh
-    /ssh/websocket/{connectionId}:
+    /ssh/websocket/{CONNID}:
         get:
             operationId: sshWebSocket
             responses:

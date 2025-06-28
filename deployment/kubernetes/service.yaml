@@ -10,4 +10,8 @@ spec:
   - protocol: TCP
     port: 8993
     targetPort: 8993
+  - protocol: TCP
+    port: 8090
+    targetPort: 8090
   type: LoadBalancer
+

@@ -1630,7 +1630,7 @@
         }
       }
     },
-    "/ssh/websocket/{connectionId}": {
+    "/ssh/websocket/{CONNID}": {
       "get": {
         "tags": [
           "ssh"

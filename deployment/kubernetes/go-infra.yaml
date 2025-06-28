@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: go-infra
-          image: ghcr.io/babbage88/go-infra:v1.2.1
+          image: ghcr.io/babbage88/go-infra:v1.2.2
           imagePullPolicy: Always
           ports:
             - containerPort: 8993
@@ -75,6 +75,11 @@ spec:
                 secretKeyRef:
                   name: goinfra-app-secrets
                   key: CLOUDFLARE_DNS_API_TOKEN
+            - name: USER_SEC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: USER_SEC_KEY
           resources:
             limits:
               memory: "1Gi"

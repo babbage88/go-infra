@@ -51,27 +51,14 @@ func VerifyHost(host string, remote net.Addr, key ssh.PublicKey) error {
 	return goph.AddKnownHost(host, remote, key, "")
 }
 
-func initializeSshClient(host string, user string, port uint, privateKey string, sshPassphrase string, agent bool) (*goph.Client, error) {
+func initializeSshClient(host string, user string, port uint, privateKey string, sshPassphrase string, timeout time.Duration) (*goph.Client, error) {
 	var auth goph.Auth
 	var err error
 	slog.Info("host", "host", host)
 	slog.Info("user", "user", user)
 	slog.Info("port", "port", port)
-	slog.Info("privateKey", "privateKey", privateKey)
-	slog.Info("sshPassphrase", "sshPassphrase", sshPassphrase)
-	slog.Info("agent", "agent", agent)
 
-	if agent {
-		auth, err = goph.UseAgent()
-		if err != nil {
-			slog.Error("Failed to initialize SSH client", "error", err)
-		}
-
-	} else {
-		// privKeyBytes := []byte(privateKey)
-		// auth, err = goph.GetSignerForRawKey(privKeyBytes, sshPassphrase)
-		auth, err = goph.RawKey(privateKey, sshPassphrase)
-	}
+	auth, err = goph.RawKey(privateKey, sshPassphrase)
 
 	if err != nil {
 		slog.Error("Failed to initialize SSH client", "error", err)
@@ -95,9 +82,9 @@ func initializeSshClient(host string, user string, port uint, privateKey string,
 
 func newGophClient(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig) (*goph.Client, error) {
 	if sshKey.Passphrase != "" {
-		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, sshKey.Passphrase, false)
+		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, sshKey.Passphrase, config.SSHTimeout)
 	} else {
-		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, "", false)
+		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, "", config.SSHTimeout)
 	}
 }
 
