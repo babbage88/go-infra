@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -20,35 +19,23 @@ import (
 )
 
 func VerifyHost(host string, remote net.Addr, key ssh.PublicKey) error {
-	//
-	// If you want to connect to new hosts.
-	// here your should check new connections public keys
-	// if the key not trusted you shuld return an error
-	//
-
-	// hostFound: is host in known hosts file.
-	// err: error if key not in known hosts file OR host in known hosts file but key changed!
-	hostFound, err := goph.CheckKnownHost(host, remote, key, "")
-
-	// Host in known hosts but key mismatch!
-	// Maybe because of MAN IN THE MIDDLE ATTACK!
-	if hostFound && err != nil {
-		return err
+	// Get known_hosts path from env or default
+	knownHostsPath := os.Getenv("SSH_KNOWN_HOSTS_PATH")
+	if knownHostsPath == "" {
+		knownHostsPath = os.ExpandEnv("ws_known_hosts")
 	}
 
-	// handshake because public key already exists.
-	if hostFound && err == nil {
+	hostFound, err := goph.CheckKnownHost(host, remote, key, knownHostsPath)
+	if hostFound {
+		if err != nil {
+			// Key mismatch!
+			return err // FAIL if mismatch
+		}
+		// Key matches
 		return nil
 	}
-
-	// Ask user to check if he trust the host public key.
-	if askIsHostTrusted(host, key) == false {
-		// Make sure to return error on non trusted keys.
-		return errors.New("you typed no, aborted!")
-	}
-
-	// Add the new host to known hosts file.
-	return goph.AddKnownHost(host, remote, key, "")
+	// Host not found, automatically add to known_hosts (no prompt)
+	return goph.AddKnownHost(host, remote, key, knownHostsPath)
 }
 
 func initializeSshClient(host string, user string, port uint, privateKey string, sshPassphrase string, timeout time.Duration) (*goph.Client, error) {
