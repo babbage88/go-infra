@@ -101,15 +101,12 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 	}
 
 	// Return connection info
-	scheme := "ws"
-	if r.TLS != nil {
-		scheme = "wss"
+
+	wsBaseUrl := os.Getenv("WEBSOCKET_BASE")
+	if wsBaseUrl == "" {
+		wsBaseUrl = "ws://localhost:8090"
 	}
-	wsHostPort := os.Getenv("WEBSOCKET_HOSTPORT")
-	if wsHostPort == "" {
-		wsHostPort = "localhost:8090"
-	}
-	websocketURL := fmt.Sprintf("%s://%s/ssh/websocket/%s", scheme, wsHostPort, connectionID)
+	websocketURL := fmt.Sprintf("%s/ssh/websocket/%s", wsBaseUrl, connectionID)
 
 	response := SshConnectionResponse{
 		ConnectionID: connectionID,

@@ -6,8 +6,8 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header Authorization $http_authorization;
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   ingressClassName: nginx
   rules:
@@ -82,6 +82,40 @@ spec:
                 name: db-helper-ui-csvc
                 port:
                   number: 8080
+  tls:
+  - hosts:
+    - dbhelperui.trahan.dev
+    secretName: trahan-dev-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-infra-websocket-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /ssh/websocket/$1
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dbhelperui.trahan.dev
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /ws/ssh/websocket/(.*)
+            backend:
+              service:
+                name: go-infra-websocket
+                port:
+                  number: 8090
+          - pathType: Prefix
+            path: /ws/ssh/websocket/
+            backend:
+              service:
+                name: go-infra-websocket
+                port:
+                  number: 8090
   tls:
   - hosts:
     - dbhelperui.trahan.dev

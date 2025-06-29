@@ -18,6 +18,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8993
+            - containerPort: 8090
           command: ["/app/server"]
           env:
             - name: JWT_KEY
@@ -80,6 +81,11 @@ spec:
                 secretKeyRef:
                   name: goinfra-app-secrets
                   key: USER_SEC_KEY
+            - name: WEBSOCKET_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: WEBSOCKET_BASE
           resources:
             limits:
               memory: "1Gi"

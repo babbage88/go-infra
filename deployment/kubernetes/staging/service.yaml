@@ -23,7 +23,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: go-infra-websocket
+    app: go-infra
   ports:
     - name: websocket
       protocol: TCP

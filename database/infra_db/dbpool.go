@@ -3,7 +3,6 @@ package infra_db
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"time"
@@ -69,17 +68,16 @@ func pgxPoolConfig() *pgxpool.Config {
 	dbConfig.HealthCheckPeriod = defaultHealthCheckPeriod
 	dbConfig.ConnConfig.ConnectTimeout = defaultConnectTimeout
 	dbConfig.BeforeAcquire = func(ctx context.Context, c *pgx.Conn) bool {
-		slog.Info("Before Pg Connection Aquired!")
+		slog.Debug("Connection Aquired!")
 		return true
 	}
 
 	dbConfig.AfterRelease = func(c *pgx.Conn) bool {
-		slog.Info("Conection Pool handle released!")
 		return true
 	}
 
 	dbConfig.BeforeClose = func(c *pgx.Conn) {
-		log.Println("Before Close Conneciion Pool!")
+		slog.Debug("Close Conneciion Pool!")
 	}
 
 	return dbConfig
