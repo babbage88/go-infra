@@ -60,8 +60,7 @@ type HostServerInfo struct {
 
 // SSH Connection Manager
 type SSHConnectionManager struct {
-	sessions       map[uuid.UUID]*SSHSession
-	mu             sync.RWMutex
+	store          SessionStore
 	db             *infra_db_pg.Queries
 	pool           *pgxpool.Pool
 	config         *SSHConfig
@@ -75,9 +74,9 @@ type SSHConfig struct {
 	RateLimit      int // requests per second
 }
 
-func NewSSHConnectionManager(db *infra_db_pg.Queries, pool *pgxpool.Pool, secretProvider user_secrets.UserSecretProvider, config *SSHConfig) *SSHConnectionManager {
+func NewSSHConnectionManager(store SessionStore, db *infra_db_pg.Queries, pool *pgxpool.Pool, secretProvider user_secrets.UserSecretProvider, config *SSHConfig) *SSHConnectionManager {
 	manager := &SSHConnectionManager{
-		sessions:       make(map[uuid.UUID]*SSHSession),
+		store:          store,
 		db:             db,
 		pool:           pool,
 		config:         config,
@@ -107,30 +106,19 @@ func (m *SSHConnectionManager) CreateSession(id uuid.UUID, userID uuid.UUID, hos
 		db:           m.db,
 		dbtx:         m.pool,
 	}
-
-	m.mu.Lock()
-	m.sessions[id] = session
-	m.mu.Unlock()
-
+	_ = m.store.CreateSession(session)
 	return session
 }
 
 // Get session by ID
 func (m *SSHConnectionManager) GetSession(id uuid.UUID) (*SSHSession, bool) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	session, exists := m.sessions[id]
-	return session, exists
+	session, err := m.store.GetSession(id)
+	return session, err == nil && session != nil
 }
 
 // Remove session
 func (m *SSHConnectionManager) RemoveSession(id uuid.UUID) {
-	m.mu.Lock()
-	if session, exists := m.sessions[id]; exists {
-		session.Close()
-		delete(m.sessions, id)
-	}
-	m.mu.Unlock()
+	_ = m.store.RemoveSession(id)
 }
 
 // Cleanup expired sessions
@@ -139,16 +127,8 @@ func (m *SSHConnectionManager) cleanupExpiredSessions() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		m.mu.Lock()
-		now := time.Now()
-		for id, session := range m.sessions {
-			// Close sessions older than 1 hour
-			if now.Sub(session.CreatedAt) > time.Hour {
-				session.Close()
-				delete(m.sessions, id)
-			}
-		}
-		m.mu.Unlock()
+		// Optionally, implement cleanup logic in a specific store implementation if needed
+		// m.store.CleanupExpiredSessions() // <-- Remove this line
 
 		// Clean up database sessions
 		m.cleanupDatabaseSessions()
@@ -264,8 +244,16 @@ func (m *SSHConnectionManager) trackSSHSession(sessionID uuid.UUID, userID, host
 }
 
 // Mark session as inactive
-func (m *SSHConnectionManager) markSessionInactive(sessionID uuid.UUID) error {
-	query := `UPDATE ssh_sessions SET is_active = false WHERE id = $1`
-	_, err := m.pool.Exec(context.Background(), query, sessionID)
-	return err
+func (m *SSHConnectionManager) markSessionInactive(id uuid.UUID) {
+	_ = m.store.MarkSessionInactive(id)
+}
+
+// List all active SSH sessions
+func (m *SSHConnectionManager) ListActiveSessions() []*SSHSession {
+	sessions, _ := m.store.ListActiveSessions()
+	return sessions
+}
+
+func (m *SSHConnectionManager) updateSessionActivity(id uuid.UUID, lastActivity time.Time) {
+	_ = m.store.UpdateSessionActivity(id, lastActivity)
 }

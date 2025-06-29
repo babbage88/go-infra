@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -1625,6 +1625,29 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/sessions": {
+      "get": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "List all active SSH sessions.",
+        "operationId": "listSshSessions",
+        "responses": {
+          "200": {
+            "description": "SshSessionSummary",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SshSessionSummary"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -3433,6 +3456,42 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
     },
+    "SshSessionSummary": {
+      "description": "SshSessionSummary is a safe summary for listing sessions",
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "hostServerId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "lastActivity": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastActivity"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
     "TokenRefreshReq": {
       "type": "object",
       "properties": {
@@ -3740,16 +3799,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",

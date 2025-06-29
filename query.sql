@@ -696,3 +696,25 @@ ON CONFLICT (hostname, ip_address) DO UPDATE SET
     id_db_host = EXCLUDED.id_db_host,
     last_modified = CURRENT_TIMESTAMP
 RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
+
+-- name: CreateSSHSession :exec
+INSERT INTO ssh_sessions (id, user_id, host_server_id, username, created_at, last_activity, is_active)
+VALUES ($1, $2, $3, $4, $5, $6, true)
+ON CONFLICT (id) DO UPDATE SET last_activity = $6, is_active = true;
+
+-- name: GetSSHSessionById :one
+SELECT id, user_id, host_server_id, username, created_at, last_activity
+FROM ssh_sessions WHERE id = $1 AND is_active = true;
+
+-- name: ListActiveSSHSessions :many
+SELECT id, user_id, host_server_id, username, created_at, last_activity
+FROM ssh_sessions WHERE is_active = true;
+
+-- name: RemoveSSHSession :exec
+UPDATE ssh_sessions SET is_active = false WHERE id = $1;
+
+-- name: UpdateSSHSessionActivity :exec
+UPDATE ssh_sessions SET last_activity = $2 WHERE id = $1;
+
+-- name: MarkSSHSessionInactive :exec
+UPDATE ssh_sessions SET is_active = false WHERE id = $1;

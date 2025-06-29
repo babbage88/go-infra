@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -1045,6 +1045,21 @@ paths:
                 "500":
                     description: Internal Server Error
             summary: Close an SSH connection.
+            tags:
+                - ssh
+    /ssh/sessions:
+        get:
+            operationId: listSshSessions
+            responses:
+                "200":
+                    description: SshSessionSummary
+                    schema:
+                        items:
+                            $ref: '#/definitions/SshSessionSummary'
+                        type: array
+                "401":
+                    description: Unauthorized
+            summary: List all active SSH sessions.
             tags:
                 - ssh
     /ssh/websocket/{CONNID}:
@@ -2355,6 +2370,34 @@ definitions:
                 x-go-name: PublicKey
         type: object
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    SshSessionSummary:
+        description: SshSessionSummary is a safe summary for listing sessions
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            hostServerId:
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            lastActivity:
+                format: date-time
+                type: string
+                x-go-name: LastActivity
+            userId:
+                format: uuid
+                type: string
+                x-go-name: UserID
+            username:
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
     TokenRefreshReq:
         properties:
             refreshToken:
@@ -2586,14 +2629,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:

@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dprotaso/go-yit v0.0.0-20250617014309-d9cfd875a529 // indirect
 	github.com/getkin/kin-openapi v0.132.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
@@ -79,6 +80,11 @@ require (
 	golang.org/x/time v0.12.0
 	golang.org/x/tools v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
+)
+
+require (
+	github.com/redis/go-redis/v9 v9.0.0
+	github.com/valkey-io/valkey-go v1.0.62
 )
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen

@@ -262,6 +262,33 @@ func (q *Queries) CreateSSHKeyType(ctx context.Context, arg CreateSSHKeyTypePara
 	return i, err
 }
 
+const createSSHSession = `-- name: CreateSSHSession :exec
+INSERT INTO ssh_sessions (id, user_id, host_server_id, username, created_at, last_activity, is_active)
+VALUES ($1, $2, $3, $4, $5, $6, true)
+ON CONFLICT (id) DO UPDATE SET last_activity = $6, is_active = true
+`
+
+type CreateSSHSessionParams struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) CreateSSHSession(ctx context.Context, arg CreateSSHSessionParams) error {
+	_, err := q.db.Exec(ctx, createSSHSession,
+		arg.ID,
+		arg.UserID,
+		arg.HostServerID,
+		arg.Username,
+		arg.CreatedAt,
+		arg.LastActivity,
+	)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username,
@@ -1486,6 +1513,34 @@ func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID
 	return items, nil
 }
 
+const getSSHSessionById = `-- name: GetSSHSessionById :one
+SELECT id, user_id, host_server_id, username, created_at, last_activity
+FROM ssh_sessions WHERE id = $1 AND is_active = true
+`
+
+type GetSSHSessionByIdRow struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) GetSSHSessionById(ctx context.Context, id uuid.UUID) (GetSSHSessionByIdRow, error) {
+	row := q.db.QueryRow(ctx, getSSHSessionById, id)
+	var i GetSSHSessionByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.HostServerID,
+		&i.Username,
+		&i.CreatedAt,
+		&i.LastActivity,
+	)
+	return i, err
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT
     "id",
@@ -2073,6 +2128,65 @@ func (q *Queries) InsertUserHostedDb(ctx context.Context, arg InsertUserHostedDb
 	return i, err
 }
 
+const listActiveSSHSessions = `-- name: ListActiveSSHSessions :many
+SELECT id, user_id, host_server_id, username, created_at, last_activity
+FROM ssh_sessions WHERE is_active = true
+`
+
+type ListActiveSSHSessionsRow struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) ListActiveSSHSessions(ctx context.Context) ([]ListActiveSSHSessionsRow, error) {
+	rows, err := q.db.Query(ctx, listActiveSSHSessions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveSSHSessionsRow
+	for rows.Next() {
+		var i ListActiveSSHSessionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.HostServerID,
+			&i.Username,
+			&i.CreatedAt,
+			&i.LastActivity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markSSHSessionInactive = `-- name: MarkSSHSessionInactive :exec
+UPDATE ssh_sessions SET is_active = false WHERE id = $1
+`
+
+func (q *Queries) MarkSSHSessionInactive(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markSSHSessionInactive, id)
+	return err
+}
+
+const removeSSHSession = `-- name: RemoveSSHSession :exec
+UPDATE ssh_sessions SET is_active = false WHERE id = $1
+`
+
+func (q *Queries) RemoveSSHSession(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, removeSSHSession, id)
+	return err
+}
+
 const softDeleteUserById = `-- name: SoftDeleteUserById :one
 UPDATE users
   set is_deleted = TRUE,
@@ -2329,6 +2443,20 @@ func (q *Queries) UpdateSSHKeyType(ctx context.Context, arg UpdateSSHKeyTypePara
 		&i.LastModified,
 	)
 	return i, err
+}
+
+const updateSSHSessionActivity = `-- name: UpdateSSHSessionActivity :exec
+UPDATE ssh_sessions SET last_activity = $2 WHERE id = $1
+`
+
+type UpdateSSHSessionActivityParams struct {
+	ID           uuid.UUID
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateSSHSessionActivity(ctx context.Context, arg UpdateSSHSessionActivityParams) error {
+	_, err := q.db.Exec(ctx, updateSSHSessionActivity, arg.ID, arg.LastActivity)
+	return err
 }
 
 const updateUserEmailById = `-- name: UpdateUserEmailById :one

@@ -98,6 +98,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 		mux.Handle("POST /ssh/connect", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CreateSSHConnectionHandler))))
 		mux.Handle("DELETE /ssh/connect/{CONNID}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CloseSSHConnectionHandler))))
 		mux.Handle("GET /ssh/websocket/{CONNID}", http.HandlerFunc(sshConnectionManager.SSHWebSocketHandler))
+		mux.Handle("GET /ssh/sessions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.ListActiveSessionsHandler))))
 	}
 
 	// External applications routes

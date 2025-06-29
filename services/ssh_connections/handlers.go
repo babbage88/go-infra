@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/golang-jwt/jwt/v5"
@@ -318,4 +319,41 @@ func getClientIP(r *http.Request) string {
 		return r.RemoteAddr // fallback, but this may still cause DB error
 	}
 	return host
+}
+
+// swagger:route GET /ssh/sessions ssh listSshSessions
+// List all active SSH sessions.
+// responses:
+//
+//	200: []SshSessionSummary
+//	401: description:Unauthorized
+func (m *SSHConnectionManager) ListActiveSessionsHandler(w http.ResponseWriter, r *http.Request) {
+	// Authentication is enforced by middleware; no need to use userID here
+
+	sessions := m.ListActiveSessions()
+	summaries := make([]SshSessionSummary, 0, len(sessions))
+	for _, s := range sessions {
+		summaries = append(summaries, SshSessionSummary{
+			ID:           s.ID,
+			UserID:       s.UserID,
+			HostServerID: s.HostServerID,
+			Username:     s.Username,
+			CreatedAt:    s.CreatedAt,
+			LastActivity: s.LastActivity,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(summaries)
+}
+
+// SshSessionSummary is a safe summary for listing sessions
+// swagger:model SshSessionSummary
+type SshSessionSummary struct {
+	ID           uuid.UUID `json:"id"`
+	UserID       uuid.UUID `json:"userId"`
+	HostServerID uuid.UUID `json:"hostServerId"`
+	Username     string    `json:"username"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastActivity time.Time `json:"lastActivity"`
 }

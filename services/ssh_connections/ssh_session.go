@@ -29,6 +29,7 @@ func VerifyHost(host string, remote net.Addr, key ssh.PublicKey) error {
 	if hostFound {
 		if err != nil {
 			// Key mismatch!
+			slog.Error("Host key found, but does not match", slog.String("KnownHostsFile", knownHostsPath), slog.String("remoteAddr", remote.String()), "host", host)
 			return err // FAIL if mismatch
 		}
 		// Key matches
