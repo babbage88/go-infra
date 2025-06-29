@@ -3,6 +3,7 @@ package api_server
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	authapi "github.com/babbage88/go-infra/api/authapi"
 	userapi "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -164,6 +165,11 @@ func SetupNetworkPingerRoutes(
 
 func (api *APIServer) StartAPIServices(srvadr *string) error {
 	mux := http.NewServeMux()
+	wsListenAddr := os.Getenv("WS_LISTEN_ADDR")
+	if wsListenAddr == "" {
+		slog.Info("WS_LISTEN_ADDR env variable is not set, using default :8090")
+		wsListenAddr = ":8090"
+	}
 	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
 
 	// Start a dedicated WebSocket server on :8090 with no middleware for /ssh/websocket/{connectionId}
@@ -172,8 +178,13 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		if api.SSHConnectionManager != nil {
 			wsMux.Handle("/ssh/websocket/", http.HandlerFunc(api.SSHConnectionManager.SSHWebSocketHandler))
 		}
-		slog.Info("Starting dedicated WebSocket server on :8090 (no middleware)")
-		http.ListenAndServe(":8090", wsMux)
+		slog.Info("Starting dedicated WebSocket server", slog.String("WS_LISTEN_ADDR", wsListenAddr))
+		switch {
+		case api.UseSsl:
+			http.ListenAndServeTLS(wsListenAddr, api.Certificate, api.CertKey, wsMux)
+		default:
+			http.ListenAndServe(wsListenAddr, wsMux)
+		}
 	}()
 
 	switch {

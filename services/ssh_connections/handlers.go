@@ -107,6 +107,7 @@ func (m *SSHConnectionManager) CreateSSHConnectionHandler(w http.ResponseWriter,
 		wsBaseUrl = "ws://localhost:8090"
 	}
 	websocketURL := fmt.Sprintf("%s/ssh/websocket/%s", wsBaseUrl, connectionID)
+	slog.Info("Creating websockerURL", "URL", websocketURL)
 
 	response := SshConnectionResponse{
 		ConnectionID: connectionID,
