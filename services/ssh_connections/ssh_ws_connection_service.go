@@ -65,6 +65,10 @@ type SSHConnectionManager struct {
 	pool           *pgxpool.Pool
 	config         *SSHConfig
 	secretProvider user_secrets.UserSecretProvider
+
+	// In-memory map for live sessions (per pod)
+	liveSessions map[uuid.UUID]*SSHSession
+	mu           sync.RWMutex
 }
 
 type SSHConfig struct {
@@ -81,6 +85,7 @@ func NewSSHConnectionManager(store SessionStore, db *infra_db_pg.Queries, pool *
 		pool:           pool,
 		config:         config,
 		secretProvider: secretProvider,
+		liveSessions:   make(map[uuid.UUID]*SSHSession),
 	}
 
 	// Start cleanup goroutine
@@ -94,7 +99,7 @@ func generateConnectionID() uuid.UUID {
 	return uuid.New()
 }
 
-// Create new SSH session
+// Create new SSH session (live + persistent)
 func (m *SSHConnectionManager) CreateSession(id uuid.UUID, userID uuid.UUID, hostServerID uuid.UUID, username string) *SSHSession {
 	session := &SSHSession{
 		ID:           id,
@@ -106,18 +111,36 @@ func (m *SSHConnectionManager) CreateSession(id uuid.UUID, userID uuid.UUID, hos
 		db:           m.db,
 		dbtx:         m.pool,
 	}
+	// Store in-memory
+	m.mu.Lock()
+	m.liveSessions[id] = session
+	m.mu.Unlock()
+	// Persist metadata
 	_ = m.store.CreateSession(session)
 	return session
 }
 
-// Get session by ID
+// Get session: prefer live (in-memory), fallback to persistent (metadata only)
 func (m *SSHConnectionManager) GetSession(id uuid.UUID) (*SSHSession, bool) {
-	session, err := m.store.GetSession(id)
-	return session, err == nil && session != nil
+	m.mu.RLock()
+	session, ok := m.liveSessions[id]
+	m.mu.RUnlock()
+	if ok {
+		return session, true
+	}
+	// Fallback: get from persistent store (metadata only, not live connection)
+	meta, err := m.store.GetSession(id)
+	if err != nil || meta == nil {
+		return nil, false
+	}
+	return meta, false // not a live session
 }
 
-// Remove session
+// Remove session from both in-memory and persistent store
 func (m *SSHConnectionManager) RemoveSession(id uuid.UUID) {
+	m.mu.Lock()
+	delete(m.liveSessions, id)
+	m.mu.Unlock()
 	_ = m.store.RemoveSession(id)
 }
 

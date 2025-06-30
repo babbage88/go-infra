@@ -30,19 +30,16 @@ import (
 	_ "embed"
 	"log/slog"
 	"os"
-	"time"
 
 	"github.com/babbage88/go-infra/api/api_server"
 	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
-	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
-	"github.com/valkey-io/valkey-go"
 )
 
 //go:embed swagger.yaml
@@ -74,42 +71,7 @@ func main() {
 	hostServerProvider := host_servers.NewHostServerProvider(infra_db_pg.New(connPool), secretProvider)
 	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool)
 	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
-
-	// Initialize SSH session store based on environment variable
-	var sessionStore ssh_connections.SessionStore
-	storeType := os.Getenv("SSH_SESSION_STORE_TYPE")
-	dbQueries := infra_db_pg.New(connPool)
-	if storeType == "valkey" {
-		// Use Valkey-backed session store
-		valkeyAddr := os.Getenv("VALKEY_ADDR")
-		if valkeyAddr == "" {
-			valkeyAddr = "127.0.0.1:6379"
-		}
-		valkeyClient, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{valkeyAddr}})
-		if err != nil {
-			slog.Error("Failed to initialize Valkey client", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
-		sessionStore = ssh_connections.NewValkeySessionStore(valkeyClient)
-		slog.Info("Using Valkey session store", slog.String("address", valkeyAddr))
-	} else {
-		// Default to Postgres-backed session store
-		sessionStore = ssh_connections.NewDBSessionStore(dbQueries)
-		slog.Info("Using Postgres session store")
-	}
-
-	sshConnectionManager := ssh_connections.NewSSHConnectionManager(
-		sessionStore,
-		dbQueries,
-		connPool,
-		secretProvider,
-		&ssh_connections.SSHConfig{
-			KnownHostsPath: "/dev/null", // Disable known hosts checking for now
-			SSHTimeout:     30 * time.Second,
-			MaxSessions:    100,
-			RateLimit:      10, // 10 requests per second
-		},
-	)
+	sshConnectionManager := initializeSshConnMgr(connPool, secretProvider, 30, 200, 20)
 
 	apiServer := api_server.APIServer{
 		HealthCheckService:      healthCheckService,
