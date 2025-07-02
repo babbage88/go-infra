@@ -258,8 +258,19 @@ func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *htt
 	// Get session
 	session, exists := m.GetSession(connectionID)
 	if !exists {
-		http.Error(w, "Session not found", http.StatusNotFound)
-		return
+		// Try to rehydrate from persistent store and reconnect
+		columns, rows := 80, 24 // TODO: parse from query if available
+		meta, err := m.store.GetSession(connectionID)
+		if err != nil || meta == nil {
+			http.Error(w, "Session not found", http.StatusNotFound)
+			return
+		}
+		session, err = m.RehydrateSessionAndConnect(meta, columns, rows)
+		if err != nil {
+			slog.Error("Failed to rehydrate SSH session", "error", err)
+			http.Error(w, "Failed to re-establish SSH connection", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Validate user permissions

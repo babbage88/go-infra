@@ -280,3 +280,22 @@ func (m *SSHConnectionManager) ListActiveSessions() []*SSHSession {
 func (m *SSHConnectionManager) updateSessionActivity(id uuid.UUID, lastActivity time.Time) {
 	_ = m.store.UpdateSessionActivity(id, lastActivity)
 }
+
+// Rehydrate and reconnect a session from persistent store
+func (m *SSHConnectionManager) RehydrateSessionAndConnect(meta *SSHSession, columns, rows int) (*SSHSession, error) {
+	hostInfo, err := m.getHostServerInfo(meta.HostServerID)
+	if err != nil {
+		return nil, fmt.Errorf("host info not found: %w", err)
+	}
+	sshKey, err := m.GetSSHKeyForHost(meta.UserID, meta.HostServerID)
+	if err != nil {
+		return nil, fmt.Errorf("ssh key not found: %w", err)
+	}
+	// Create a new in-memory session
+	session := m.CreateSession(meta.ID, meta.UserID, meta.HostServerID, meta.Username)
+	if err := session.Connect(hostInfo, sshKey, m.config, columns, rows); err != nil {
+		m.RemoveSession(meta.ID)
+		return nil, fmt.Errorf("failed to reconnect SSH: %w", err)
+	}
+	return session, nil
+}
