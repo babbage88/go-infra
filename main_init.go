@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"time"
@@ -30,11 +31,24 @@ func initializeSshConnMgr(connPool *pgxpool.Pool, secretProvider user_secrets.Us
 		if valkeyAddr == "" {
 			valkeyAddr = "127.0.0.1:6379"
 		}
-		valkeyClient, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{valkeyAddr}})
+		slog.Info("Using Valkey session store", slog.String("address", valkeyAddr))
+		valkeyClient, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{valkeyAddr},
+			AuthCredentialsFn: func(acc valkey.AuthCredentialsContext) (valkey.AuthCredentials, error) {
+				return valkey.AuthCredentials{
+					Username: os.Getenv("VALKEY_USER"),
+					Password: os.Getenv("VALKEY_PASSWORD"),
+				}, nil
+			}})
 		if err != nil {
 			slog.Error("Failed to initialize Valkey client", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
+		// Test connection with PING command using the proper Valkey client pattern
+		if err := valkeyClient.Do(context.Background(), valkeyClient.B().Ping().Build()).Error(); err != nil {
+			slog.Error("Failed to ping Valkey server", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		slog.Info("Successfully pinged Valkey server")
 		sessionStore = ssh_connections.NewValkeySessionStore(valkeyClient)
 		slog.Info("Using Valkey session store", slog.String("address", valkeyAddr))
 	} else {

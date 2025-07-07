@@ -86,6 +86,26 @@ spec:
                 secretKeyRef:
                   name: goinfra-app-secrets
                   key: WEBSOCKET_BASE
+            - name: VALKEY_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: VALKEY_ADDR
+            - name: VALKEY_USER
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: VALKEY_USER
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: VALKEY_PASSWORD
+            - name: SSH_SESSION_STORE_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: SSH_SESSION_STORE_TYPE
           resources:
             limits:
               memory: "1Gi"
