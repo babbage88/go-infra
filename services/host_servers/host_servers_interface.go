@@ -26,17 +26,41 @@ type HostServer struct {
 	LastModified         time.Time        `json:"last_modified"`
 }
 
-// HostServerType represents a type/category of host server
+// swagger:model HostServerType
+// @Description A type/category of host server
 type HostServerType struct {
-	ID           uuid.UUID `json:"id"`
-	Name         string    `json:"name"`
+	// Unique identifier for the host server type
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID uuid.UUID `json:"id"`
+
+	// Name of the host server type
+	// required: true
+	// example: Database Server
+	Name string `json:"name"`
+
+	// Last modification timestamp
+	// required: true
+	// example: 2024-01-15T10:30:00Z
 	LastModified time.Time `json:"last_modified"`
 }
 
-// PlatformType represents a specific platform or service running on a host server
+// swagger:model PlatformType
+// @Description A specific platform or service running on a host server
 type PlatformType struct {
-	ID           uuid.UUID `json:"id"`
-	Name         string    `json:"name"`
+	// Unique identifier for the platform type
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174001
+	ID uuid.UUID `json:"id"`
+
+	// Name of the platform type
+	// required: true
+	// example: Docker Host
+	Name string `json:"name"`
+
+	// Last modification timestamp
+	// required: true
+	// example: 2024-01-15T10:30:00Z
 	LastModified time.Time `json:"last_modified"`
 }
 
@@ -62,4 +86,10 @@ type HostServerProvider interface {
 
 	// DeleteHostServer deletes a host server
 	DeleteHostServer(ctx context.Context, id uuid.UUID) error
+
+	// GetAllHostServerTypes retrieves all available host server types
+	GetAllHostServerTypes(ctx context.Context) ([]HostServerType, error)
+
+	// GetAllPlatformTypes retrieves all available platform types
+	GetAllPlatformTypes(ctx context.Context) ([]PlatformType, error)
 }

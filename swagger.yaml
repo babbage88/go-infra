@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -286,6 +286,19 @@ paths:
             summary: Update an external application.
             tags:
                 - external-applications
+    /host-server-types:
+        get:
+            operationId: GetAllHostServerTypes
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllHostServerTypesResponse'
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all available host server types.
+            tags:
+                - host-servers
     /host-servers:
         get:
             operationId: GetAllHostServers
@@ -636,6 +649,19 @@ paths:
                 - bearer: []
             tags:
                 - PermissionsCRUD
+    /platform-types:
+        get:
+            operationId: GetAllPlatformTypes
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllPlatformTypesResponse'
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all available platform types.
+            tags:
+                - host-servers
     /renew:
         post:
             description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
@@ -1561,6 +1587,16 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/external_applications
     CreateHostServerRequest:
         properties:
+            host_server_type_ids:
+                description: Host server type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174000
+                    - 123e4567-e89b-12d3-a456-426614174001
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: HostServerTypeIDs
             hostname:
                 description: Hostname of the server
                 example: server-01.example.com
@@ -1591,6 +1627,16 @@ definitions:
                 example: false
                 type: boolean
                 x-go-name: IsVmHost
+            platform_type_ids:
+                description: Platform type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174002
+                    - 123e4567-e89b-12d3-a456-426614174003
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PlatformTypeIDs
             ssh_key_id:
                 description: SSH key ID for authentication
                 example: 123e4567-e89b-12d3-a456-426614174000
@@ -2018,6 +2064,11 @@ definitions:
                 format: date-time
                 type: string
                 x-go-name: CreatedAt
+            host_server_types:
+                items:
+                    $ref: '#/definitions/HostServerType'
+                type: array
+                x-go-name: HostServerTypes
             hostname:
                 type: string
                 x-go-name: Hostname
@@ -2044,6 +2095,11 @@ definitions:
                 format: date-time
                 type: string
                 x-go-name: LastModified
+            platform_types:
+                items:
+                    $ref: '#/definitions/PlatformType'
+                type: array
+                x-go-name: PlatformTypes
             ssh_key_id:
                 format: uuid
                 type: string
@@ -2056,6 +2112,31 @@ definitions:
                 type: string
                 x-go-name: Username
         title: HostServerResponse represents a host server response.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    HostServerType:
+        properties:
+            id:
+                description: Unique identifier for the host server type
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: ID
+            last_modified:
+                description: Last modification timestamp
+                example: "2024-01-15T10:30:00Z"
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                description: Name of the host server type
+                example: Database Server
+                type: string
+                x-go-name: Name
+        required:
+            - id
+            - name
+            - last_modified
         type: object
         x-go-package: github.com/babbage88/go-infra/services/host_servers
     HostServersResponse:
@@ -2185,6 +2266,31 @@ definitions:
             - latency
         type: object
         x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PlatformType:
+        properties:
+            id:
+                description: Unique identifier for the platform type
+                example: 123e4567-e89b-12d3-a456-426614174001
+                format: uuid
+                type: string
+                x-go-name: ID
+            last_modified:
+                description: Last modification timestamp
+                example: "2024-01-15T10:30:00Z"
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                description: Name of the platform type
+                example: Docker Host
+                type: string
+                x-go-name: Name
+        required:
+            - id
+            - name
+            - last_modified
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     ProbeByHostIdRequest:
         properties:
             port:
@@ -2427,6 +2533,16 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/external_applications
     UpdateHostServerRequest:
         properties:
+            host_server_type_ids:
+                description: Host server type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174000
+                    - 123e4567-e89b-12d3-a456-426614174001
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: HostServerTypeIDs
             hostname:
                 description: Hostname of the server
                 example: server-01.example.com
@@ -2457,6 +2573,16 @@ definitions:
                 example: false
                 type: boolean
                 x-go-name: IsVmHost
+            platform_type_ids:
+                description: Platform type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174002
+                    - 123e4567-e89b-12d3-a456-426614174003
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PlatformTypeIDs
             ssh_key_id:
                 description: SSH key ID for authentication
                 example: 123e4567-e89b-12d3-a456-426614174000
@@ -2717,6 +2843,18 @@ responses:
         schema:
             items:
                 $ref: '#/definitions/ExternalApplicationDao'
+            type: array
+    GetAllHostServerTypesResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/HostServerType'
+            type: array
+    GetAllPlatformTypesResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/PlatformType'
             type: array
     GetAllRolesResponse:
         description: (empty)

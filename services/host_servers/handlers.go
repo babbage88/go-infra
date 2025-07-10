@@ -251,3 +251,71 @@ func DeleteHostServerHandler(provider HostServerProvider) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+// swagger:route GET /host-server-types host-servers GetAllHostServerTypes
+// Get all available host server types.
+// responses:
+//
+//	200: GetAllHostServerTypesResponse
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetAllHostServerTypesHandler(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		hostServerTypes, err := provider.GetAllHostServerTypes(r.Context())
+		if err != nil {
+			slog.Error("Failed to get all host server types", slog.String("error", err.Error()))
+			http.Error(w, "Failed to get all host server types", http.StatusInternalServerError)
+			return
+		}
+
+		respSlice := make([]HostServerType, len(hostServerTypes))
+		for i, hostServerType := range hostServerTypes {
+			respSlice[i] = HostServerType{
+				ID:           hostServerType.ID,
+				Name:         hostServerType.Name,
+				LastModified: hostServerType.LastModified,
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(respSlice); err != nil {
+			slog.Error("Failed to encode response", slog.String("error", err.Error()))
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+// swagger:route GET /platform-types host-servers GetAllPlatformTypes
+// Get all available platform types.
+// responses:
+//
+//	200: GetAllPlatformTypesResponse
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetAllPlatformTypesHandler(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		platformTypes, err := provider.GetAllPlatformTypes(r.Context())
+		if err != nil {
+			slog.Error("Failed to get all platform types", slog.String("error", err.Error()))
+			http.Error(w, "Failed to get all platform types", http.StatusInternalServerError)
+			return
+		}
+
+		respSlice := make([]PlatformType, len(platformTypes))
+		for i, platformType := range platformTypes {
+			respSlice[i] = PlatformType{
+				ID:           platformType.ID,
+				Name:         platformType.Name,
+				LastModified: platformType.LastModified,
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(respSlice); err != nil {
+			slog.Error("Failed to encode response", slog.String("error", err.Error()))
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}
+}

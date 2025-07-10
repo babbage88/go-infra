@@ -180,3 +180,27 @@ type DeleteHostServerRequestWrapper struct {
 	// in: path
 	ID uuid.UUID `json:"ID"`
 }
+
+// swagger:parameters GetAllHostServerTypes
+// @Description Request to get all host server types
+type GetAllHostServerTypesRequestWrapper struct {
+	// No parameters needed for this endpoint
+}
+
+// swagger:response GetAllHostServerTypesResponse
+type GetAllHostServerTypesResponseWrapper struct {
+	// in: body
+	Body []HostServerType `json:"body"`
+}
+
+// swagger:parameters GetAllPlatformTypes
+// @Description Request to get all platform types
+type GetAllPlatformTypesRequestWrapper struct {
+	// No parameters needed for this endpoint
+}
+
+// swagger:response GetAllPlatformTypesResponse
+type GetAllPlatformTypesResponseWrapper struct {
+	// in: body
+	Body []PlatformType `json:"body"`
+}

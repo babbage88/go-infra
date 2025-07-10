@@ -485,3 +485,41 @@ func (p *HostServerProviderImpl) getHostServerTypesAndPlatforms(ctx context.Cont
 
 	return hostServerTypes, platformTypes, nil
 }
+
+// GetAllHostServerTypes retrieves all available host server types
+func (p *HostServerProviderImpl) GetAllHostServerTypes(ctx context.Context) ([]HostServerType, error) {
+	hostServerTypes, err := p.db.GetAllHostServerTypes(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all host server types: %w", err)
+	}
+
+	result := make([]HostServerType, 0, len(hostServerTypes))
+	for _, hostServerType := range hostServerTypes {
+		result = append(result, HostServerType{
+			ID:           hostServerType.HostServerTypeID,
+			Name:         hostServerType.Name,
+			LastModified: hostServerType.LastModified.Time,
+		})
+	}
+
+	return result, nil
+}
+
+// GetAllPlatformTypes retrieves all available platform types
+func (p *HostServerProviderImpl) GetAllPlatformTypes(ctx context.Context) ([]PlatformType, error) {
+	platformTypes, err := p.db.GetAllPlatformTypes(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all platform types: %w", err)
+	}
+
+	result := make([]PlatformType, 0, len(platformTypes))
+	for _, platformType := range platformTypes {
+		result = append(result, PlatformType{
+			ID:           platformType.PlatformTypeID,
+			Name:         platformType.Name,
+			LastModified: platformType.LastModified.Time,
+		})
+	}
+
+	return result, nil
+}
