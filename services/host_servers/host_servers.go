@@ -83,6 +83,59 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 		}
 	}
 
+	// Create host server type mappings if provided
+	if len(req.HostServerTypeIDs) > 0 {
+		for _, typeID := range req.HostServerTypeIDs {
+			_, err = p.db.CreateHostServerTypeMapping(ctx, infra_db_pg.CreateHostServerTypeMappingParams{
+				HostServerID:     server.ID,
+				HostServerTypeID: typeID,
+			})
+			if err != nil {
+				// Clean up the host server if mapping fails
+				_ = p.db.DeleteHostServer(ctx, server.ID)
+				return nil, fmt.Errorf("failed to create host server type mapping: %w", err)
+			}
+		}
+	}
+
+	// Create platform type mappings if provided
+	if len(req.PlatformTypeIDs) > 0 {
+		for _, platformID := range req.PlatformTypeIDs {
+			// For platform types, we need to associate with a host server type
+			// For now, we'll use the first host server type or create a default mapping
+			var hostServerTypeID uuid.UUID
+			if len(req.HostServerTypeIDs) > 0 {
+				hostServerTypeID = req.HostServerTypeIDs[0]
+			} else {
+				// Get a default host server type (e.g., "Application Server")
+				hostServerType, err := p.db.GetHostServerTypeByName(ctx, "Application Server")
+				if err != nil {
+					// Clean up the host server if we can't get default type
+					_ = p.db.DeleteHostServer(ctx, server.ID)
+					return nil, fmt.Errorf("failed to get default host server type: %w", err)
+				}
+				hostServerTypeID = hostServerType.HostServerTypeID
+			}
+
+			_, err = p.db.CreatePlatformTypeMapping(ctx, infra_db_pg.CreatePlatformTypeMappingParams{
+				PlatformTypeID:   platformID,
+				HostServerID:     server.ID,
+				HostServerTypeID: hostServerTypeID,
+			})
+			if err != nil {
+				// Clean up the host server if mapping fails
+				_ = p.db.DeleteHostServer(ctx, server.ID)
+				return nil, fmt.Errorf("failed to create platform type mapping: %w", err)
+			}
+		}
+	}
+
+	// Get host server types and platform types
+	hostServerTypes, platformTypes, err := p.getHostServerTypesAndPlatforms(ctx, server.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host server types and platforms: %w", err)
+	}
+
 	return &HostServer{
 		ID:                   server.ID,
 		Hostname:             server.Hostname,
@@ -94,6 +147,8 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 		IsVmHost:             server.IsVmHost.Bool,
 		IsVirtualMachine:     server.IsVirtualMachine.Bool,
 		IsDbHost:             server.IDDbHost.Bool,
+		HostServerTypes:      hostServerTypes,
+		PlatformTypes:        platformTypes,
 		CreatedAt:            server.CreatedAt.Time,
 		LastModified:         server.LastModified.Time,
 	}, nil
@@ -120,6 +175,12 @@ func (p *HostServerProviderImpl) GetHostServer(ctx context.Context, id uuid.UUID
 		}
 	}
 
+	// Get host server types and platform types
+	hostServerTypes, platformTypes, err := p.getHostServerTypesAndPlatforms(ctx, server.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host server types and platforms: %w", err)
+	}
+
 	return &HostServer{
 		ID:                   server.ID,
 		Hostname:             server.Hostname,
@@ -131,6 +192,8 @@ func (p *HostServerProviderImpl) GetHostServer(ctx context.Context, id uuid.UUID
 		IsVmHost:             server.IsVmHost.Bool,
 		IsVirtualMachine:     server.IsVirtualMachine.Bool,
 		IsDbHost:             server.IDDbHost.Bool,
+		HostServerTypes:      hostServerTypes,
+		PlatformTypes:        platformTypes,
 		CreatedAt:            server.CreatedAt.Time,
 		LastModified:         server.LastModified.Time,
 	}, nil
@@ -386,4 +449,39 @@ func (p *HostServerProviderImpl) DeleteHostServer(ctx context.Context, id uuid.U
 		return fmt.Errorf("failed to delete host server: %w", err)
 	}
 	return nil
+}
+
+// getHostServerTypesAndPlatforms retrieves host server types and platform types for a given host server
+func (p *HostServerProviderImpl) getHostServerTypesAndPlatforms(ctx context.Context, hostServerID uuid.UUID) ([]HostServerType, []PlatformType, error) {
+	// Get host server types
+	hostServerTypeMappings, err := p.db.GetHostServerTypeMappingsByHostId(ctx, hostServerID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get host server type mappings: %w", err)
+	}
+
+	hostServerTypes := make([]HostServerType, 0, len(hostServerTypeMappings))
+	for _, mapping := range hostServerTypeMappings {
+		hostServerTypes = append(hostServerTypes, HostServerType{
+			ID:           mapping.HostServerTypeID,
+			Name:         mapping.HostServerTypeName,
+			LastModified: mapping.LastModified.Time,
+		})
+	}
+
+	// Get platform types
+	platformTypeMappings, err := p.db.GetPlatformTypeMappingsByHostId(ctx, hostServerID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get platform type mappings: %w", err)
+	}
+
+	platformTypes := make([]PlatformType, 0, len(platformTypeMappings))
+	for _, mapping := range platformTypeMappings {
+		platformTypes = append(platformTypes, PlatformType{
+			ID:           mapping.PlatformTypeID,
+			Name:         mapping.PlatformTypeName,
+			LastModified: mapping.LastModified.Time,
+		})
+	}
+
+	return hostServerTypes, platformTypes, nil
 }

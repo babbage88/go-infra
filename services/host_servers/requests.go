@@ -60,6 +60,16 @@ type CreateHostServerRequest struct {
 	// required: false
 	// example: false
 	IsDbHost bool `json:"is_db_host"`
+
+	// Host server type IDs that this server supports
+	// required: false
+	// example: ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"]
+	HostServerTypeIDs []uuid.UUID `json:"host_server_type_ids,omitempty"`
+
+	// Platform type IDs that this server supports
+	// required: false
+	// example: ["123e4567-e89b-12d3-a456-426614174002", "123e4567-e89b-12d3-a456-426614174003"]
+	PlatformTypeIDs []uuid.UUID `json:"platform_type_ids,omitempty"`
 }
 
 // swagger:parameters UpdateHostServer
@@ -117,23 +127,35 @@ type UpdateHostServerRequest struct {
 	// required: false
 	// example: false
 	IsDbHost *bool `json:"is_db_host,omitempty"`
+
+	// Host server type IDs that this server supports
+	// required: false
+	// example: ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"]
+	HostServerTypeIDs []uuid.UUID `json:"host_server_type_ids,omitempty"`
+
+	// Platform type IDs that this server supports
+	// required: false
+	// example: ["123e4567-e89b-12d3-a456-426614174002", "123e4567-e89b-12d3-a456-426614174003"]
+	PlatformTypeIDs []uuid.UUID `json:"platform_type_ids,omitempty"`
 }
 
 // HostServerResponse represents a host server response.
 // swagger:model
 type HostServerResponse struct {
-	ID                  uuid.UUID  `json:"id"`
-	Hostname            string     `json:"hostname"`
-	IPAddress           netip.Addr `json:"ip_address"`
-	Username            *string    `json:"username,omitempty"`
-	SSHKeyID            *uuid.UUID `json:"ssh_key_id,omitempty"`
-	SudoPasswordTokenID *uuid.UUID `json:"sudo_password_token_id,omitempty"`
-	IsContainerHost     bool       `json:"is_container_host"`
-	IsVmHost            bool       `json:"is_vm_host"`
-	IsVirtualMachine    bool       `json:"is_virtual_machine"`
-	IsDbHost            bool       `json:"is_db_host"`
-	CreatedAt           time.Time  `json:"created_at"`
-	LastModified        time.Time  `json:"last_modified"`
+	ID                  uuid.UUID        `json:"id"`
+	Hostname            string           `json:"hostname"`
+	IPAddress           netip.Addr       `json:"ip_address"`
+	Username            *string          `json:"username,omitempty"`
+	SSHKeyID            *uuid.UUID       `json:"ssh_key_id,omitempty"`
+	SudoPasswordTokenID *uuid.UUID       `json:"sudo_password_token_id,omitempty"`
+	IsContainerHost     bool             `json:"is_container_host"`
+	IsVmHost            bool             `json:"is_vm_host"`
+	IsVirtualMachine    bool             `json:"is_virtual_machine"`
+	IsDbHost            bool             `json:"is_db_host"`
+	HostServerTypes     []HostServerType `json:"host_server_types,omitempty"`
+	PlatformTypes       []PlatformType   `json:"platform_types,omitempty"`
+	CreatedAt           time.Time        `json:"created_at"`
+	LastModified        time.Time        `json:"last_modified"`
 }
 
 // swagger:model HostServersResponse

@@ -718,3 +718,167 @@ UPDATE ssh_sessions SET last_activity = $2 WHERE id = $1;
 
 -- name: MarkSSHSessionInactive :exec
 UPDATE ssh_sessions SET is_active = false WHERE id = $1;
+
+-- Host Server Types CRUD Operations
+-- name: CreateHostServerType :one
+INSERT INTO public.host_server_types (name) VALUES ($1)
+ON CONFLICT (name) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING host_server_type_id, name, last_modified;
+
+-- name: GetHostServerTypeById :one
+SELECT host_server_type_id, name, last_modified
+FROM public.host_server_types
+WHERE host_server_type_id = $1;
+
+-- name: GetHostServerTypeByName :one
+SELECT host_server_type_id, name, last_modified
+FROM public.host_server_types
+WHERE name = $1;
+
+-- name: GetAllHostServerTypes :many
+SELECT host_server_type_id, name, last_modified
+FROM public.host_server_types
+ORDER BY name;
+
+-- name: UpdateHostServerType :one
+UPDATE public.host_server_types
+SET name = $2, last_modified = CURRENT_TIMESTAMP
+WHERE host_server_type_id = $1
+RETURNING host_server_type_id, name, last_modified;
+
+-- name: DeleteHostServerType :exec
+DELETE FROM public.host_server_types
+WHERE host_server_type_id = $1;
+
+-- Platform Types CRUD Operations
+-- name: CreatePlatformType :one
+INSERT INTO public.platform_types (name) VALUES ($1)
+ON CONFLICT (name) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING platform_type_id, name, last_modified;
+
+-- name: GetPlatformTypeById :one
+SELECT platform_type_id, name, last_modified
+FROM public.platform_types
+WHERE platform_type_id = $1;
+
+-- name: GetPlatformTypeByName :one
+SELECT platform_type_id, name, last_modified
+FROM public.platform_types
+WHERE name = $1;
+
+-- name: GetAllPlatformTypes :many
+SELECT platform_type_id, name, last_modified
+FROM public.platform_types
+ORDER BY name;
+
+-- name: UpdatePlatformType :one
+UPDATE public.platform_types
+SET name = $2, last_modified = CURRENT_TIMESTAMP
+WHERE platform_type_id = $1
+RETURNING platform_type_id, name, last_modified;
+
+-- name: DeletePlatformType :exec
+DELETE FROM public.platform_types
+WHERE platform_type_id = $1;
+
+-- Host Server Type Mappings CRUD Operations
+-- name: CreateHostServerTypeMapping :one
+INSERT INTO public.host_server_type_mappings (host_server_id, host_server_type_id)
+VALUES ($1, $2)
+ON CONFLICT (host_server_id, host_server_type_id) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING id, host_server_id, host_server_type_id, created_at, last_modified;
+
+-- name: GetHostServerTypeMappingsByHostId :many
+SELECT 
+    hstm.id,
+    hstm.host_server_id,
+    hstm.host_server_type_id,
+    hst.name as host_server_type_name,
+    hstm.created_at,
+    hstm.last_modified
+FROM public.host_server_type_mappings hstm
+JOIN public.host_server_types hst ON hstm.host_server_type_id = hst.host_server_type_id
+WHERE hstm.host_server_id = $1;
+
+-- name: GetHostServerTypeMappingsByTypeId :many
+SELECT 
+    hstm.id,
+    hstm.host_server_id,
+    hstm.host_server_type_id,
+    hs.hostname,
+    hs.ip_address,
+    hstm.created_at,
+    hstm.last_modified
+FROM public.host_server_type_mappings hstm
+JOIN public.host_servers hs ON hstm.host_server_id = hs.id
+WHERE hstm.host_server_type_id = $1;
+
+-- name: DeleteHostServerTypeMapping :exec
+DELETE FROM public.host_server_type_mappings
+WHERE id = $1;
+
+-- name: DeleteHostServerTypeMappingsByHostId :exec
+DELETE FROM public.host_server_type_mappings
+WHERE host_server_id = $1;
+
+-- Platform Type Mappings CRUD Operations
+-- name: CreatePlatformTypeMapping :one
+INSERT INTO public.platform_type_mappings (platform_type_id, host_server_id, host_server_type_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (platform_type_id, host_server_id, host_server_type_id) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING id, platform_type_id, host_server_id, host_server_type_id, created_at, last_modified;
+
+-- name: GetPlatformTypeMappingsByHostId :many
+SELECT 
+    ptm.id,
+    ptm.platform_type_id,
+    ptm.host_server_id,
+    ptm.host_server_type_id,
+    pt.name as platform_type_name,
+    hst.name as host_server_type_name,
+    ptm.created_at,
+    ptm.last_modified
+FROM public.platform_type_mappings ptm
+JOIN public.platform_types pt ON ptm.platform_type_id = pt.platform_type_id
+JOIN public.host_server_types hst ON ptm.host_server_type_id = hst.host_server_type_id
+WHERE ptm.host_server_id = $1;
+
+-- name: GetPlatformTypeMappingsByPlatformId :many
+SELECT 
+    ptm.id,
+    ptm.platform_type_id,
+    ptm.host_server_id,
+    ptm.host_server_type_id,
+    hs.hostname,
+    hs.ip_address,
+    hst.name as host_server_type_name,
+    ptm.created_at,
+    ptm.last_modified
+FROM public.platform_type_mappings ptm
+JOIN public.host_servers hs ON ptm.host_server_id = hs.id
+JOIN public.host_server_types hst ON ptm.host_server_type_id = hst.host_server_type_id
+WHERE ptm.platform_type_id = $1;
+
+-- name: GetPlatformTypeMappingsByHostServerTypeId :many
+SELECT 
+    ptm.id,
+    ptm.platform_type_id,
+    ptm.host_server_id,
+    ptm.host_server_type_id,
+    pt.name as platform_type_name,
+    hs.hostname,
+    hs.ip_address,
+    ptm.created_at,
+    ptm.last_modified
+FROM public.platform_type_mappings ptm
+JOIN public.platform_types pt ON ptm.platform_type_id = pt.platform_type_id
+JOIN public.host_servers hs ON ptm.host_server_id = hs.id
+WHERE ptm.host_server_type_id = $1;
+
+-- name: DeletePlatformTypeMapping :exec
+DELETE FROM public.platform_type_mappings
+WHERE id = $1;
+
+-- name: DeletePlatformTypeMappingsByHostId :exec
+DELETE FROM public.platform_type_mappings
+WHERE host_server_id = $1;

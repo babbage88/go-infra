@@ -69,7 +69,6 @@ type HostServer struct {
 	IDDbHost         pgtype.Bool
 	CreatedAt        pgtype.Timestamptz
 	LastModified     pgtype.Timestamptz
-	Username         pgtype.Text
 }
 
 type HostServerSshMapping struct {
@@ -83,10 +82,39 @@ type HostServerSshMapping struct {
 	HostserverUsername  string
 }
 
+type HostServerType struct {
+	HostServerTypeID uuid.UUID
+	Name             string
+	LastModified     pgtype.Timestamptz
+}
+
+type HostServerTypeMapping struct {
+	ID               uuid.UUID
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
 type HostedDbPlatform struct {
 	ID                int32
 	PlatformName      string
 	DefaultListenPort pgtype.Int4
+}
+
+type PlatformType struct {
+	PlatformTypeID uuid.UUID
+	Name           string
+	LastModified   pgtype.Timestamptz
+}
+
+type PlatformTypeMapping struct {
+	ID               uuid.UUID
+	PlatformTypeID   uuid.UUID
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
 }
 
 type RolePermissionMapping struct {

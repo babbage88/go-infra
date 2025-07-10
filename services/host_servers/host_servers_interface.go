@@ -10,18 +10,34 @@ import (
 
 // HostServer represents a server that can host containers, VMs, or databases
 type HostServer struct {
-	ID                   uuid.UUID  `json:"id"`
-	Hostname             string     `json:"hostname"`
-	IPAddress            netip.Addr `json:"ip_address"`
-	Username             *string    `json:"username,omitempty"`
-	SSHKeyID             *uuid.UUID `json:"ssh_key_id,omitempty"`
-	SudoPasswordSecretID *uuid.UUID `json:"sudo_password_secret_id,omitempty"`
-	IsContainerHost      bool       `json:"is_container_host"`
-	IsVmHost             bool       `json:"is_vm_host"`
-	IsVirtualMachine     bool       `json:"is_virtual_machine"`
-	IsDbHost             bool       `json:"is_db_host"`
-	CreatedAt            time.Time  `json:"created_at"`
-	LastModified         time.Time  `json:"last_modified"`
+	ID                   uuid.UUID        `json:"id"`
+	Hostname             string           `json:"hostname"`
+	IPAddress            netip.Addr       `json:"ip_address"`
+	Username             *string          `json:"username,omitempty"`
+	SSHKeyID             *uuid.UUID       `json:"ssh_key_id,omitempty"`
+	SudoPasswordSecretID *uuid.UUID       `json:"sudo_password_secret_id,omitempty"`
+	IsContainerHost      bool             `json:"is_container_host"`
+	IsVmHost             bool             `json:"is_vm_host"`
+	IsVirtualMachine     bool             `json:"is_virtual_machine"`
+	IsDbHost             bool             `json:"is_db_host"`
+	HostServerTypes      []HostServerType `json:"host_server_types,omitempty"`
+	PlatformTypes        []PlatformType   `json:"platform_types,omitempty"`
+	CreatedAt            time.Time        `json:"created_at"`
+	LastModified         time.Time        `json:"last_modified"`
+}
+
+// HostServerType represents a type/category of host server
+type HostServerType struct {
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	LastModified time.Time `json:"last_modified"`
+}
+
+// PlatformType represents a specific platform or service running on a host server
+type PlatformType struct {
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	LastModified time.Time `json:"last_modified"`
 }
 
 // HostServerProvider defines the interface for host server operations
