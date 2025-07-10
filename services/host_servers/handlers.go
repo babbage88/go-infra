@@ -319,3 +319,63 @@ func GetAllPlatformTypesHandler(provider HostServerProvider) http.HandlerFunc {
 		}
 	}
 }
+
+// swagger:route POST /host-server-type-mappings host-servers CreateHostServerTypeMapping
+// Create a mapping between a host server and a host server type.
+// responses:
+//
+//	200: CreateHostServerTypeMappingResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreateHostServerTypeMappingHandler(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req CreateHostServerTypeMappingRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		if req.HostServerId == uuid.Nil || req.HostServerTypeId == uuid.Nil {
+			http.Error(w, "hostServerId and hostServerTypeId are required", http.StatusBadRequest)
+			return
+		}
+		if err := provider.CreateHostServerTypeMapping(r.Context(), req.HostServerId, req.HostServerTypeId); err != nil {
+			http.Error(w, "Failed to create mapping: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(struct {
+			Success bool `json:"success"`
+		}{Success: true})
+	}
+}
+
+// swagger:route POST /platform-type-mappings host-servers CreatePlatformTypeMapping
+// Create a mapping between a host server, platform type, and host server type.
+// responses:
+//
+//	200: CreatePlatformTypeMappingResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreatePlatformTypeMappingHandler(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req CreatePlatformTypeMappingRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		if req.HostServerId == uuid.Nil || req.PlatformTypeId == uuid.Nil || req.HostServerTypeId == uuid.Nil {
+			http.Error(w, "hostServerId, platformTypeId, and hostServerTypeId are required", http.StatusBadRequest)
+			return
+		}
+		if err := provider.CreatePlatformTypeMapping(r.Context(), req.HostServerId, req.PlatformTypeId, req.HostServerTypeId); err != nil {
+			http.Error(w, "Failed to create mapping: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(struct {
+			Success bool `json:"success"`
+		}{Success: true})
+	}
+}

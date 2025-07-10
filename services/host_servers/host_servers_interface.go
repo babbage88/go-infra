@@ -92,4 +92,10 @@ type HostServerProvider interface {
 
 	// GetAllPlatformTypes retrieves all available platform types
 	GetAllPlatformTypes(ctx context.Context) ([]PlatformType, error)
+
+	// CreateHostServerTypeMapping creates a mapping between a host server and a host server type
+	CreateHostServerTypeMapping(ctx context.Context, hostServerID, hostServerTypeID uuid.UUID) error
+
+	// CreatePlatformTypeMapping creates a mapping between a host server, platform type, and host server type
+	CreatePlatformTypeMapping(ctx context.Context, hostServerID, platformTypeID, hostServerTypeID uuid.UUID) error
 }

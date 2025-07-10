@@ -81,6 +81,8 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	// Host server types and platform types routes
 	mux.Handle("/host-server-types", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServerTypesHandler(hostServerProvider))))
 	mux.Handle("/platform-types", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllPlatformTypesHandler(hostServerProvider))))
+	mux.Handle("/host-server-type-mappings", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreateHostServerTypeMappingHandler(hostServerProvider))))
+	mux.Handle("/platform-type-mappings", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreatePlatformTypeMappingHandler(hostServerProvider))))
 
 	// SSH key routes
 	mux.Handle("/ssh-keys/create", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageSshKeys", ssh_key_provider.CreateSshKeyHandler(sshKeyProvider))))

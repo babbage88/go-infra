@@ -204,3 +204,56 @@ type GetAllPlatformTypesResponseWrapper struct {
 	// in: body
 	Body []PlatformType `json:"body"`
 }
+
+// swagger:parameters CreateHostServerTypeMapping
+// @Description Request to create a host server type mapping
+type CreateHostServerTypeMappingRequestWrapper struct {
+	// in:body
+	Body CreateHostServerTypeMappingRequest `json:"body"`
+}
+
+// swagger:model CreateHostServerTypeMappingRequest
+type CreateHostServerTypeMappingRequest struct {
+	// Host server ID
+	// required: true
+	HostServerId uuid.UUID `json:"hostServerId"`
+	// Host server type ID
+	// required: true
+	HostServerTypeId uuid.UUID `json:"hostServerTypeId"`
+}
+
+// swagger:response CreateHostServerTypeMappingResponse
+type CreateHostServerTypeMappingResponseWrapper struct {
+	// in:body
+	Body struct {
+		Success bool `json:"success"`
+	} `json:"body"`
+}
+
+// swagger:parameters CreatePlatformTypeMapping
+// @Description Request to create a platform type mapping
+type CreatePlatformTypeMappingRequestWrapper struct {
+	// in:body
+	Body CreatePlatformTypeMappingRequest `json:"body"`
+}
+
+// swagger:model CreatePlatformTypeMappingRequest
+type CreatePlatformTypeMappingRequest struct {
+	// Host server ID
+	// required: true
+	HostServerId uuid.UUID `json:"hostServerId"`
+	// Platform type ID
+	// required: true
+	PlatformTypeId uuid.UUID `json:"platformTypeId"`
+	// Host server type ID
+	// required: true
+	HostServerTypeId uuid.UUID `json:"hostServerTypeId"`
+}
+
+// swagger:response CreatePlatformTypeMappingResponse
+type CreatePlatformTypeMappingResponseWrapper struct {
+	// in:body
+	Body struct {
+		Success bool `json:"success"`
+	} `json:"body"`
+}

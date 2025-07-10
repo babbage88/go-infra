@@ -451,6 +451,25 @@ func (p *HostServerProviderImpl) DeleteHostServer(ctx context.Context, id uuid.U
 	return nil
 }
 
+// CreateHostServerTypeMapping creates a mapping between a host server and a host server type
+func (p *HostServerProviderImpl) CreateHostServerTypeMapping(ctx context.Context, hostServerID, hostServerTypeID uuid.UUID) error {
+	_, err := p.db.CreateHostServerTypeMapping(ctx, infra_db_pg.CreateHostServerTypeMappingParams{
+		HostServerID:     hostServerID,
+		HostServerTypeID: hostServerTypeID,
+	})
+	return err
+}
+
+// CreatePlatformTypeMapping creates a mapping between a host server, platform type, and host server type
+func (p *HostServerProviderImpl) CreatePlatformTypeMapping(ctx context.Context, hostServerID, platformTypeID, hostServerTypeID uuid.UUID) error {
+	_, err := p.db.CreatePlatformTypeMapping(ctx, infra_db_pg.CreatePlatformTypeMappingParams{
+		HostServerID:     hostServerID,
+		PlatformTypeID:   platformTypeID,
+		HostServerTypeID: hostServerTypeID,
+	})
+	return err
+}
+
 // getHostServerTypesAndPlatforms retrieves host server types and platform types for a given host server
 func (p *HostServerProviderImpl) getHostServerTypesAndPlatforms(ctx context.Context, hostServerID uuid.UUID) ([]HostServerType, []PlatformType, error) {
 	// Get host server types

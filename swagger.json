@@ -459,6 +459,39 @@
         }
       }
     },
+    "/host-server-type-mappings": {
+      "post": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Create a mapping between a host server and a host server type.",
+        "operationId": "CreateHostServerTypeMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateHostServerTypeMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateHostServerTypeMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/host-server-types": {
       "get": {
         "tags": [
@@ -1011,6 +1044,39 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/platform-type-mappings": {
+      "post": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Create a mapping between a host server, platform type, and host server type.",
+        "operationId": "CreatePlatformTypeMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreatePlatformTypeMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreatePlatformTypeMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error"
@@ -2534,6 +2600,28 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
+    "CreateHostServerTypeMappingRequest": {
+      "type": "object",
+      "required": [
+        "hostServerId",
+        "hostServerTypeId"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "Host server ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerId"
+        },
+        "hostServerTypeId": {
+          "description": "Host server type ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerTypeId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
     "CreateNewUserRequest": {
       "type": "object",
       "properties": {
@@ -2551,6 +2639,35 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "CreatePlatformTypeMappingRequest": {
+      "type": "object",
+      "required": [
+        "hostServerId",
+        "platformTypeId",
+        "hostServerTypeId"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "Host server ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerId"
+        },
+        "hostServerTypeId": {
+          "description": "Host server type ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerTypeId"
+        },
+        "platformTypeId": {
+          "description": "Platform type ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PlatformTypeId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
     "CreateRolePermissionMappingRequest": {
       "type": "object",
@@ -4035,6 +4152,30 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "CreateHostServerTypeMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "x-go-name": "Success"
+          }
+        }
+      }
+    },
+    "CreatePlatformTypeMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "x-go-name": "Success"
+          }
+        }
       }
     },
     "CreateRolePermissionMapptingResponse": {
