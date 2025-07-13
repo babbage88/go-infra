@@ -1,0 +1,10 @@
+- hosts: devboxes
+  become: true
+  vars_files:
+    - vars/common_vars.yml
+  tasks:
+    - name: Include ensure_logs_path tasks
+      include_role:
+        name: debugging
+        tasks_from: main
+

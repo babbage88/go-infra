@@ -1,24 +1,22 @@
-- name: Perform package upgrades using ansible.builtin.package
-  ansible.builtin.package:
-    name: "*"
-    state: latest
-  when: ansible_os_family != "Archlinux"
 - name: Get list of upgradable packages (Debian)
   shell: apt list --upgradable 2>/dev/null | tail -n +2
   when: ansible_os_family == "Debian"
   register: upgradable_debian
   changed_when: false
+
 - name: Get list of upgradable packages (RedHat)
   shell: yum check-update || true
   when: ansible_os_family == "RedHat"
   register: upgradable_redhat
   changed_when: false
+
 - name: Capture current Arch packages to JSON
   when: ansible_os_family == "Archlinux"
   ansible.builtin.shell: |
     expac -Q '{"name":"%n","version":"%v"}' | jq -s '.' > /tmp/current-{{ inventory_hostname }}.json
   args:
     creates: /tmp/current-{{ inventory_hostname }}.json
+
 - name: Print packages that will be updated (Debian)
   debug:
     msg: |
@@ -26,6 +24,7 @@
       Upgradable packages:
       {{ upgradable_debian.stdout_lines | default(['(none)']) }}
   when: ansible_os_family == "Debian"
+
 - name: Print packages that will be updated (RedHat)
   debug:
     msg: |
@@ -33,10 +32,24 @@
       Upgradable packages:
       {{ upgradable_redhat.stdout_lines | default(['(none)']) }}
   when: ansible_os_family == "RedHat"
+
+- name: Print Debugging Info
+  debug:
+    msg: |
+      === {{ inventory_hostname }} ===
+       ansible_os_family: {{ ansible_os_family }}
+       ansible_distribution: {{ ansible_distribution }}
+  #when: 
+  #  - ansible_os_family != "RedHat"
+  #  - ansible_os_family != "Debian"
+  #  - inventory_hostname != "minio1"
+
 - name: Perform package upgrades using ansible.builtin.package
   ansible.builtin.package:
     name: "*"
     state: latest
+  when: ansible_os_family != "Archlinux"
+
 - name: Ensure expac is installed
   when: ansible_os_family == "Archlinux"
   community.general.pacman:
