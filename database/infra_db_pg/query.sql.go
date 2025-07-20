@@ -48,51 +48,28 @@ func (q *Queries) CreateExternalApplication(ctx context.Context, arg CreateExter
 const createHostServer = `-- name: CreateHostServer :one
 INSERT INTO public.host_servers (
     hostname,
-    ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host
+    ip_address
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2
 )
 ON CONFLICT (hostname, ip_address) DO UPDATE SET
-    is_container_host = EXCLUDED.is_container_host,
-    is_vm_host = EXCLUDED.is_vm_host,
-    is_virtual_machine = EXCLUDED.is_virtual_machine,
-    id_db_host = EXCLUDED.id_db_host,
     last_modified = CURRENT_TIMESTAMP
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+RETURNING id, hostname, ip_address, created_at, last_modified
 `
 
 type CreateHostServerParams struct {
-	Hostname         string
-	IpAddress        netip.Addr
-	IsContainerHost  pgtype.Bool
-	IsVmHost         pgtype.Bool
-	IsVirtualMachine pgtype.Bool
-	IDDbHost         pgtype.Bool
+	Hostname  string
+	IpAddress netip.Addr
 }
 
 // Host Servers CRUD Operations
 func (q *Queries) CreateHostServer(ctx context.Context, arg CreateHostServerParams) (HostServer, error) {
-	row := q.db.QueryRow(ctx, createHostServer,
-		arg.Hostname,
-		arg.IpAddress,
-		arg.IsContainerHost,
-		arg.IsVmHost,
-		arg.IsVirtualMachine,
-		arg.IDDbHost,
-	)
+	row := q.db.QueryRow(ctx, createHostServer, arg.Hostname, arg.IpAddress)
 	var i HostServer
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,
 		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -806,10 +783,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -828,10 +801,6 @@ func (q *Queries) GetAllHostServers(ctx context.Context) ([]HostServer, error) {
 			&i.ID,
 			&i.Hostname,
 			&i.IpAddress,
-			&i.IsContainerHost,
-			&i.IsVmHost,
-			&i.IsVirtualMachine,
-			&i.IDDbHost,
 			&i.CreatedAt,
 			&i.LastModified,
 		); err != nil {
@@ -1147,10 +1116,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -1164,10 +1129,6 @@ func (q *Queries) GetHostServerByHostname(ctx context.Context, hostname string) 
 		&i.ID,
 		&i.Hostname,
 		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -1179,10 +1140,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -1196,10 +1153,6 @@ func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress netip.Addr) (
 		&i.ID,
 		&i.Hostname,
 		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -1211,10 +1164,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -1229,10 +1178,6 @@ func (q *Queries) GetHostServerById(ctx context.Context, id uuid.UUID) (HostServ
 		&i.ID,
 		&i.Hostname,
 		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -2727,44 +2672,24 @@ UPDATE public.host_servers
 SET 
     hostname = COALESCE($2, hostname),
     ip_address = COALESCE($3, ip_address),
-    is_container_host = COALESCE($4, is_container_host),
-    is_vm_host = COALESCE($5, is_vm_host),
-    is_virtual_machine = COALESCE($6, is_virtual_machine),
-    id_db_host = COALESCE($7, id_db_host),
     last_modified = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
+RETURNING id, hostname, ip_address, created_at, last_modified
 `
 
 type UpdateHostServerParams struct {
-	ID               uuid.UUID
-	Hostname         string
-	IpAddress        netip.Addr
-	IsContainerHost  pgtype.Bool
-	IsVmHost         pgtype.Bool
-	IsVirtualMachine pgtype.Bool
-	IDDbHost         pgtype.Bool
+	ID        uuid.UUID
+	Hostname  string
+	IpAddress netip.Addr
 }
 
 func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (HostServer, error) {
-	row := q.db.QueryRow(ctx, updateHostServer,
-		arg.ID,
-		arg.Hostname,
-		arg.IpAddress,
-		arg.IsContainerHost,
-		arg.IsVmHost,
-		arg.IsVirtualMachine,
-		arg.IDDbHost,
-	)
+	row := q.db.QueryRow(ctx, updateHostServer, arg.ID, arg.Hostname, arg.IpAddress)
 	var i HostServer
 	err := row.Scan(
 		&i.ID,
 		&i.Hostname,
 		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
 		&i.CreatedAt,
 		&i.LastModified,
 	)

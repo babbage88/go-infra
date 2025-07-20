@@ -570,10 +570,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -584,10 +580,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -598,10 +590,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers
@@ -612,10 +600,6 @@ SELECT
     id,
     hostname,
     ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host,
     created_at,
     last_modified
 FROM public.host_servers;
@@ -625,13 +609,9 @@ UPDATE public.host_servers
 SET 
     hostname = COALESCE($2, hostname),
     ip_address = COALESCE($3, ip_address),
-    is_container_host = COALESCE($4, is_container_host),
-    is_vm_host = COALESCE($5, is_vm_host),
-    is_virtual_machine = COALESCE($6, is_virtual_machine),
-    id_db_host = COALESCE($7, id_db_host),
     last_modified = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
+RETURNING id, hostname, ip_address, created_at, last_modified;
 
 -- name: DeleteHostServer :exec
 DELETE FROM public.host_servers
@@ -681,21 +661,13 @@ WHERE name = $1;
 -- name: CreateHostServer :one
 INSERT INTO public.host_servers (
     hostname,
-    ip_address,
-    is_container_host,
-    is_vm_host,
-    is_virtual_machine,
-    id_db_host
+    ip_address
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2
 )
 ON CONFLICT (hostname, ip_address) DO UPDATE SET
-    is_container_host = EXCLUDED.is_container_host,
-    is_vm_host = EXCLUDED.is_vm_host,
-    is_virtual_machine = EXCLUDED.is_virtual_machine,
-    id_db_host = EXCLUDED.id_db_host,
     last_modified = CURRENT_TIMESTAMP
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified;
+RETURNING id, hostname, ip_address, created_at, last_modified;
 
 -- name: CreateSSHSession :exec
 INSERT INTO ssh_sessions (id, user_id, host_server_id, username, created_at, last_activity, is_active)

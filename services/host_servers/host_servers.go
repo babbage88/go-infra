@@ -39,12 +39,8 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 	}
 
 	params := infra_db_pg.CreateHostServerParams{
-		Hostname:         req.Hostname,
-		IpAddress:        req.IPAddress,
-		IsContainerHost:  pgtype.Bool{Bool: req.IsContainerHost, Valid: true},
-		IsVmHost:         pgtype.Bool{Bool: req.IsVmHost, Valid: true},
-		IsVirtualMachine: pgtype.Bool{Bool: req.IsVirtualMachine, Valid: true},
-		IDDbHost:         pgtype.Bool{Bool: req.IsDbHost, Valid: true},
+		Hostname:  req.Hostname,
+		IpAddress: req.IPAddress,
 	}
 
 	server, err := p.db.CreateHostServer(ctx, params)
@@ -143,10 +139,6 @@ func (p *HostServerProviderImpl) CreateHostServer(ctx context.Context, req Creat
 		Username:             req.Username,
 		SSHKeyID:             req.SSHKeyID,
 		SudoPasswordSecretID: req.SudoPasswordTokenID,
-		IsContainerHost:      server.IsContainerHost.Bool,
-		IsVmHost:             server.IsVmHost.Bool,
-		IsVirtualMachine:     server.IsVirtualMachine.Bool,
-		IsDbHost:             server.IDDbHost.Bool,
 		HostServerTypes:      hostServerTypes,
 		PlatformTypes:        platformTypes,
 		CreatedAt:            server.CreatedAt.Time,
@@ -188,10 +180,6 @@ func (p *HostServerProviderImpl) GetHostServer(ctx context.Context, id uuid.UUID
 		Username:             username,
 		SSHKeyID:             sshKeyID,
 		SudoPasswordSecretID: sudoPasswordTokenID,
-		IsContainerHost:      server.IsContainerHost.Bool,
-		IsVmHost:             server.IsVmHost.Bool,
-		IsVirtualMachine:     server.IsVirtualMachine.Bool,
-		IsDbHost:             server.IDDbHost.Bool,
 		HostServerTypes:      hostServerTypes,
 		PlatformTypes:        platformTypes,
 		CreatedAt:            server.CreatedAt.Time,
@@ -227,10 +215,6 @@ func (p *HostServerProviderImpl) GetHostServerByHostname(ctx context.Context, ho
 		Username:             username,
 		SSHKeyID:             sshKeyID,
 		SudoPasswordSecretID: sudoPasswordTokenID,
-		IsContainerHost:      server.IsContainerHost.Bool,
-		IsVmHost:             server.IsVmHost.Bool,
-		IsVirtualMachine:     server.IsVirtualMachine.Bool,
-		IsDbHost:             server.IDDbHost.Bool,
 		CreatedAt:            server.CreatedAt.Time,
 		LastModified:         server.LastModified.Time,
 	}, nil
@@ -264,10 +248,6 @@ func (p *HostServerProviderImpl) GetHostServerByIP(ctx context.Context, ip netip
 		Username:             username,
 		SSHKeyID:             sshKeyID,
 		SudoPasswordSecretID: sudoPasswordTokenID,
-		IsContainerHost:      server.IsContainerHost.Bool,
-		IsVmHost:             server.IsVmHost.Bool,
-		IsVirtualMachine:     server.IsVirtualMachine.Bool,
-		IsDbHost:             server.IDDbHost.Bool,
 		CreatedAt:            server.CreatedAt.Time,
 		LastModified:         server.LastModified.Time,
 	}, nil
@@ -303,10 +283,6 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 			Username:             username,
 			SSHKeyID:             sshKeyID,
 			SudoPasswordSecretID: sudoPasswordTokenID,
-			IsContainerHost:      server.IsContainerHost.Bool,
-			IsVmHost:             server.IsVmHost.Bool,
-			IsVirtualMachine:     server.IsVirtualMachine.Bool,
-			IsDbHost:             server.IDDbHost.Bool,
 			CreatedAt:            server.CreatedAt.Time,
 			LastModified:         server.LastModified.Time,
 		})
@@ -342,13 +318,9 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 	}
 
 	params := infra_db_pg.UpdateHostServerParams{
-		ID:               id,
-		Hostname:         current.Hostname,
-		IpAddress:        current.IPAddress,
-		IsContainerHost:  pgtype.Bool{Bool: current.IsContainerHost, Valid: true},
-		IsVmHost:         pgtype.Bool{Bool: current.IsVmHost, Valid: true},
-		IsVirtualMachine: pgtype.Bool{Bool: current.IsVirtualMachine, Valid: true},
-		IDDbHost:         pgtype.Bool{Bool: current.IsDbHost, Valid: true},
+		ID:        id,
+		Hostname:  current.Hostname,
+		IpAddress: current.IPAddress,
 	}
 
 	if req.Hostname != nil {
@@ -356,18 +328,6 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 	}
 	if req.IPAddress != nil {
 		params.IpAddress = *req.IPAddress
-	}
-	if req.IsContainerHost != nil {
-		params.IsContainerHost = pgtype.Bool{Bool: *req.IsContainerHost, Valid: true}
-	}
-	if req.IsVmHost != nil {
-		params.IsVmHost = pgtype.Bool{Bool: *req.IsVmHost, Valid: true}
-	}
-	if req.IsVirtualMachine != nil {
-		params.IsVirtualMachine = pgtype.Bool{Bool: *req.IsVirtualMachine, Valid: true}
-	}
-	if req.IsDbHost != nil {
-		params.IDDbHost = pgtype.Bool{Bool: *req.IsDbHost, Valid: true}
 	}
 
 	// Update host server

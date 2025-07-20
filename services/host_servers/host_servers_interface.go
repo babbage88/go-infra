@@ -16,10 +16,6 @@ type HostServer struct {
 	Username             *string          `json:"username,omitempty"`
 	SSHKeyID             *uuid.UUID       `json:"ssh_key_id,omitempty"`
 	SudoPasswordSecretID *uuid.UUID       `json:"sudo_password_secret_id,omitempty"`
-	IsContainerHost      bool             `json:"is_container_host"`
-	IsVmHost             bool             `json:"is_vm_host"`
-	IsVirtualMachine     bool             `json:"is_virtual_machine"`
-	IsDbHost             bool             `json:"is_db_host"`
 	HostServerTypes      []HostServerType `json:"host_server_types,omitempty"`
 	PlatformTypes        []PlatformType   `json:"platform_types,omitempty"`
 	CreatedAt            time.Time        `json:"created_at"`

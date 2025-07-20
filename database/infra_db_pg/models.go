@@ -60,15 +60,11 @@ type HealthCheck struct {
 }
 
 type HostServer struct {
-	ID               uuid.UUID
-	Hostname         string
-	IpAddress        netip.Addr
-	IsContainerHost  pgtype.Bool
-	IsVmHost         pgtype.Bool
-	IsVirtualMachine pgtype.Bool
-	IDDbHost         pgtype.Bool
-	CreatedAt        pgtype.Timestamptz
-	LastModified     pgtype.Timestamptz
+	ID           uuid.UUID
+	Hostname     string
+	IpAddress    netip.Addr
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
 }
 
 type HostServerSshMapping struct {
@@ -137,7 +133,7 @@ type SshConnectionLog struct {
 	ID           uuid.UUID
 	SessionID    uuid.UUID
 	UserID       uuid.UUID
-	HostServerID uuid.UUID
+	HostServerID pgtype.UUID
 	Action       string
 	Details      []byte
 	CreatedAt    pgtype.Timestamp

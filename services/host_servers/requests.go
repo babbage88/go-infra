@@ -41,26 +41,6 @@ type CreateHostServerRequest struct {
 	// example: 123e4567-e89b-12d3-a456-426614174001
 	SudoPasswordTokenID *uuid.UUID `json:"sudo_password_token_id,omitempty"`
 
-	// Whether this server can host containers
-	// required: false
-	// example: true
-	IsContainerHost bool `json:"is_container_host"`
-
-	// Whether this server can host VMs
-	// required: false
-	// example: false
-	IsVmHost bool `json:"is_vm_host"`
-
-	// Whether this server is a virtual machine
-	// required: false
-	// example: false
-	IsVirtualMachine bool `json:"is_virtual_machine"`
-
-	// Whether this server can host databases
-	// required: false
-	// example: false
-	IsDbHost bool `json:"is_db_host"`
-
 	// Host server type IDs that this server supports
 	// required: false
 	// example: ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"]
@@ -108,26 +88,6 @@ type UpdateHostServerRequest struct {
 	// example: 123e4567-e89b-12d3-a456-426614174001
 	SudoPasswordTokenID *uuid.UUID `json:"sudo_password_token_id,omitempty"`
 
-	// Whether this server can host containers
-	// required: false
-	// example: true
-	IsContainerHost *bool `json:"is_container_host,omitempty"`
-
-	// Whether this server can host VMs
-	// required: false
-	// example: false
-	IsVmHost *bool `json:"is_vm_host,omitempty"`
-
-	// Whether this server is a virtual machine
-	// required: false
-	// example: false
-	IsVirtualMachine *bool `json:"is_virtual_machine,omitempty"`
-
-	// Whether this server can host databases
-	// required: false
-	// example: false
-	IsDbHost *bool `json:"is_db_host,omitempty"`
-
 	// Host server type IDs that this server supports
 	// required: false
 	// example: ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"]
@@ -148,10 +108,6 @@ type HostServerResponse struct {
 	Username            *string          `json:"username,omitempty"`
 	SSHKeyID            *uuid.UUID       `json:"ssh_key_id,omitempty"`
 	SudoPasswordTokenID *uuid.UUID       `json:"sudo_password_token_id,omitempty"`
-	IsContainerHost     bool             `json:"is_container_host"`
-	IsVmHost            bool             `json:"is_vm_host"`
-	IsVirtualMachine    bool             `json:"is_virtual_machine"`
-	IsDbHost            bool             `json:"is_db_host"`
 	HostServerTypes     []HostServerType `json:"host_server_types,omitempty"`
 	PlatformTypes       []PlatformType   `json:"platform_types,omitempty"`
 	CreatedAt           time.Time        `json:"created_at"`
