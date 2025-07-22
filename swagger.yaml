@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: localhost:8993
+host: infra.trahan.dev
 paths:
     /create/permission:
         post:
@@ -1649,26 +1649,6 @@ definitions:
                 example: 192.168.1.100
                 type: string
                 x-go-name: IPAddress
-            is_container_host:
-                description: Whether this server can host containers
-                example: true
-                type: boolean
-                x-go-name: IsContainerHost
-            is_db_host:
-                description: Whether this server can host databases
-                example: false
-                type: boolean
-                x-go-name: IsDbHost
-            is_virtual_machine:
-                description: Whether this server is a virtual machine
-                example: false
-                type: boolean
-                x-go-name: IsVirtualMachine
-            is_vm_host:
-                description: Whether this server can host VMs
-                example: false
-                type: boolean
-                x-go-name: IsVmHost
             platform_type_ids:
                 description: Platform type IDs that this server supports
                 example:
@@ -2161,18 +2141,6 @@ definitions:
             ip_address:
                 type: string
                 x-go-name: IPAddress
-            is_container_host:
-                type: boolean
-                x-go-name: IsContainerHost
-            is_db_host:
-                type: boolean
-                x-go-name: IsDbHost
-            is_virtual_machine:
-                type: boolean
-                x-go-name: IsVirtualMachine
-            is_vm_host:
-                type: boolean
-                x-go-name: IsVmHost
             last_modified:
                 format: date-time
                 type: string
@@ -2635,26 +2603,6 @@ definitions:
                 example: 192.168.1.100
                 type: string
                 x-go-name: IPAddress
-            is_container_host:
-                description: Whether this server can host containers
-                example: true
-                type: boolean
-                x-go-name: IsContainerHost
-            is_db_host:
-                description: Whether this server can host databases
-                example: false
-                type: boolean
-                x-go-name: IsDbHost
-            is_virtual_machine:
-                description: Whether this server is a virtual machine
-                example: false
-                type: boolean
-                x-go-name: IsVirtualMachine
-            is_vm_host:
-                description: Whether this server can host VMs
-                example: false
-                type: boolean
-                x-go-name: IsVmHost
             platform_type_ids:
                 description: Platform type IDs that this server supports
                 example:

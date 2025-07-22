@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/permission": {
       "post": {
@@ -2540,30 +2540,6 @@
           "x-go-name": "IPAddress",
           "example": "192.168.1.100"
         },
-        "is_container_host": {
-          "description": "Whether this server can host containers",
-          "type": "boolean",
-          "x-go-name": "IsContainerHost",
-          "example": true
-        },
-        "is_db_host": {
-          "description": "Whether this server can host databases",
-          "type": "boolean",
-          "x-go-name": "IsDbHost",
-          "example": false
-        },
-        "is_virtual_machine": {
-          "description": "Whether this server is a virtual machine",
-          "type": "boolean",
-          "x-go-name": "IsVirtualMachine",
-          "example": false
-        },
-        "is_vm_host": {
-          "description": "Whether this server can host VMs",
-          "type": "boolean",
-          "x-go-name": "IsVmHost",
-          "example": false
-        },
         "platform_type_ids": {
           "description": "Platform type IDs that this server supports",
           "type": "array",
@@ -3203,22 +3179,6 @@
           "type": "string",
           "x-go-name": "IPAddress"
         },
-        "is_container_host": {
-          "type": "boolean",
-          "x-go-name": "IsContainerHost"
-        },
-        "is_db_host": {
-          "type": "boolean",
-          "x-go-name": "IsDbHost"
-        },
-        "is_virtual_machine": {
-          "type": "boolean",
-          "x-go-name": "IsVirtualMachine"
-        },
-        "is_vm_host": {
-          "type": "boolean",
-          "x-go-name": "IsVmHost"
-        },
         "last_modified": {
           "type": "string",
           "format": "date-time",
@@ -3816,30 +3776,6 @@
           "x-go-name": "IPAddress",
           "example": "192.168.1.100"
         },
-        "is_container_host": {
-          "description": "Whether this server can host containers",
-          "type": "boolean",
-          "x-go-name": "IsContainerHost",
-          "example": true
-        },
-        "is_db_host": {
-          "description": "Whether this server can host databases",
-          "type": "boolean",
-          "x-go-name": "IsDbHost",
-          "example": false
-        },
-        "is_virtual_machine": {
-          "description": "Whether this server is a virtual machine",
-          "type": "boolean",
-          "x-go-name": "IsVirtualMachine",
-          "example": false
-        },
-        "is_vm_host": {
-          "description": "Whether this server can host VMs",
-          "type": "boolean",
-          "x-go-name": "IsVmHost",
-          "example": false
-        },
         "platform_type_ids": {
           "description": "Platform type IDs that this server supports",
           "type": "array",
@@ -4084,40 +4020,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",

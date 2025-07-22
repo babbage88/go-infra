@@ -276,6 +276,11 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 			}
 		}
 
+		hostServerTypes, platformTypes, err := p.getHostServerTypesAndPlatforms(ctx, server.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get host server types and platforms: %w", err)
+		}
+
 		result = append(result, HostServer{
 			ID:                   server.ID,
 			Hostname:             server.Hostname,
@@ -283,6 +288,8 @@ func (p *HostServerProviderImpl) GetAllHostServers(ctx context.Context) ([]HostS
 			Username:             username,
 			SSHKeyID:             sshKeyID,
 			SudoPasswordSecretID: sudoPasswordTokenID,
+			HostServerTypes:      hostServerTypes,
+			PlatformTypes:        platformTypes,
 			CreatedAt:            server.CreatedAt.Time,
 			LastModified:         server.LastModified.Time,
 		})
