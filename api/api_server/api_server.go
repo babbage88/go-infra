@@ -8,6 +8,7 @@ import (
 	authapi "github.com/babbage88/go-infra/api/authapi"
 	userapi "github.com/babbage88/go-infra/api/user_api_handlers"
 	"github.com/babbage88/go-infra/internal/cors"
+	"github.com/babbage88/go-infra/internal/middleware"
 	"github.com/babbage88/go-infra/internal/swaggerui"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
@@ -194,10 +195,12 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		}
 	}()
 
+	handlerChain := middleware.RecoverMiddleware(requestLoggingMiddleware(cors.HandleCORSPreflightMiddleware(mux)))
+
 	switch {
 	case api.UseSsl:
 		slog.Info("Starting https server.", slog.String("ListenAddress", *srvadr))
-		err := http.ListenAndServeTLS(*srvadr, api.Certificate, api.CertKey, requestLoggingMiddleware(cors.HandleCORSPreflightMiddleware(mux)))
+		err := http.ListenAndServeTLS(*srvadr, api.Certificate, api.CertKey, handlerChain)
 
 		if err != nil {
 			slog.Error("Failed to start server", slog.String("Error", err.Error()))
@@ -205,7 +208,7 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		return err
 	default:
 		slog.Info("Starting http server.", slog.String("ListenAddress", *srvadr))
-		err := http.ListenAndServe(*srvadr, requestLoggingMiddleware(cors.HandleCORSPreflightMiddleware(mux)))
+		err := http.ListenAndServe(*srvadr, handlerChain)
 		if err != nil {
 			slog.Error("Failed to start server", slog.String("Error", err.Error()))
 		}
