@@ -183,11 +183,11 @@ type CreateAppPermissionRequest struct {
 // swagger:response CreateAppPermissionResponse
 type CreateAppPermissionResponseWrapper struct {
 	// in: body
-	Body CreateAppPermissionResponse `json:"body"`
+	Body CreateAppPermissionResult `json:"body"`
 }
 
-// swagger:model AppPermissionDao
-type CreateAppPermissionResponse struct {
+// swagger:model CreateAppPermissionResult
+type CreateAppPermissionResult struct {
 	NewAppPermissionInfo *user_crud_svc.AppPermissionDao `json:"newPermissionInfo"`
 	Error                error                           `json:"error"`
 }
@@ -210,7 +210,6 @@ type CreateRolePermissionMappingResponseWrapper struct {
 	Body CreateRolePermissionMappingResponse `json:"body"`
 }
 
-// swagger:model RolePermissionMappingDao
 type CreateRolePermissionMappingResponse struct {
 	NewMappingInfo *user_crud_svc.RolePermissionMappingDao `json:"newMappingInfo"`
 	Error          error                                   `json:"error"`

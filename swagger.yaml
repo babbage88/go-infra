@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: localhost:8993
+host: infra.trahan.dev
 paths:
     /create/permission:
         post:
@@ -91,6 +91,335 @@ paths:
             summary: Create a new user.
             tags:
                 - UserCRUD
+    /external-applications:
+        get:
+            operationId: getAllExternalApplications
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllExternalApplicationsResponse'
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get all external applications.
+            tags:
+                - external-applications
+        post:
+            operationId: createExternalApplication
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateExternalApplicationRequest'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/CreateExternalApplicationResponse'
+                "400":
+                    description: Bad request - invalid input data
+                "409":
+                    description: Conflict - application with this name already exists
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Create a new external application.
+            tags:
+                - external-applications
+    /external-applications/by-name/{name}:
+        delete:
+            operationId: deleteExternalApplicationByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            responses:
+                "204":
+                    description: External application deleted successfully
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Delete an external application by name.
+            tags:
+                - external-applications
+        get:
+            operationId: getExternalApplicationByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationByNameResponse'
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application by name.
+            tags:
+                - external-applications
+    /external-applications/id/{name}:
+        get:
+            operationId: getExternalApplicationIdByName
+            parameters:
+                - description: Name of the external application
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationIdByNameResponse'
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application ID by name.
+            tags:
+                - external-applications
+    /external-applications/name/{ID}:
+        get:
+            operationId: getExternalApplicationNameById
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationNameByIdResponse'
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application name by ID.
+            tags:
+                - external-applications
+    /external-applications/{ID}:
+        delete:
+            operationId: deleteExternalApplicationById
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "204":
+                    description: External application deleted successfully
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Delete an external application by ID.
+            tags:
+                - external-applications
+        get:
+            operationId: getExternalApplicationById
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetExternalApplicationByIdResponse'
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Get an external application by ID.
+            tags:
+                - external-applications
+        put:
+            operationId: updateExternalApplication
+            parameters:
+                - description: ID of the external application
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateExternalApplicationRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UpdateExternalApplicationResponse'
+                "400":
+                    description: Bad request - invalid UUID format or request body
+                "404":
+                    description: External application not found
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+            summary: Update an external application.
+            tags:
+                - external-applications
+    /host-server-type-mappings:
+        post:
+            operationId: CreateHostServerTypeMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateHostServerTypeMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateHostServerTypeMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a mapping between a host server and a host server type.
+            tags:
+                - host-servers
+    /host-server-types:
+        get:
+            operationId: GetAllHostServerTypes
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllHostServerTypesResponse'
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all available host server types.
+            tags:
+                - host-servers
+    /host-servers:
+        get:
+            operationId: GetAllHostServers
+            responses:
+                "200":
+                    $ref: '#/responses/HostServersResponse'
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all host servers.
+            tags:
+                - host-servers
+    /host-servers/create:
+        post:
+            operationId: CreateHostServer
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateHostServerRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a new host server.
+            tags:
+                - host-servers
+    /host-servers/{ID}:
+        delete:
+            operationId: DeleteHostServer
+            parameters:
+                - format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    description: Host server deleted successfully
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Delete a host server.
+            tags:
+                - host-servers
+        get:
+            operationId: GetHostServer
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Get a host server by ID.
+            tags:
+                - host-servers
+        put:
+            operationId: UpdateHostServer
+            parameters:
+                - format: uuid
+                  in: path
+                  name: ID
+                  required: true
+                  type: string
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateHostServerRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Update a host server.
+            tags:
+                - host-servers
     /login:
         post:
             description: Local Auth login with username and password
@@ -112,6 +441,216 @@ paths:
                     description: Insernal Server Error
             tags:
                 - Authentication
+    /network/ping:
+        post:
+            operationId: pingHost
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/PingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/PingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Ping an arbitrary hostname or IP address.
+            tags:
+                - network-ping
+    /network/ping-host-server:
+        post:
+            operationId: pingHostServer
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/PingHostServerRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/PingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Ping a managed host server by its ID.
+            tags:
+                - network-ping
+    /network/ping/{target}:
+        get:
+            operationId: pingHostGet
+            parameters:
+                - description: Target hostname or IP address to ping
+                  in: path
+                  name: target
+                  required: true
+                  type: string
+                  x-go-name: Target
+            responses:
+                "200":
+                    $ref: '#/responses/PingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Ping an arbitrary hostname or IP address using GET method.
+            tags:
+                - network-ping
+    /network/probe-tcp-host-id:
+        post:
+            operationId: probeTCPByHostId
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Probe a TCP port on a managed host server by its ID.
+            tags:
+                - network-probe
+    /network/probe-tcp-hostname:
+        post:
+            operationId: probeTCPByHostname
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostnameRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a TCP port on a host by hostname.
+            tags:
+                - network-probe
+    /network/probe-tcp/{target}/{port}:
+        get:
+            operationId: probeTCPGet
+            parameters:
+                - description: Target hostname to probe
+                  in: path
+                  name: target
+                  required: true
+                  type: string
+                  x-go-name: Target
+                - description: Port number to probe
+                  in: path
+                  name: port
+                  required: true
+                  type: string
+                  x-go-name: Port
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a TCP port on a host using GET method.
+            tags:
+                - network-probe
+    /network/probe-udp-host-id:
+        post:
+            operationId: probeUDPByHostId
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostIdRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Probe a UDP port on a managed host server by its ID.
+            tags:
+                - network-probe
+    /network/probe-udp-hostname:
+        post:
+            operationId: probeUDPByHostname
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/ProbeByHostnameRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a UDP port on a host by hostname.
+            tags:
+                - network-probe
+    /network/probe-udp/{target}/{port}:
+        get:
+            operationId: probeUDPGet
+            parameters:
+                - description: Target hostname to probe
+                  in: path
+                  name: target
+                  required: true
+                  type: string
+                  x-go-name: Target
+                - description: Port number to probe
+                  in: path
+                  name: port
+                  required: true
+                  type: string
+                  x-go-name: Port
+            responses:
+                "200":
+                    $ref: '#/responses/NetworkProbeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Probe a UDP port on a host using GET method.
+            tags:
+                - network-probe
     /permissions:
         get:
             description: Returns all App Permissions
@@ -131,6 +670,40 @@ paths:
                 - bearer: []
             tags:
                 - PermissionsCRUD
+    /platform-type-mappings:
+        post:
+            operationId: CreatePlatformTypeMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreatePlatformTypeMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreatePlatformTypeMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a mapping between a host server, platform type, and host server type.
+            tags:
+                - host-servers
+    /platform-types:
+        get:
+            operationId: GetAllPlatformTypes
+            responses:
+                "200":
+                    $ref: '#/responses/GetAllPlatformTypesResponse'
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all available platform types.
+            tags:
+                - host-servers
     /renew:
         post:
             description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
@@ -210,7 +783,7 @@ paths:
                   x-go-name: Body
             responses:
                 "200":
-                    description: Secret stored successfully
+                    $ref: '#/responses/CreateSecretResponse'
                 "400":
                     description: Invalid request
                 "401":
@@ -259,6 +832,319 @@ paths:
             summary: Retrieve a user secret by ID.
             tags:
                 - secrets
+    /ssh-key-host-mappings/create:
+        post:
+            operationId: createSshKeyHostMapping
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSshKeyHostMappingRequestWithoutUserID'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateSshKeyHostMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a new SSH key host mapping.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/host/{hostId}:
+        get:
+            operationId: getSshKeyHostMappingsByHostId
+            parameters:
+                - description: ID of the host server to get mappings for
+                  in: path
+                  name: hostId
+                  required: true
+                  type: string
+                  x-go-name: HostID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingsByHostIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH key host mappings for a host server.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/key/{keyId}:
+        get:
+            operationId: getSshKeyHostMappingsByKeyId
+            parameters:
+                - description: ID of the SSH key to get mappings for
+                  in: path
+                  name: keyId
+                  required: true
+                  type: string
+                  x-go-name: KeyID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingsByKeyIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH key host mappings for an SSH key.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/user/{userId}:
+        get:
+            operationId: getSshKeyHostMappingsByUserId
+            parameters:
+                - description: ID of the user to get mappings for
+                  in: path
+                  name: userId
+                  required: true
+                  type: string
+                  x-go-name: UserID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingsByUserIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH key host mappings for a user.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-key-host-mappings/{id}:
+        delete:
+            operationId: deleteSshKeyHostMapping
+            parameters:
+                - description: ID of the SSH key host mapping to delete
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/DeleteSshKeyHostMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Delete an SSH key host mapping.
+            tags:
+                - ssh-key-host-mappings
+        get:
+            operationId: getSshKeyHostMappingById
+            parameters:
+                - description: ID of the SSH key host mapping to retrieve
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeyHostMappingByIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Get an SSH key host mapping by ID.
+            tags:
+                - ssh-key-host-mappings
+        put:
+            operationId: updateSshKeyHostMapping
+            parameters:
+                - description: ID of the SSH key host mapping to update
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/UpdateSshKeyHostMappingRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/UpdateSshKeyHostMappingResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Update an SSH key host mapping.
+            tags:
+                - ssh-key-host-mappings
+    /ssh-keys/create:
+        post:
+            operationId: createSshKey
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/CreateSshKeyRequest'
+                  x-go-name: Body
+            responses:
+                "200":
+                    $ref: '#/responses/CreateSshKeyResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Create a new SSH key.
+            tags:
+                - ssh-keys
+    /ssh-keys/user/{userId}:
+        get:
+            operationId: getSshKeysByUserId
+            parameters:
+                - description: ID of the user to get SSH keys for
+                  in: path
+                  name: userId
+                  required: true
+                  type: string
+                  x-go-name: UserID
+            responses:
+                "200":
+                    $ref: '#/responses/GetSshKeysByUserIdResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+            summary: Get all SSH keys owned by a user.
+            tags:
+                - ssh-keys
+    /ssh-keys/{id}:
+        delete:
+            operationId: deleteSshKey
+            parameters:
+                - description: ID of the SSH key to delete
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/DeleteSshKeyResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            summary: Delete an SSH key and its associated secret.
+            tags:
+                - ssh-keys
+    /ssh/connect:
+        post:
+            operationId: createSshConnection
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/SshConnectionRequestDetails'
+                  x-go-name: Body
+            responses:
+                "200":
+                    description: SshConnectionResponse
+                    schema:
+                        $ref: '#/definitions/SshConnectionResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Access denied
+                "404":
+                    description: Host server not found
+                "500":
+                    description: Internal Server Error
+            summary: Create a new SSH connection to a host server.
+            tags:
+                - ssh
+    /ssh/connect/{CONNID}:
+        delete:
+            operationId: closeSshConnection
+            parameters:
+                - format: uuid
+                  in: path
+                  name: CONNID
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    description: SshConnectionCloseResponse
+                    schema:
+                        $ref: '#/definitions/SshConnectionCloseResponse'
+                "400":
+                    description: Invalid connection ID
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Access denied
+                "404":
+                    description: Session not found
+                "500":
+                    description: Internal Server Error
+            summary: Close an SSH connection.
+            tags:
+                - ssh
+    /ssh/sessions:
+        get:
+            operationId: listSshSessions
+            responses:
+                "200":
+                    description: SshSessionSummary
+                    schema:
+                        items:
+                            $ref: '#/definitions/SshSessionSummary'
+                        type: array
+                "401":
+                    description: Unauthorized
+            summary: List all active SSH sessions.
+            tags:
+                - ssh
+    /ssh/websocket/{CONNID}:
+        get:
+            operationId: sshWebSocket
+            responses:
+                "101":
+                    description: Switching Protocols
+                "400":
+                    description: Invalid connection ID
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Session not found
+            summary: WebSocket endpoint for SSH terminal communication.
+            tags:
+                - ssh
     /token/refresh:
         post:
             operationId: RefreshAccessToken
@@ -537,7 +1423,7 @@ paths:
                 - bearer: []
             summary: Returns all active users.
             tags:
-                - users
+                - UserCRUD
     /users/{ID}:
         get:
             operationId: getUserById
@@ -562,7 +1448,7 @@ paths:
                 - bearer: []
             summary: Returns User Info for the user id specified in URL users.
             tags:
-                - users
+                - UserCRUD
 definitions:
     AccessTokens:
         properties:
@@ -587,14 +1473,18 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/authapi
     AppPermissionDao:
         properties:
-            error:
+            id:
+                format: uuid
                 type: string
-                x-go-name: Error
-            newPermissionInfo:
-                $ref: '#/definitions/AppPermissionDao'
+                x-go-name: Id
+            permissionDescription:
+                type: string
+                x-go-name: PermissionDescription
+            permissionName:
+                type: string
+                x-go-name: PermissionName
         type: object
-        x-go-name: CreateAppPermissionResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     AuthToken:
         properties:
             accessToken:
@@ -715,6 +1605,99 @@ definitions:
                 x-go-name: PermissionName
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateAppPermissionResult:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            newPermissionInfo:
+                $ref: '#/definitions/AppPermissionDao'
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateExternalApplicationRequest:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
+    CreateHostServerRequest:
+        properties:
+            host_server_type_ids:
+                description: Host server type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174000
+                    - 123e4567-e89b-12d3-a456-426614174001
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: HostServerTypeIDs
+            hostname:
+                description: Hostname of the server
+                example: server-01.example.com
+                type: string
+                x-go-name: Hostname
+            ip_address:
+                description: IP address of the server
+                example: 192.168.1.100
+                type: string
+                x-go-name: IPAddress
+            platform_type_ids:
+                description: Platform type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174002
+                    - 123e4567-e89b-12d3-a456-426614174003
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PlatformTypeIDs
+            ssh_key_id:
+                description: SSH key ID for authentication
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: SSHKeyID
+            sudo_password_token_id:
+                description: Optional sudo password token ID
+                example: 123e4567-e89b-12d3-a456-426614174001
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenID
+            username:
+                description: Username for SSH connection
+                example: admin
+                type: string
+                x-go-name: Username
+        required:
+            - hostname
+            - ip_address
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    CreateHostServerTypeMappingRequest:
+        properties:
+            hostServerId:
+                description: Host server ID
+                format: uuid
+                type: string
+                x-go-name: HostServerId
+            hostServerTypeId:
+                description: Host server type ID
+                format: uuid
+                type: string
+                x-go-name: HostServerTypeId
+        required:
+            - hostServerId
+            - hostServerTypeId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     CreateNewUserRequest:
         properties:
             newEmail:
@@ -728,6 +1711,29 @@ definitions:
                 x-go-name: NewUsername
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreatePlatformTypeMappingRequest:
+        properties:
+            hostServerId:
+                description: Host server ID
+                format: uuid
+                type: string
+                x-go-name: HostServerId
+            hostServerTypeId:
+                description: Host server type ID
+                format: uuid
+                type: string
+                x-go-name: HostServerTypeId
+            platformTypeId:
+                description: Platform type ID
+                format: uuid
+                type: string
+                x-go-name: PlatformTypeId
+        required:
+            - hostServerId
+            - platformTypeId
+            - hostServerTypeId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     CreateRolePermissionMappingRequest:
         properties:
             permId:
@@ -738,6 +1744,15 @@ definitions:
                 format: uuid
                 type: string
                 x-go-name: RoleId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    CreateRolePermissionMappingResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+            newMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     CreateSecretRequest:
@@ -755,6 +1770,185 @@ definitions:
                 x-go-name: Secret
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    CreateSshKeyHostMappingRequest:
+        properties:
+            hostServerId:
+                description: ID of the host server to map to
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            hostserverUsername:
+                description: Username to use on the host server
+                type: string
+                x-go-name: HostserverUsername
+            sshKeyId:
+                description: ID of the SSH key to map
+                format: uuid
+                type: string
+                x-go-name: SshKeyID
+            sudoPasswordTokenId:
+                description: ID of the sudo password token
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenId
+            userId:
+                description: ID of the user who owns the mapping
+                format: uuid
+                type: string
+                x-go-name: UserID
+        required:
+            - sshKeyId
+            - hostServerId
+            - userId
+            - hostserverUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyHostMappingRequestWithoutUserID:
+        properties:
+            hostServerId:
+                description: ID of the host server to map to
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            hostserverUsername:
+                description: Username to use on the host server
+                type: string
+                x-go-name: HostserverUsername
+            sshKeyId:
+                description: ID of the SSH key to map
+                format: uuid
+                type: string
+                x-go-name: SshKeyID
+            sudoPasswordTokenId:
+                description: ID of the sudo password token
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenId
+        required:
+            - sshKeyId
+            - hostServerId
+            - hostserverUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyHostMappingResponse:
+        properties:
+            createdAt:
+                description: Creation timestamp
+                type: string
+                x-go-name: CreatedAt
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            hostServerId:
+                description: ID of the host server
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            hostserverUsername:
+                description: Username on the host server
+                type: string
+                x-go-name: HostserverUsername
+            id:
+                description: ID of the created mapping
+                format: uuid
+                type: string
+                x-go-name: ID
+            lastModified:
+                description: Last modification timestamp
+                type: string
+                x-go-name: LastModified
+            sshKeyId:
+                description: ID of the SSH key
+                format: uuid
+                type: string
+                x-go-name: SshKeyID
+            userId:
+                description: ID of the user
+                format: uuid
+                type: string
+                x-go-name: UserID
+        required:
+            - id
+            - sshKeyId
+            - hostServerId
+            - userId
+            - hostserverUsername
+            - createdAt
+            - lastModified
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyRequest:
+        properties:
+            description:
+                description: Description of the SSH key
+                type: string
+                x-go-name: Description
+            hostServerId:
+                description: Optional host server ID to associate the key with
+                format: uuid
+                type: string
+                x-go-name: HostServerId
+            keyType:
+                description: Type of the SSH key (e.g., rsa, ed25519)
+                type: string
+                x-go-name: KeyType
+            name:
+                description: Name of the SSH key
+                type: string
+                x-go-name: Name
+            passphrase:
+                description: Optional ssh key passphrase
+                type: string
+                x-go-name: Passphrase
+            privateKey:
+                description: Private key in PEM format
+                type: string
+                x-go-name: PrivateKey
+            publicKey:
+                description: Public key in OpenSSH format
+                type: string
+                x-go-name: PublicKey
+        required:
+            - name
+            - publicKey
+            - privateKey
+            - keyType
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateSshKeyResponse:
+        properties:
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            passphraseSecretId:
+                description: ID of the stored private key secret
+                format: uuid
+                type: string
+                x-go-name: PassphraseSecretId
+            privKeySecretId:
+                description: ID of the stored private key secret
+                format: uuid
+                type: string
+                x-go-name: PrivKeySecretId
+            sshKeyId:
+                description: ID of the created SSH key
+                format: uuid
+                type: string
+                x-go-name: SshKeyId
+            userId:
+                description: ID of the user who owns the key
+                format: uuid
+                type: string
+                x-go-name: UserId
+        required:
+            - sshKeyId
+            - privKeySecretId
+            - passphraseSecretId
+            - userId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     CreateUserRoleRequest:
         properties:
             roleDesc:
@@ -765,6 +1959,16 @@ definitions:
                 x-go-name: RoleName
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    DeleteSshKeyHostMappingResponse:
+        properties:
+            message:
+                description: Success message
+                type: string
+                x-go-name: Message
+        required:
+            - message
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     DisableUserRequest:
         properties:
             targetUserId:
@@ -818,6 +2022,31 @@ definitions:
                 x-go-name: UserId
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
+    ExternalApplicationDao:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
     ExternalApplicationInfo:
         properties:
             id:
@@ -891,6 +2120,80 @@ definitions:
                 type: string
         type: object
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    HostServerResponse:
+        properties:
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            host_server_types:
+                items:
+                    $ref: '#/definitions/HostServerType'
+                type: array
+                x-go-name: HostServerTypes
+            hostname:
+                type: string
+                x-go-name: Hostname
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            ip_address:
+                type: string
+                x-go-name: IPAddress
+            last_modified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            platform_types:
+                items:
+                    $ref: '#/definitions/PlatformType'
+                type: array
+                x-go-name: PlatformTypes
+            ssh_key_id:
+                format: uuid
+                type: string
+                x-go-name: SSHKeyID
+            sudo_password_token_id:
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenID
+            username:
+                type: string
+                x-go-name: Username
+        title: HostServerResponse represents a host server response.
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    HostServerType:
+        properties:
+            id:
+                description: Unique identifier for the host server type
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: ID
+            last_modified:
+                description: Last modification timestamp
+                example: "2024-01-15T10:30:00Z"
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                description: Name of the host server type
+                example: Database Server
+                type: string
+                x-go-name: Name
+        required:
+            - id
+            - name
+            - last_modified
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    HostServersResponse:
+        items:
+            $ref: '#/definitions/HostServerResponse'
+        type: array
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     HostedDbPlatform:
         properties:
             DefaultListenPort:
@@ -928,6 +2231,149 @@ definitions:
         type: object
         x-go-name: LocalLoginResponse
         x-go-package: github.com/babbage88/go-infra/api/authapi
+    NetworkProbeResponse:
+        properties:
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            latency:
+                description: Latency of the probe operation
+                type: string
+                x-go-name: Latency
+            success:
+                description: Whether the probe was successful
+                type: boolean
+                x-go-name: Success
+            targetHostId:
+                description: ID of the target host server (if applicable)
+                format: uuid
+                type: string
+                x-go-name: TargetHostId
+            targetHostName:
+                description: Name of the target host
+                type: string
+                x-go-name: TargetHostName
+            targetPort:
+                description: Port number that was probed
+                format: uint16
+                type: integer
+                x-go-name: TargetPort
+        required:
+            - targetHostName
+            - targetPort
+            - success
+            - latency
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PingHostServerRequest:
+        properties:
+            hostServerId:
+                description: ID of the host server to ping
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+        required:
+            - hostServerId
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PingRequest:
+        properties:
+            target:
+                description: Target hostname or IP address to ping
+                type: string
+                x-go-name: Target
+        required:
+            - target
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PingResponse:
+        properties:
+            error:
+                description: Error message if the operation failed
+                type: string
+                x-go-name: Error
+            latency:
+                description: Latency of the ping operation
+                type: string
+                x-go-name: Latency
+            success:
+                description: Whether the ping was successful
+                type: boolean
+                x-go-name: Success
+            targetHostId:
+                description: ID of the target host server (if applicable)
+                format: uuid
+                type: string
+                x-go-name: TargetHostId
+            targetHostName:
+                description: Name of the target host
+                type: string
+                x-go-name: TargetHostName
+        required:
+            - targetHostName
+            - success
+            - latency
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    PlatformType:
+        properties:
+            id:
+                description: Unique identifier for the platform type
+                example: 123e4567-e89b-12d3-a456-426614174001
+                format: uuid
+                type: string
+                x-go-name: ID
+            last_modified:
+                description: Last modification timestamp
+                example: "2024-01-15T10:30:00Z"
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                description: Name of the platform type
+                example: Docker Host
+                type: string
+                x-go-name: Name
+        required:
+            - id
+            - name
+            - last_modified
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    ProbeByHostIdRequest:
+        properties:
+            port:
+                description: Port number to probe
+                format: uint16
+                type: integer
+                x-go-name: Port
+            targetHostId:
+                description: ID of the target host server
+                format: uuid
+                type: string
+                x-go-name: TargetHostId
+        required:
+            - targetHostId
+            - port
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
+    ProbeByHostnameRequest:
+        properties:
+            port:
+                description: Port number to probe
+                format: uint16
+                type: integer
+                x-go-name: Port
+            targetHostName:
+                description: Target hostname to probe
+                type: string
+                x-go-name: TargetHostName
+        required:
+            - targetHostName
+            - port
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/node_networking
     RolePermissionMappingDao:
         properties:
             createdAt:
@@ -954,7 +2400,6 @@ definitions:
                 type: string
                 x-go-name: RoleId
         type: object
-        x-go-name: CreateRolePermissionMappingResponse
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     SoftDeleteUserByIdRequest:
         properties:
@@ -973,6 +2418,142 @@ definitions:
                 x-go-name: Error
         type: object
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    SshConnectionCloseResponse:
+        description: SSH Connection Close Response
+        properties:
+            message:
+                description: Success message
+                example: Connection closed successfully
+                type: string
+                x-go-name: Message
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
+    SshConnectionRequestDetails:
+        description: SSH Connection Request
+        properties:
+            columns:
+                description: Terminal column width
+                example: !!float 120
+                format: int64
+                type: integer
+                x-go-name: Columns
+            hostServerId:
+                description: Host server ID to connect to
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            rows:
+                description: Terminal row height
+                example: !!float 30
+                format: int64
+                type: integer
+                x-go-name: Rows
+            username:
+                description: Username to connect as on the remote server
+                example: admin
+                type: string
+                x-go-name: Username
+        required:
+            - hostServerId
+            - username
+        type: object
+        x-go-name: SshConnectionRequest
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
+    SshConnectionResponse:
+        description: SSH Connection Response
+        properties:
+            connectionId:
+                description: Unique connection identifier
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: ConnectionID
+            error:
+                description: Error message if connection failed
+                example: SSH key not found
+                type: string
+                x-go-name: Error
+            success:
+                description: Whether the connection was successful
+                example: true
+                type: boolean
+                x-go-name: Success
+            websocketUrl:
+                description: WebSocket URL for terminal communication
+                example: ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000
+                type: string
+                x-go-name: WebsocketURL
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
+    SshKeyListItem:
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            description:
+                type: string
+                x-go-name: Description
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            keyType:
+                type: string
+                x-go-name: KeyType
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            name:
+                type: string
+                x-go-name: Name
+            ownerUserId:
+                format: uuid
+                type: string
+                x-go-name: OwnerUserID
+            passphraseId:
+                format: uuid
+                type: string
+                x-go-name: PassphraseSecretId
+            privateKeyId:
+                format: uuid
+                type: string
+                x-go-name: PrivateKeyId
+            publicKey:
+                type: string
+                x-go-name: PublicKey
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    SshSessionSummary:
+        description: SshSessionSummary is a safe summary for listing sessions
+        properties:
+            createdAt:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            hostServerId:
+                format: uuid
+                type: string
+                x-go-name: HostServerID
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            lastActivity:
+                format: date-time
+                type: string
+                x-go-name: LastActivity
+            userId:
+                format: uuid
+                type: string
+                x-go-name: UserID
+            username:
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_connections
     TokenRefreshReq:
         properties:
             refreshToken:
@@ -987,6 +2568,86 @@ definitions:
         title: UUIDs is a slice of UUID types.
         type: array
         x-go-package: github.com/google/uuid
+    UpdateExternalApplicationRequest:
+        properties:
+            appDescription:
+                type: string
+                x-go-name: AppDescription
+            endpointUrl:
+                type: string
+                x-go-name: EndpointUrl
+            name:
+                type: string
+                x-go-name: Name
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/external_applications
+    UpdateHostServerRequest:
+        properties:
+            host_server_type_ids:
+                description: Host server type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174000
+                    - 123e4567-e89b-12d3-a456-426614174001
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: HostServerTypeIDs
+            hostname:
+                description: Hostname of the server
+                example: server-01.example.com
+                type: string
+                x-go-name: Hostname
+            ip_address:
+                description: IP address of the server
+                example: 192.168.1.100
+                type: string
+                x-go-name: IPAddress
+            platform_type_ids:
+                description: Platform type IDs that this server supports
+                example:
+                    - 123e4567-e89b-12d3-a456-426614174002
+                    - 123e4567-e89b-12d3-a456-426614174003
+                items:
+                    format: uuid
+                    type: string
+                type: array
+                x-go-name: PlatformTypeIDs
+            ssh_key_id:
+                description: SSH key ID for authentication
+                example: 123e4567-e89b-12d3-a456-426614174000
+                format: uuid
+                type: string
+                x-go-name: SSHKeyID
+            sudo_password_token_id:
+                description: Optional sudo password token ID
+                example: 123e4567-e89b-12d3-a456-426614174001
+                format: uuid
+                type: string
+                x-go-name: SudoPasswordTokenID
+            username:
+                description: Username for SSH connection
+                example: admin
+                type: string
+                x-go-name: Username
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
+    UpdateSshKeyHostMappingRequest:
+        properties:
+            hostserverUsername:
+                description: Username to use on the host server
+                type: string
+                x-go-name: HostserverUsername
+            id:
+                description: ID of the SSH key host mapping to update
+                format: uuid
+                type: string
+                x-go-name: ID
+        required:
+            - id
+            - hostserverUsername
+        type: object
+        x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
     UpdateUserPasswordRequest:
         properties:
             newPassword:
@@ -1169,11 +2830,48 @@ responses:
     CreateAppPermissionResponse:
         description: (empty)
         schema:
-            $ref: '#/definitions/AppPermissionDao'
+            $ref: '#/definitions/CreateAppPermissionResult'
+    CreateExternalApplicationResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    CreateHostServerTypeMappingResponse:
+        description: (empty)
+        schema:
+            properties:
+                success:
+                    type: boolean
+                    x-go-name: Success
+            type: object
+    CreatePlatformTypeMappingResponse:
+        description: (empty)
+        schema:
+            properties:
+                success:
+                    type: boolean
+                    x-go-name: Success
+            type: object
     CreateRolePermissionMapptingResponse:
         description: (empty)
         schema:
-            $ref: '#/definitions/RolePermissionMappingDao'
+            $ref: '#/definitions/CreateRolePermissionMappingResponse'
+    CreateSecretResponse:
+        description: (empty)
+        schema:
+            properties:
+                id:
+                    format: uuid
+                    type: string
+                    x-go-name: ID
+            type: object
+    CreateSshKeyHostMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+    CreateSshKeyResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyResponse'
     CreateUserResponse:
         description: (empty)
         schema:
@@ -1182,6 +2880,19 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/UserRoleDao'
+    DeleteSshKeyHostMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/DeleteSshKeyHostMappingResponse'
+    DeleteSshKeyResponse:
+        description: (empty)
+        schema:
+            properties:
+                message:
+                    description: Success message
+                    type: string
+                    x-go-name: Message
+            type: object
     EnableDisableUserResponse:
         description: (empty)
         schema:
@@ -1192,6 +2903,24 @@ responses:
             body: {}
         schema:
             $ref: '#/definitions/GetAllAppPermissionsResponse'
+    GetAllExternalApplicationsResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/ExternalApplicationDao'
+            type: array
+    GetAllHostServerTypesResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/HostServerType'
+            type: array
+    GetAllPlatformTypesResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/PlatformType'
+            type: array
     GetAllRolesResponse:
         description: (empty)
         headers:
@@ -1205,6 +2934,59 @@ responses:
                 items:
                     $ref: '#/definitions/UserDao'
                 type: array
+    GetExternalApplicationByIdResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    GetExternalApplicationByNameResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    GetExternalApplicationIdByNameResponse:
+        description: (empty)
+        schema:
+            properties:
+                id:
+                    format: uuid
+                    type: string
+                    x-go-name: ID
+            type: object
+    GetExternalApplicationNameByIdResponse:
+        description: (empty)
+        schema:
+            properties:
+                name:
+                    type: string
+                    x-go-name: Name
+            type: object
+    GetSshKeyHostMappingByIdResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+    GetSshKeyHostMappingsByHostIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
+    GetSshKeyHostMappingsByKeyIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
+    GetSshKeyHostMappingsByUserIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/CreateSshKeyHostMappingResponse'
+            type: array
+    GetSshKeysByUserIdResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/SshKeyListItem'
+            type: array
     GetUserByIdResponse:
         description: (empty)
         schema:
@@ -1215,12 +2997,30 @@ responses:
             items:
                 $ref: '#/definitions/UserSecretEntry'
             type: array
+    HostServerResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/HostServerResponse'
+    HostServersResponse:
+        description: (empty)
+        schema:
+            items:
+                $ref: '#/definitions/HostServerResponse'
+            type: array
     LocalLoginResponse:
         description: (empty)
         headers:
             Body: {}
         schema:
             $ref: '#/definitions/LoginResponseInfo'
+    NetworkProbeResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/NetworkProbeResponse'
+    PingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/PingResponse'
     RefreshAccessTokenResponse:
         description: (empty)
         schema:
@@ -1253,6 +3053,14 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/SoftDeleteUserByIdResponse'
+    UpdateExternalApplicationResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ExternalApplicationDao'
+    UpdateSshKeyHostMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/CreateSshKeyHostMappingResponse'
     UpdateUserRoleMappingResponse:
         description: (empty)
         schema:

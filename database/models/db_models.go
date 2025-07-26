@@ -12,10 +12,6 @@ type HostServer struct {
 	PublicSshKeyname string    `json:"public_ssh_key"`
 	HostedDomains    []string  `json:"hosted_domains"`
 	SslKeyPath       string    `json:"ssl_key_path"`
-	IsContainerHost  bool      `json:"is_container_host"`
-	IsVmHost         bool      `json:"is_vm_host"`
-	IsVirtualMachine bool      `json:"is_virtual_machine"`
-	IsDbHost         bool      `json:"is_db_host"`
 	CreatedAt        time.Time `json:"created"`
 	LastModified     time.Time `json:"last_modified"`
 }

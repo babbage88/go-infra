@@ -1,0 +1,126 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: db-helper-api-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dbhelperui.trahan.dev
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /api/(download-pg-scripts.*)
+            backend:
+              service:
+                name: db-helper-api-csvc
+                port:
+                  number: 8181
+          - pathType: ImplementationSpecific
+            path: /api/(generate-pg-setup-scripts.*)
+            backend:
+              service:
+                name: db-helper-api-csvc
+                port:
+                  number: 8181
+          - pathType: ImplementationSpecific
+            path: /api/(.*)
+            backend:
+              service:
+                name: go-infra-svc
+                port:
+                  number: 8993
+  tls:
+    - hosts:
+        - dbhelperui.trahan.dev
+      secretName: trahan-dev-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: db-helper-ui-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dbhelperui.trahan.dev
+      http:
+        paths:
+          - pathType: Prefix
+            path: /assets/
+            backend:
+              service:
+                name: db-helper-ui-csvc
+                port:
+                  number: 8080
+
+          - pathType: ImplementationSpecific
+            path: /favicon.ico
+            backend:
+              service:
+                name: db-helper-ui-csvc
+                port:
+                  number: 8080
+
+          - pathType: ImplementationSpecific
+            path: /manifest.json
+            backend:
+              service:
+                name: db-helper-ui-csvc
+                port:
+                  number: 8080
+
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: db-helper-ui-csvc
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - dbhelperui.trahan.dev
+      secretName: trahan-dev-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-infra-websocket-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "gisshws"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    nginx.ingress.kubernetes.io/rewrite-target: /ssh/websocket/$1
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dbhelperui.trahan.dev
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /ws/ssh/websocket/(.*)
+            backend:
+              service:
+                name: go-infra-websocket
+                port:
+                  number: 8090
+          - pathType: Prefix
+            path: /ws/ssh/websocket/
+            backend:
+              service:
+                name: go-infra-websocket
+                port:
+                  number: 8090
+  tls:
+    - hosts:
+        - dbhelperui.trahan.dev
+      secretName: trahan-dev-cert

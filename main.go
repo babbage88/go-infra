@@ -33,6 +33,10 @@ import (
 
 	"github.com/babbage88/go-infra/api/api_server"
 	"github.com/babbage88/go-infra/api/authapi"
+	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/services/external_applications"
+	"github.com/babbage88/go-infra/services/host_servers"
+	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
@@ -63,13 +67,21 @@ func main() {
 	userService := &user_crud_svc.UserCRUDService{DbConn: connPool}
 	authService := &authapi.LocalAuthService{DbConn: connPool}
 	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
-	secretProvider := &user_secrets.PgUserSecretStore{DbConn: connPool}
+	secretProvider := user_secrets.NewPgUserSecretStore(connPool)
+	hostServerProvider := host_servers.NewHostServerProvider(infra_db_pg.New(connPool), secretProvider)
+	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool)
+	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
+	sshConnectionManager := initializeSshConnMgr(connPool, secretProvider, 30, 200, 20)
 
 	apiServer := api_server.APIServer{
 		HealthCheckService:      healthCheckService,
 		AuthService:             authService,
 		UserCRUDService:         userService,
 		UserSecretsStoreService: secretProvider,
+		HostServerProvider:      hostServerProvider,
+		SshKeyProvider:          sshKeyProvider,
+		ExternalAppsService:     externalAppsService,
+		SSHConnectionManager:    sshConnectionManager,
 		UseSsl:                  userHttps,
 		Certificate:             certFile,
 		CertKey:                 certKey,

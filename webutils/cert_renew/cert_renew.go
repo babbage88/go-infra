@@ -1,6 +1,7 @@
 package cert_renew
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -126,8 +127,15 @@ func (c *CertDnsRenewReq) KubeSecretName() string {
 	return retVal.String()
 }
 
-func (c *CertDnsRenewReq) Renew() (*CertificateData, error) {
-	certData := &CertificateData{}
+func (c *CertDnsRenewReq) Renew() (certData *CertificateData, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("panic recovered in cf_acme call", slog.Any("panic", r))
+			err = fmt.Errorf("panic in certificate renewal: %v", r)
+		}
+	}()
+
+	certData = &CertificateData{}
 	acmeRenewal := c.InitAcmeRenewRequest()
 	certificates, err := acmeRenewal.Renew(c.Token, c.RecursiveNameServers, c.Timeout)
 	if err != nil {

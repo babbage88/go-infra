@@ -44,6 +44,14 @@ type RetrievedSecretResponse struct {
 	}
 }
 
+// swagger:response CreateSecretResponse
+type CreateSecretResponse struct {
+	// in: body
+	Body struct {
+		ID uuid.UUID `json:"id"`
+	}
+}
+
 // swagger:parameters GetUserSecretEntries
 type GetUserSecretEntriesRequest struct {
 	// In: path

@@ -13,7 +13,7 @@ import (
 // Create a new external application secret.
 // responses:
 //
-//	200: description:Secret stored successfully
+//	200: CreateSecretResponse
 //	400: description:Invalid request
 //	401: description:Unauthorized
 func CreateSecretHandler(provider UserSecretProvider) http.Handler {
@@ -30,12 +30,18 @@ func CreateSecretHandler(provider UserSecretProvider) http.Handler {
 			return
 		}
 
-		err = provider.StoreSecret(req.Secret, userID, req.ApplicationID, req.Expiration)
+		secretId, err := provider.StoreSecret(req.Secret, userID, req.ApplicationID, req.Expiration)
 		if err != nil {
 			http.Error(w, "Failed to store secret", http.StatusInternalServerError)
 			return
 		}
+
+		resp := CreateSecretResponse{}
+		resp.Body.ID = secretId
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(resp.Body)
 	}))
 }
 

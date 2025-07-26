@@ -13,6 +13,329 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createExternalApplication = `-- name: CreateExternalApplication :one
+INSERT INTO public.external_integration_apps (id, "name", endpoint_url, app_description) 
+VALUES ($1, $2, $3, $4)
+RETURNING id, "name", created_at, last_modified, endpoint_url, app_description
+`
+
+type CreateExternalApplicationParams struct {
+	ID             uuid.UUID
+	Name           string
+	EndpointUrl    pgtype.Text
+	AppDescription pgtype.Text
+}
+
+func (q *Queries) CreateExternalApplication(ctx context.Context, arg CreateExternalApplicationParams) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, createExternalApplication,
+		arg.ID,
+		arg.Name,
+		arg.EndpointUrl,
+		arg.AppDescription,
+	)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
+}
+
+const createHostServer = `-- name: CreateHostServer :one
+INSERT INTO public.host_servers (
+    hostname,
+    ip_address
+) VALUES (
+    $1, $2
+)
+ON CONFLICT (hostname, ip_address) DO UPDATE SET
+    last_modified = CURRENT_TIMESTAMP
+RETURNING id, hostname, ip_address, created_at, last_modified
+`
+
+type CreateHostServerParams struct {
+	Hostname  string
+	IpAddress netip.Addr
+}
+
+// Host Servers CRUD Operations
+func (q *Queries) CreateHostServer(ctx context.Context, arg CreateHostServerParams) (HostServer, error) {
+	row := q.db.QueryRow(ctx, createHostServer, arg.Hostname, arg.IpAddress)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createHostServerType = `-- name: CreateHostServerType :one
+INSERT INTO public.host_server_types (name) VALUES ($1)
+ON CONFLICT (name) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING host_server_type_id, name, last_modified
+`
+
+// Host Server Types CRUD Operations
+func (q *Queries) CreateHostServerType(ctx context.Context, name string) (HostServerType, error) {
+	row := q.db.QueryRow(ctx, createHostServerType, name)
+	var i HostServerType
+	err := row.Scan(&i.HostServerTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const createHostServerTypeMapping = `-- name: CreateHostServerTypeMapping :one
+INSERT INTO public.host_server_type_mappings (host_server_id, host_server_type_id)
+VALUES ($1, $2)
+ON CONFLICT (host_server_id, host_server_type_id) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING id, host_server_id, host_server_type_id, created_at, last_modified
+`
+
+type CreateHostServerTypeMappingParams struct {
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+}
+
+// Host Server Type Mappings CRUD Operations
+func (q *Queries) CreateHostServerTypeMapping(ctx context.Context, arg CreateHostServerTypeMappingParams) (HostServerTypeMapping, error) {
+	row := q.db.QueryRow(ctx, createHostServerTypeMapping, arg.HostServerID, arg.HostServerTypeID)
+	var i HostServerTypeMapping
+	err := row.Scan(
+		&i.ID,
+		&i.HostServerID,
+		&i.HostServerTypeID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createPlatformType = `-- name: CreatePlatformType :one
+INSERT INTO public.platform_types (name) VALUES ($1)
+ON CONFLICT (name) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING platform_type_id, name, last_modified
+`
+
+// Platform Types CRUD Operations
+func (q *Queries) CreatePlatformType(ctx context.Context, name string) (PlatformType, error) {
+	row := q.db.QueryRow(ctx, createPlatformType, name)
+	var i PlatformType
+	err := row.Scan(&i.PlatformTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const createPlatformTypeMapping = `-- name: CreatePlatformTypeMapping :one
+INSERT INTO public.platform_type_mappings (platform_type_id, host_server_id, host_server_type_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (platform_type_id, host_server_id, host_server_type_id) DO UPDATE SET last_modified = CURRENT_TIMESTAMP
+RETURNING id, platform_type_id, host_server_id, host_server_type_id, created_at, last_modified
+`
+
+type CreatePlatformTypeMappingParams struct {
+	PlatformTypeID   uuid.UUID
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+}
+
+// Platform Type Mappings CRUD Operations
+func (q *Queries) CreatePlatformTypeMapping(ctx context.Context, arg CreatePlatformTypeMappingParams) (PlatformTypeMapping, error) {
+	row := q.db.QueryRow(ctx, createPlatformTypeMapping, arg.PlatformTypeID, arg.HostServerID, arg.HostServerTypeID)
+	var i PlatformTypeMapping
+	err := row.Scan(
+		&i.ID,
+		&i.PlatformTypeID,
+		&i.HostServerID,
+		&i.HostServerTypeID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHKey = `-- name: CreateSSHKey :one
+INSERT INTO public.ssh_keys (
+    name,
+    description,
+    priv_secret_id,
+    passphrase_id,
+    public_key,
+    key_type_id,
+    owner_user_id
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7
+) RETURNING id, name, description, priv_secret_id, passphrase_id, public_key, key_type_id, owner_user_id, created_at, last_modified
+`
+
+type CreateSSHKeyParams struct {
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID uuid.UUID
+	PassphraseID *uuid.UUID
+	PublicKey    string
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+}
+
+type CreateSSHKeyRow struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID uuid.UUID
+	PassphraseID *uuid.UUID
+	PublicKey    string
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+// SSH Keys CRUD Operations
+func (q *Queries) CreateSSHKey(ctx context.Context, arg CreateSSHKeyParams) (CreateSSHKeyRow, error) {
+	row := q.db.QueryRow(ctx, createSSHKey,
+		arg.Name,
+		arg.Description,
+		arg.PrivSecretID,
+		arg.PassphraseID,
+		arg.PublicKey,
+		arg.KeyTypeID,
+		arg.OwnerUserID,
+	)
+	var i CreateSSHKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.PrivSecretID,
+		&i.PassphraseID,
+		&i.PublicKey,
+		&i.KeyTypeID,
+		&i.OwnerUserID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHKeyHostMapping = `-- name: CreateSSHKeyHostMapping :one
+INSERT INTO public.host_server_ssh_mappings (
+    host_server_id,
+    ssh_key_id,
+    user_id,
+    hostserver_username,
+    sudo_password_token_id
+) VALUES (
+    $1, $2, $3, $4, $5
+)
+ON CONFLICT (host_server_id, ssh_key_id) DO UPDATE SET
+    hostserver_username = EXCLUDED.hostserver_username,
+    user_id = EXCLUDED.user_id,
+    sudo_password_token_id = EXCLUDED.sudo_password_token_id,
+    last_modified = CURRENT_TIMESTAMP
+RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified
+`
+
+type CreateSSHKeyHostMappingParams struct {
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+}
+
+type CreateSSHKeyHostMappingRow struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
+}
+
+// SSH Key to Host Server Mappings CRUD Operations
+func (q *Queries) CreateSSHKeyHostMapping(ctx context.Context, arg CreateSSHKeyHostMappingParams) (CreateSSHKeyHostMappingRow, error) {
+	row := q.db.QueryRow(ctx, createSSHKeyHostMapping,
+		arg.HostServerID,
+		arg.SshKeyID,
+		arg.UserID,
+		arg.HostserverUsername,
+		arg.SudoPasswordTokenID,
+	)
+	var i CreateSSHKeyHostMappingRow
+	err := row.Scan(
+		&i.ID,
+		&i.HostServerID,
+		&i.SshKeyID,
+		&i.UserID,
+		&i.HostserverUsername,
+		&i.SudoPasswordTokenID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHKeyType = `-- name: CreateSSHKeyType :one
+INSERT INTO public.ssh_key_types (
+    name,
+    description
+) VALUES (
+    $1, $2
+) RETURNING id, name, description, created_at, last_modified
+`
+
+type CreateSSHKeyTypeParams struct {
+	Name        string
+	Description pgtype.Text
+}
+
+func (q *Queries) CreateSSHKeyType(ctx context.Context, arg CreateSSHKeyTypeParams) (SshKeyType, error) {
+	row := q.db.QueryRow(ctx, createSSHKeyType, arg.Name, arg.Description)
+	var i SshKeyType
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createSSHSession = `-- name: CreateSSHSession :exec
+INSERT INTO ssh_sessions (id, user_id, host_server_id, username, created_at, last_activity, is_active)
+VALUES ($1, $2, $3, $4, $5, $6, true)
+ON CONFLICT (id) DO UPDATE SET last_activity = $6, is_active = true
+`
+
+type CreateSSHSessionParams struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) CreateSSHSession(ctx context.Context, arg CreateSSHSessionParams) error {
+	_, err := q.db.Exec(ctx, createSSHSession,
+		arg.ID,
+		arg.UserID,
+		arg.HostServerID,
+		arg.Username,
+		arg.CreatedAt,
+		arg.LastActivity,
+	)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username,
@@ -102,6 +425,116 @@ WHERE id = $1
 
 func (q *Queries) DeleteExternalAuthTokenById(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteExternalAuthTokenById, id)
+	return err
+}
+
+const deleteHostServer = `-- name: DeleteHostServer :exec
+DELETE FROM public.host_servers
+WHERE id = $1
+`
+
+func (q *Queries) DeleteHostServer(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteHostServer, id)
+	return err
+}
+
+const deleteHostServerType = `-- name: DeleteHostServerType :exec
+DELETE FROM public.host_server_types
+WHERE host_server_type_id = $1
+`
+
+func (q *Queries) DeleteHostServerType(ctx context.Context, hostServerTypeID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteHostServerType, hostServerTypeID)
+	return err
+}
+
+const deleteHostServerTypeMapping = `-- name: DeleteHostServerTypeMapping :exec
+DELETE FROM public.host_server_type_mappings
+WHERE id = $1
+`
+
+func (q *Queries) DeleteHostServerTypeMapping(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteHostServerTypeMapping, id)
+	return err
+}
+
+const deleteHostServerTypeMappingsByHostId = `-- name: DeleteHostServerTypeMappingsByHostId :exec
+DELETE FROM public.host_server_type_mappings
+WHERE host_server_id = $1
+`
+
+func (q *Queries) DeleteHostServerTypeMappingsByHostId(ctx context.Context, hostServerID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteHostServerTypeMappingsByHostId, hostServerID)
+	return err
+}
+
+const deletePlatformType = `-- name: DeletePlatformType :exec
+DELETE FROM public.platform_types
+WHERE platform_type_id = $1
+`
+
+func (q *Queries) DeletePlatformType(ctx context.Context, platformTypeID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePlatformType, platformTypeID)
+	return err
+}
+
+const deletePlatformTypeMapping = `-- name: DeletePlatformTypeMapping :exec
+DELETE FROM public.platform_type_mappings
+WHERE id = $1
+`
+
+func (q *Queries) DeletePlatformTypeMapping(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePlatformTypeMapping, id)
+	return err
+}
+
+const deletePlatformTypeMappingsByHostId = `-- name: DeletePlatformTypeMappingsByHostId :exec
+DELETE FROM public.platform_type_mappings
+WHERE host_server_id = $1
+`
+
+func (q *Queries) DeletePlatformTypeMappingsByHostId(ctx context.Context, hostServerID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePlatformTypeMappingsByHostId, hostServerID)
+	return err
+}
+
+const deleteSSHKey = `-- name: DeleteSSHKey :exec
+DELETE FROM ssh_keys
+WHERE id = $1
+`
+
+func (q *Queries) DeleteSSHKey(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSSHKey, id)
+	return err
+}
+
+const deleteSSHKeyHostMapping = `-- name: DeleteSSHKeyHostMapping :exec
+DELETE FROM public.host_server_ssh_mappings
+WHERE id = $1
+`
+
+func (q *Queries) DeleteSSHKeyHostMapping(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSSHKeyHostMapping, id)
+	return err
+}
+
+const deleteSSHKeyHostMappingsBySshKeyId = `-- name: DeleteSSHKeyHostMappingsBySshKeyId :exec
+DELETE FROM public.host_server_ssh_mappings
+WHERE ssh_key_id = $1
+`
+
+func (q *Queries) DeleteSSHKeyHostMappingsBySshKeyId(ctx context.Context, sshKeyID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSSHKeyHostMappingsBySshKeyId, sshKeyID)
+	return err
+}
+
+const deleteSSHKeyType = `-- name: DeleteSSHKeyType :exec
+DELETE FROM public.ssh_key_types
+WHERE name = $1
+`
+
+func (q *Queries) DeleteSSHKeyType(ctx context.Context, name string) error {
+	_, err := q.db.Exec(ctx, deleteSSHKeyType, name)
 	return err
 }
 
@@ -319,6 +752,131 @@ func (q *Queries) GetAllExternalApps(ctx context.Context) ([]GetAllExternalAppsR
 	return items, nil
 }
 
+const getAllHostServerTypes = `-- name: GetAllHostServerTypes :many
+SELECT host_server_type_id, name, last_modified
+FROM public.host_server_types
+ORDER BY name
+`
+
+func (q *Queries) GetAllHostServerTypes(ctx context.Context) ([]HostServerType, error) {
+	rows, err := q.db.Query(ctx, getAllHostServerTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HostServerType
+	for rows.Next() {
+		var i HostServerType
+		if err := rows.Scan(&i.HostServerTypeID, &i.Name, &i.LastModified); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllHostServers = `-- name: GetAllHostServers :many
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    created_at,
+    last_modified
+FROM public.host_servers
+`
+
+func (q *Queries) GetAllHostServers(ctx context.Context) ([]HostServer, error) {
+	rows, err := q.db.Query(ctx, getAllHostServers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HostServer
+	for rows.Next() {
+		var i HostServer
+		if err := rows.Scan(
+			&i.ID,
+			&i.Hostname,
+			&i.IpAddress,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllPlatformTypes = `-- name: GetAllPlatformTypes :many
+SELECT platform_type_id, name, last_modified
+FROM public.platform_types
+ORDER BY name
+`
+
+func (q *Queries) GetAllPlatformTypes(ctx context.Context) ([]PlatformType, error) {
+	rows, err := q.db.Query(ctx, getAllPlatformTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PlatformType
+	for rows.Next() {
+		var i PlatformType
+		if err := rows.Scan(&i.PlatformTypeID, &i.Name, &i.LastModified); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllSSHKeyTypes = `-- name: GetAllSSHKeyTypes :many
+SELECT 
+    id,
+    name,
+    description,
+    created_at,
+    last_modified
+FROM public.ssh_key_types
+`
+
+// SSH Key Types Operations
+func (q *Queries) GetAllSSHKeyTypes(ctx context.Context) ([]SshKeyType, error) {
+	rows, err := q.db.Query(ctx, getAllSSHKeyTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SshKeyType
+	for rows.Next() {
+		var i SshKeyType
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllUserPermissions = `-- name: GetAllUserPermissions :many
 SELECT
   "UserId",
@@ -412,6 +970,46 @@ func (q *Queries) GetExternalAppNameById(ctx context.Context, id uuid.UUID) (str
 	var name string
 	err := row.Scan(&name)
 	return name, err
+}
+
+const getExternalApplicationById = `-- name: GetExternalApplicationById :one
+SELECT id, "name", created_at, last_modified, endpoint_url, app_description
+FROM public.external_integration_apps
+WHERE id = $1
+`
+
+func (q *Queries) GetExternalApplicationById(ctx context.Context, id uuid.UUID) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, getExternalApplicationById, id)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
+}
+
+const getExternalApplicationByName = `-- name: GetExternalApplicationByName :one
+SELECT id, "name", created_at, last_modified, endpoint_url, app_description
+FROM public.external_integration_apps
+WHERE "name" = $1
+`
+
+func (q *Queries) GetExternalApplicationByName(ctx context.Context, name string) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, getExternalApplicationByName, name)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
 }
 
 const getExternalAuthTokenById = `-- name: GetExternalAuthTokenById :one
@@ -513,6 +1111,206 @@ func (q *Queries) GetExternalAuthTokensByUserIdAndAppId(ctx context.Context, arg
 	return items, nil
 }
 
+const getHostServerByHostname = `-- name: GetHostServerByHostname :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE hostname = $1
+`
+
+func (q *Queries) GetHostServerByHostname(ctx context.Context, hostname string) (HostServer, error) {
+	row := q.db.QueryRow(ctx, getHostServerByHostname, hostname)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getHostServerByIP = `-- name: GetHostServerByIP :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE ip_address = $1
+`
+
+func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress netip.Addr) (HostServer, error) {
+	row := q.db.QueryRow(ctx, getHostServerByIP, ipAddress)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getHostServerById = `-- name: GetHostServerById :one
+SELECT 
+    id,
+    hostname,
+    ip_address,
+    created_at,
+    last_modified
+FROM public.host_servers
+WHERE id = $1
+`
+
+// Host Servers CRUD Operations
+func (q *Queries) GetHostServerById(ctx context.Context, id uuid.UUID) (HostServer, error) {
+	row := q.db.QueryRow(ctx, getHostServerById, id)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getHostServerTypeById = `-- name: GetHostServerTypeById :one
+SELECT host_server_type_id, name, last_modified
+FROM public.host_server_types
+WHERE host_server_type_id = $1
+`
+
+func (q *Queries) GetHostServerTypeById(ctx context.Context, hostServerTypeID uuid.UUID) (HostServerType, error) {
+	row := q.db.QueryRow(ctx, getHostServerTypeById, hostServerTypeID)
+	var i HostServerType
+	err := row.Scan(&i.HostServerTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const getHostServerTypeByName = `-- name: GetHostServerTypeByName :one
+SELECT host_server_type_id, name, last_modified
+FROM public.host_server_types
+WHERE name = $1
+`
+
+func (q *Queries) GetHostServerTypeByName(ctx context.Context, name string) (HostServerType, error) {
+	row := q.db.QueryRow(ctx, getHostServerTypeByName, name)
+	var i HostServerType
+	err := row.Scan(&i.HostServerTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const getHostServerTypeMappingsByHostId = `-- name: GetHostServerTypeMappingsByHostId :many
+SELECT 
+    hstm.id,
+    hstm.host_server_id,
+    hstm.host_server_type_id,
+    hst.name as host_server_type_name,
+    hstm.created_at,
+    hstm.last_modified
+FROM public.host_server_type_mappings hstm
+JOIN public.host_server_types hst ON hstm.host_server_type_id = hst.host_server_type_id
+WHERE hstm.host_server_id = $1
+`
+
+type GetHostServerTypeMappingsByHostIdRow struct {
+	ID                 uuid.UUID
+	HostServerID       uuid.UUID
+	HostServerTypeID   uuid.UUID
+	HostServerTypeName string
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+}
+
+func (q *Queries) GetHostServerTypeMappingsByHostId(ctx context.Context, hostServerID uuid.UUID) ([]GetHostServerTypeMappingsByHostIdRow, error) {
+	rows, err := q.db.Query(ctx, getHostServerTypeMappingsByHostId, hostServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetHostServerTypeMappingsByHostIdRow
+	for rows.Next() {
+		var i GetHostServerTypeMappingsByHostIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.HostServerID,
+			&i.HostServerTypeID,
+			&i.HostServerTypeName,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getHostServerTypeMappingsByTypeId = `-- name: GetHostServerTypeMappingsByTypeId :many
+SELECT 
+    hstm.id,
+    hstm.host_server_id,
+    hstm.host_server_type_id,
+    hs.hostname,
+    hs.ip_address,
+    hstm.created_at,
+    hstm.last_modified
+FROM public.host_server_type_mappings hstm
+JOIN public.host_servers hs ON hstm.host_server_id = hs.id
+WHERE hstm.host_server_type_id = $1
+`
+
+type GetHostServerTypeMappingsByTypeIdRow struct {
+	ID               uuid.UUID
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+	Hostname         string
+	IpAddress        netip.Addr
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) GetHostServerTypeMappingsByTypeId(ctx context.Context, hostServerTypeID uuid.UUID) ([]GetHostServerTypeMappingsByTypeIdRow, error) {
+	rows, err := q.db.Query(ctx, getHostServerTypeMappingsByTypeId, hostServerTypeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetHostServerTypeMappingsByTypeIdRow
+	for rows.Next() {
+		var i GetHostServerTypeMappingsByTypeIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.HostServerID,
+			&i.HostServerTypeID,
+			&i.Hostname,
+			&i.IpAddress,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLatestExternalAuthToken = `-- name: GetLatestExternalAuthToken :one
 SELECT id, user_id, external_app_id, token, expiration, created_at, last_modified FROM external_auth_tokens
 WHERE user_id = $1 AND external_app_id = $2
@@ -573,6 +1371,206 @@ func (q *Queries) GetLatestExternalAuthTokenByAppName(ctx context.Context, arg G
 	return i, err
 }
 
+const getPlatformTypeById = `-- name: GetPlatformTypeById :one
+SELECT platform_type_id, name, last_modified
+FROM public.platform_types
+WHERE platform_type_id = $1
+`
+
+func (q *Queries) GetPlatformTypeById(ctx context.Context, platformTypeID uuid.UUID) (PlatformType, error) {
+	row := q.db.QueryRow(ctx, getPlatformTypeById, platformTypeID)
+	var i PlatformType
+	err := row.Scan(&i.PlatformTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const getPlatformTypeByName = `-- name: GetPlatformTypeByName :one
+SELECT platform_type_id, name, last_modified
+FROM public.platform_types
+WHERE name = $1
+`
+
+func (q *Queries) GetPlatformTypeByName(ctx context.Context, name string) (PlatformType, error) {
+	row := q.db.QueryRow(ctx, getPlatformTypeByName, name)
+	var i PlatformType
+	err := row.Scan(&i.PlatformTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const getPlatformTypeMappingsByHostId = `-- name: GetPlatformTypeMappingsByHostId :many
+SELECT 
+    ptm.id,
+    ptm.platform_type_id,
+    ptm.host_server_id,
+    ptm.host_server_type_id,
+    pt.name as platform_type_name,
+    hst.name as host_server_type_name,
+    ptm.created_at,
+    ptm.last_modified
+FROM public.platform_type_mappings ptm
+JOIN public.platform_types pt ON ptm.platform_type_id = pt.platform_type_id
+JOIN public.host_server_types hst ON ptm.host_server_type_id = hst.host_server_type_id
+WHERE ptm.host_server_id = $1
+`
+
+type GetPlatformTypeMappingsByHostIdRow struct {
+	ID                 uuid.UUID
+	PlatformTypeID     uuid.UUID
+	HostServerID       uuid.UUID
+	HostServerTypeID   uuid.UUID
+	PlatformTypeName   string
+	HostServerTypeName string
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+}
+
+func (q *Queries) GetPlatformTypeMappingsByHostId(ctx context.Context, hostServerID uuid.UUID) ([]GetPlatformTypeMappingsByHostIdRow, error) {
+	rows, err := q.db.Query(ctx, getPlatformTypeMappingsByHostId, hostServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlatformTypeMappingsByHostIdRow
+	for rows.Next() {
+		var i GetPlatformTypeMappingsByHostIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlatformTypeID,
+			&i.HostServerID,
+			&i.HostServerTypeID,
+			&i.PlatformTypeName,
+			&i.HostServerTypeName,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPlatformTypeMappingsByHostServerTypeId = `-- name: GetPlatformTypeMappingsByHostServerTypeId :many
+SELECT 
+    ptm.id,
+    ptm.platform_type_id,
+    ptm.host_server_id,
+    ptm.host_server_type_id,
+    pt.name as platform_type_name,
+    hs.hostname,
+    hs.ip_address,
+    ptm.created_at,
+    ptm.last_modified
+FROM public.platform_type_mappings ptm
+JOIN public.platform_types pt ON ptm.platform_type_id = pt.platform_type_id
+JOIN public.host_servers hs ON ptm.host_server_id = hs.id
+WHERE ptm.host_server_type_id = $1
+`
+
+type GetPlatformTypeMappingsByHostServerTypeIdRow struct {
+	ID               uuid.UUID
+	PlatformTypeID   uuid.UUID
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+	PlatformTypeName string
+	Hostname         string
+	IpAddress        netip.Addr
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
+}
+
+func (q *Queries) GetPlatformTypeMappingsByHostServerTypeId(ctx context.Context, hostServerTypeID uuid.UUID) ([]GetPlatformTypeMappingsByHostServerTypeIdRow, error) {
+	rows, err := q.db.Query(ctx, getPlatformTypeMappingsByHostServerTypeId, hostServerTypeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlatformTypeMappingsByHostServerTypeIdRow
+	for rows.Next() {
+		var i GetPlatformTypeMappingsByHostServerTypeIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlatformTypeID,
+			&i.HostServerID,
+			&i.HostServerTypeID,
+			&i.PlatformTypeName,
+			&i.Hostname,
+			&i.IpAddress,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPlatformTypeMappingsByPlatformId = `-- name: GetPlatformTypeMappingsByPlatformId :many
+SELECT 
+    ptm.id,
+    ptm.platform_type_id,
+    ptm.host_server_id,
+    ptm.host_server_type_id,
+    hs.hostname,
+    hs.ip_address,
+    hst.name as host_server_type_name,
+    ptm.created_at,
+    ptm.last_modified
+FROM public.platform_type_mappings ptm
+JOIN public.host_servers hs ON ptm.host_server_id = hs.id
+JOIN public.host_server_types hst ON ptm.host_server_type_id = hst.host_server_type_id
+WHERE ptm.platform_type_id = $1
+`
+
+type GetPlatformTypeMappingsByPlatformIdRow struct {
+	ID                 uuid.UUID
+	PlatformTypeID     uuid.UUID
+	HostServerID       uuid.UUID
+	HostServerTypeID   uuid.UUID
+	Hostname           string
+	IpAddress          netip.Addr
+	HostServerTypeName string
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+}
+
+func (q *Queries) GetPlatformTypeMappingsByPlatformId(ctx context.Context, platformTypeID uuid.UUID) ([]GetPlatformTypeMappingsByPlatformIdRow, error) {
+	rows, err := q.db.Query(ctx, getPlatformTypeMappingsByPlatformId, platformTypeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlatformTypeMappingsByPlatformIdRow
+	for rows.Next() {
+		var i GetPlatformTypeMappingsByPlatformIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlatformTypeID,
+			&i.HostServerID,
+			&i.HostServerTypeID,
+			&i.Hostname,
+			&i.IpAddress,
+			&i.HostServerTypeName,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRoleIdByName = `-- name: GetRoleIdByName :one
 SELECT
   "id" AS "RoleId"
@@ -586,6 +1584,367 @@ func (q *Queries) GetRoleIdByName(ctx context.Context, roleName string) (uuid.UU
 	var RoleId uuid.UUID
 	err := row.Scan(&RoleId)
 	return RoleId, err
+}
+
+const getSSHKeyById = `-- name: GetSSHKeyById :one
+SELECT
+    sk.id,
+    sk.name,
+    sk.description,
+    sk.public_key,
+    skt.name as key_type,
+    sk.owner_user_id,
+    sk.created_at,
+    sk.last_modified,
+    sk.priv_secret_id,
+    sk.passphrase_id
+FROM ssh_keys sk
+JOIN ssh_key_types skt ON sk.key_type_id = skt.id
+WHERE sk.id = $1
+`
+
+type GetSSHKeyByIdRow struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PublicKey    string
+	KeyType      string
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	PrivSecretID uuid.UUID
+	PassphraseID *uuid.UUID
+}
+
+func (q *Queries) GetSSHKeyById(ctx context.Context, id uuid.UUID) (GetSSHKeyByIdRow, error) {
+	row := q.db.QueryRow(ctx, getSSHKeyById, id)
+	var i GetSSHKeyByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.PublicKey,
+		&i.KeyType,
+		&i.OwnerUserID,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.PrivSecretID,
+		&i.PassphraseID,
+	)
+	return i, err
+}
+
+const getSSHKeyHostMappingById = `-- name: GetSSHKeyHostMappingById :one
+SELECT 
+    id,
+    host_server_id,
+    ssh_key_id,
+    user_id,
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
+FROM public.host_server_ssh_mappings
+WHERE id = $1
+`
+
+type GetSSHKeyHostMappingByIdRow struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
+}
+
+func (q *Queries) GetSSHKeyHostMappingById(ctx context.Context, id uuid.UUID) (GetSSHKeyHostMappingByIdRow, error) {
+	row := q.db.QueryRow(ctx, getSSHKeyHostMappingById, id)
+	var i GetSSHKeyHostMappingByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.HostServerID,
+		&i.SshKeyID,
+		&i.UserID,
+		&i.HostserverUsername,
+		&i.SudoPasswordTokenID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getSSHKeyHostMappingsByHostId = `-- name: GetSSHKeyHostMappingsByHostId :many
+SELECT 
+    mapping_id,
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
+FROM public.user_ssh_key_mappings
+WHERE host_server_id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingsByHostId(ctx context.Context, hostServerID uuid.UUID) ([]UserSshKeyMapping, error) {
+	rows, err := q.db.Query(ctx, getSSHKeyHostMappingsByHostId, hostServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSshKeyMapping
+	for rows.Next() {
+		var i UserSshKeyMapping
+		if err := rows.Scan(
+			&i.MappingID,
+			&i.UserID,
+			&i.Username,
+			&i.HostServerName,
+			&i.HostServerID,
+			&i.PublicKey,
+			&i.SshKeyID,
+			&i.ExternalAuthTokenID,
+			&i.SshKeyType,
+			&i.HostserverUsername,
+			&i.SudoPasswordTokenID,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHKeyHostMappingsByKeyId = `-- name: GetSSHKeyHostMappingsByKeyId :many
+SELECT 
+    mapping_id,
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
+FROM public.user_ssh_key_mappings
+WHERE ssh_key_id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingsByKeyId(ctx context.Context, sshKeyID uuid.UUID) ([]UserSshKeyMapping, error) {
+	rows, err := q.db.Query(ctx, getSSHKeyHostMappingsByKeyId, sshKeyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSshKeyMapping
+	for rows.Next() {
+		var i UserSshKeyMapping
+		if err := rows.Scan(
+			&i.MappingID,
+			&i.UserID,
+			&i.Username,
+			&i.HostServerName,
+			&i.HostServerID,
+			&i.PublicKey,
+			&i.SshKeyID,
+			&i.ExternalAuthTokenID,
+			&i.SshKeyType,
+			&i.HostserverUsername,
+			&i.SudoPasswordTokenID,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHKeyHostMappingsByUserId = `-- name: GetSSHKeyHostMappingsByUserId :many
+SELECT 
+    mapping_id,
+    user_id,
+    username,
+    host_server_name,
+    host_server_id,
+    public_key,
+    ssh_key_id,
+    external_auth_token_id,
+    ssh_key_type,
+    hostserver_username,
+    sudo_password_token_id,
+    created_at,
+    last_modified
+FROM public.user_ssh_key_mappings
+WHERE user_id = $1
+`
+
+func (q *Queries) GetSSHKeyHostMappingsByUserId(ctx context.Context, userID uuid.UUID) ([]UserSshKeyMapping, error) {
+	rows, err := q.db.Query(ctx, getSSHKeyHostMappingsByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSshKeyMapping
+	for rows.Next() {
+		var i UserSshKeyMapping
+		if err := rows.Scan(
+			&i.MappingID,
+			&i.UserID,
+			&i.Username,
+			&i.HostServerName,
+			&i.HostServerID,
+			&i.PublicKey,
+			&i.SshKeyID,
+			&i.ExternalAuthTokenID,
+			&i.SshKeyType,
+			&i.HostserverUsername,
+			&i.SudoPasswordTokenID,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHKeyTypeByName = `-- name: GetSSHKeyTypeByName :one
+SELECT 
+    id,
+    name,
+    description,
+    created_at,
+    last_modified
+FROM public.ssh_key_types
+WHERE name = $1
+`
+
+func (q *Queries) GetSSHKeyTypeByName(ctx context.Context, name string) (SshKeyType, error) {
+	row := q.db.QueryRow(ctx, getSSHKeyTypeByName, name)
+	var i SshKeyType
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getSSHKeysByOwnerId = `-- name: GetSSHKeysByOwnerId :many
+SELECT
+    sk.id,
+    sk.name,
+    sk.description,
+    sk.public_key,
+    skt.name as key_type,
+    sk.owner_user_id,
+    sk.created_at,
+    sk.last_modified,
+    sk.priv_secret_id,
+    sk.passphrase_id
+FROM ssh_keys sk
+JOIN ssh_key_types skt ON sk.key_type_id = skt.id
+WHERE sk.owner_user_id = $1
+`
+
+type GetSSHKeysByOwnerIdRow struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PublicKey    string
+	KeyType      string
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+	PrivSecretID uuid.UUID
+	PassphraseID *uuid.UUID
+}
+
+func (q *Queries) GetSSHKeysByOwnerId(ctx context.Context, ownerUserID uuid.UUID) ([]GetSSHKeysByOwnerIdRow, error) {
+	rows, err := q.db.Query(ctx, getSSHKeysByOwnerId, ownerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSSHKeysByOwnerIdRow
+	for rows.Next() {
+		var i GetSSHKeysByOwnerIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.PublicKey,
+			&i.KeyType,
+			&i.OwnerUserID,
+			&i.CreatedAt,
+			&i.LastModified,
+			&i.PrivSecretID,
+			&i.PassphraseID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSSHSessionById = `-- name: GetSSHSessionById :one
+SELECT id, user_id, host_server_id, username, created_at, last_activity
+FROM ssh_sessions WHERE id = $1 AND is_active = true
+`
+
+type GetSSHSessionByIdRow struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) GetSSHSessionById(ctx context.Context, id uuid.UUID) (GetSSHSessionByIdRow, error) {
+	row := q.db.QueryRow(ctx, getSSHSessionById, id)
+	var i GetSSHSessionByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.HostServerID,
+		&i.Username,
+		&i.CreatedAt,
+		&i.LastActivity,
+	)
+	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
@@ -949,7 +2308,7 @@ func (q *Queries) HardDeleteUserRoleById(ctx context.Context, id uuid.UUID) erro
 const insertExternalAppIntegrationByName = `-- name: InsertExternalAppIntegrationByName :one
 INSERT INTO public.external_integration_apps (id, "name") 
 VALUES ($1, $2)
-RETURNING id, name, created_at, last_modified, endpoint_url
+RETURNING id, name, created_at, last_modified, endpoint_url, app_description
 `
 
 type InsertExternalAppIntegrationByNameParams struct {
@@ -966,11 +2325,12 @@ func (q *Queries) InsertExternalAppIntegrationByName(ctx context.Context, arg In
 		&i.CreatedAt,
 		&i.LastModified,
 		&i.EndpointUrl,
+		&i.AppDescription,
 	)
 	return i, err
 }
 
-const insertExternalAuthToken = `-- name: InsertExternalAuthToken :exec
+const insertExternalAuthToken = `-- name: InsertExternalAuthToken :one
 INSERT INTO public.external_auth_tokens (
     id,
     user_id,
@@ -981,6 +2341,7 @@ INSERT INTO public.external_auth_tokens (
 VALUES (
   gen_random_uuid(),  $1, $2, $3, $4
 )
+RETURNING id
 `
 
 type InsertExternalAuthTokenParams struct {
@@ -990,61 +2351,16 @@ type InsertExternalAuthTokenParams struct {
 	Expiration    pgtype.Timestamptz
 }
 
-func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExternalAuthTokenParams) error {
-	_, err := q.db.Exec(ctx, insertExternalAuthToken,
+func (q *Queries) InsertExternalAuthToken(ctx context.Context, arg InsertExternalAuthTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertExternalAuthToken,
 		arg.UserID,
 		arg.ExternalAppID,
 		arg.Token,
 		arg.Expiration,
 	)
-	return err
-}
-
-const insertHostServer = `-- name: InsertHostServer :one
-INSERT INTO host_servers (
-            hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host
-        ) VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (hostname, ip_address)
-        DO UPDATE SET
-            is_container_host = EXCLUDED.is_container_host,
-            is_vm_host = EXCLUDED.is_vm_host,
-            is_virtual_machine = EXCLUDED.is_virtual_machine,
-            id_db_host = EXCLUDED.id_db_host,
-			      last_modified = DEFAULT
-RETURNING id, hostname, ip_address, is_container_host, is_vm_host, is_virtual_machine, id_db_host, created_at, last_modified
-`
-
-type InsertHostServerParams struct {
-	Hostname         string
-	IpAddress        netip.Addr
-	IsContainerHost  pgtype.Bool
-	IsVmHost         pgtype.Bool
-	IsVirtualMachine pgtype.Bool
-	IDDbHost         pgtype.Bool
-}
-
-func (q *Queries) InsertHostServer(ctx context.Context, arg InsertHostServerParams) (HostServer, error) {
-	row := q.db.QueryRow(ctx, insertHostServer,
-		arg.Hostname,
-		arg.IpAddress,
-		arg.IsContainerHost,
-		arg.IsVmHost,
-		arg.IsVirtualMachine,
-		arg.IDDbHost,
-	)
-	var i HostServer
-	err := row.Scan(
-		&i.ID,
-		&i.Hostname,
-		&i.IpAddress,
-		&i.IsContainerHost,
-		&i.IsVmHost,
-		&i.IsVirtualMachine,
-		&i.IDDbHost,
-		&i.CreatedAt,
-		&i.LastModified,
-	)
-	return i, err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const insertOrUpdateAppPermission = `-- name: InsertOrUpdateAppPermission :one
@@ -1218,6 +2534,65 @@ func (q *Queries) InsertUserHostedDb(ctx context.Context, arg InsertUserHostedDb
 	return i, err
 }
 
+const listActiveSSHSessions = `-- name: ListActiveSSHSessions :many
+SELECT id, user_id, host_server_id, username, created_at, last_activity
+FROM ssh_sessions WHERE is_active = true
+`
+
+type ListActiveSSHSessionsRow struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) ListActiveSSHSessions(ctx context.Context) ([]ListActiveSSHSessionsRow, error) {
+	rows, err := q.db.Query(ctx, listActiveSSHSessions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveSSHSessionsRow
+	for rows.Next() {
+		var i ListActiveSSHSessionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.HostServerID,
+			&i.Username,
+			&i.CreatedAt,
+			&i.LastActivity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markSSHSessionInactive = `-- name: MarkSSHSessionInactive :exec
+UPDATE ssh_sessions SET is_active = false WHERE id = $1
+`
+
+func (q *Queries) MarkSSHSessionInactive(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markSSHSessionInactive, id)
+	return err
+}
+
+const removeSSHSession = `-- name: RemoveSSHSession :exec
+UPDATE ssh_sessions SET is_active = false WHERE id = $1
+`
+
+func (q *Queries) RemoveSSHSession(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, removeSSHSession, id)
+	return err
+}
+
 const softDeleteUserById = `-- name: SoftDeleteUserById :one
 UPDATE users
   set is_deleted = TRUE,
@@ -1252,6 +2627,247 @@ WHERE id = $1
 
 func (q *Queries) SoftDeleteUserRoleById(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, softDeleteUserRoleById, id)
+	return err
+}
+
+const updateExternalApplication = `-- name: UpdateExternalApplication :one
+UPDATE public.external_integration_apps
+SET 
+    "name" = COALESCE($2, "name"),
+    endpoint_url = COALESCE($3, endpoint_url),
+    app_description = COALESCE($4, app_description),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, "name", created_at, last_modified, endpoint_url, app_description
+`
+
+type UpdateExternalApplicationParams struct {
+	ID             uuid.UUID
+	Name           string
+	EndpointUrl    pgtype.Text
+	AppDescription pgtype.Text
+}
+
+func (q *Queries) UpdateExternalApplication(ctx context.Context, arg UpdateExternalApplicationParams) (ExternalIntegrationApp, error) {
+	row := q.db.QueryRow(ctx, updateExternalApplication,
+		arg.ID,
+		arg.Name,
+		arg.EndpointUrl,
+		arg.AppDescription,
+	)
+	var i ExternalIntegrationApp
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.LastModified,
+		&i.EndpointUrl,
+		&i.AppDescription,
+	)
+	return i, err
+}
+
+const updateHostServer = `-- name: UpdateHostServer :one
+UPDATE public.host_servers
+SET 
+    hostname = COALESCE($2, hostname),
+    ip_address = COALESCE($3, ip_address),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, hostname, ip_address, created_at, last_modified
+`
+
+type UpdateHostServerParams struct {
+	ID        uuid.UUID
+	Hostname  string
+	IpAddress netip.Addr
+}
+
+func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (HostServer, error) {
+	row := q.db.QueryRow(ctx, updateHostServer, arg.ID, arg.Hostname, arg.IpAddress)
+	var i HostServer
+	err := row.Scan(
+		&i.ID,
+		&i.Hostname,
+		&i.IpAddress,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateHostServerType = `-- name: UpdateHostServerType :one
+UPDATE public.host_server_types
+SET name = $2, last_modified = CURRENT_TIMESTAMP
+WHERE host_server_type_id = $1
+RETURNING host_server_type_id, name, last_modified
+`
+
+type UpdateHostServerTypeParams struct {
+	HostServerTypeID uuid.UUID
+	Name             string
+}
+
+func (q *Queries) UpdateHostServerType(ctx context.Context, arg UpdateHostServerTypeParams) (HostServerType, error) {
+	row := q.db.QueryRow(ctx, updateHostServerType, arg.HostServerTypeID, arg.Name)
+	var i HostServerType
+	err := row.Scan(&i.HostServerTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const updatePlatformType = `-- name: UpdatePlatformType :one
+UPDATE public.platform_types
+SET name = $2, last_modified = CURRENT_TIMESTAMP
+WHERE platform_type_id = $1
+RETURNING platform_type_id, name, last_modified
+`
+
+type UpdatePlatformTypeParams struct {
+	PlatformTypeID uuid.UUID
+	Name           string
+}
+
+func (q *Queries) UpdatePlatformType(ctx context.Context, arg UpdatePlatformTypeParams) (PlatformType, error) {
+	row := q.db.QueryRow(ctx, updatePlatformType, arg.PlatformTypeID, arg.Name)
+	var i PlatformType
+	err := row.Scan(&i.PlatformTypeID, &i.Name, &i.LastModified)
+	return i, err
+}
+
+const updateSSHKey = `-- name: UpdateSSHKey :one
+UPDATE public.ssh_keys
+SET 
+    name = COALESCE($2, name),
+    description = COALESCE($3, description),
+    public_key = COALESCE($4, public_key),
+    key_type_id = COALESCE($5, key_type_id),
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, name, description, priv_secret_id, public_key, key_type_id, owner_user_id, created_at, last_modified
+`
+
+type UpdateSSHKeyParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description pgtype.Text
+	PublicKey   string
+	KeyTypeID   uuid.UUID
+}
+
+type UpdateSSHKeyRow struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	PrivSecretID uuid.UUID
+	PublicKey    string
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateSSHKey(ctx context.Context, arg UpdateSSHKeyParams) (UpdateSSHKeyRow, error) {
+	row := q.db.QueryRow(ctx, updateSSHKey,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.PublicKey,
+		arg.KeyTypeID,
+	)
+	var i UpdateSSHKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.PrivSecretID,
+		&i.PublicKey,
+		&i.KeyTypeID,
+		&i.OwnerUserID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateSSHKeyHostMapping = `-- name: UpdateSSHKeyHostMapping :one
+UPDATE public.host_server_ssh_mappings
+SET 
+    hostserver_username = $2,
+    last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, host_server_id, ssh_key_id, user_id, hostserver_username, sudo_password_token_id, created_at, last_modified
+`
+
+type UpdateSSHKeyHostMappingParams struct {
+	ID                 uuid.UUID
+	HostserverUsername string
+}
+
+type UpdateSSHKeyHostMappingRow struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	UserID              uuid.UUID
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateSSHKeyHostMapping(ctx context.Context, arg UpdateSSHKeyHostMappingParams) (UpdateSSHKeyHostMappingRow, error) {
+	row := q.db.QueryRow(ctx, updateSSHKeyHostMapping, arg.ID, arg.HostserverUsername)
+	var i UpdateSSHKeyHostMappingRow
+	err := row.Scan(
+		&i.ID,
+		&i.HostServerID,
+		&i.SshKeyID,
+		&i.UserID,
+		&i.HostserverUsername,
+		&i.SudoPasswordTokenID,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateSSHKeyType = `-- name: UpdateSSHKeyType :one
+UPDATE public.ssh_key_types
+SET 
+    description = COALESCE($2, description),
+    last_modified = CURRENT_TIMESTAMP
+WHERE name = $1
+RETURNING id, name, description, created_at, last_modified
+`
+
+type UpdateSSHKeyTypeParams struct {
+	Name        string
+	Description pgtype.Text
+}
+
+func (q *Queries) UpdateSSHKeyType(ctx context.Context, arg UpdateSSHKeyTypeParams) (SshKeyType, error) {
+	row := q.db.QueryRow(ctx, updateSSHKeyType, arg.Name, arg.Description)
+	var i SshKeyType
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const updateSSHSessionActivity = `-- name: UpdateSSHSessionActivity :exec
+UPDATE ssh_sessions SET last_activity = $2 WHERE id = $1
+`
+
+type UpdateSSHSessionActivityParams struct {
+	ID           uuid.UUID
+	LastActivity pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateSSHSessionActivity(ctx context.Context, arg UpdateSSHSessionActivityParams) error {
+	_, err := q.db.Exec(ctx, updateSSHSessionActivity, arg.ID, arg.LastActivity)
 	return err
 }
 

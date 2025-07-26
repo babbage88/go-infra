@@ -89,4 +89,30 @@ I don't currently run any Windows Servers in my homelab. I used to run a AD Doma
 
 For this project specificly, I use Postgres that is configured with a standy streaming replica. 
 
+### Database Migrations
+
+The application supports running database migrations using the [goose](https://github.com/pressly/goose) migration tool. To initialize or update your database schema:
+
+```bash
+# Run migrations using the embedded goose binary (recommended)
+go-infra --init-db --env-file .env
+
+# Run migrations using a custom goose binary
+go-infra --init-db --migration-bin /path/to/goose --env-file .env
+
+# Example with a local goose installation
+go-infra --init-db --migration-bin $(which goose) --env-file .env
+```
+
+**Requirements:**
+- `DATABASE_URL` environment variable must be set (usually in your `.env` file)
+- The application includes an embedded goose binary by default
+- If `--migration-bin` is specified, that binary will be used instead of the embedded one
+- The goose binary will receive `GOOSE_DBSTRING` environment variable set to your `DATABASE_URL`
+
+**Migration Files:**
+- SQL migration files are located in the `migrations/` directory
+- Files follow the naming convention: `00001_init.sql`, `00002_user_perms.sql`, etc.
+- Each migration is applied in numerical order
+
 

@@ -2,6 +2,7 @@
 devtest.sh
 k8s.env
 response_renew.json
+ws_known_hosts
 
 
 # ---> Go

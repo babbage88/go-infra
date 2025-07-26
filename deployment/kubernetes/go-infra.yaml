@@ -14,10 +14,11 @@ spec:
     spec:
       containers:
         - name: go-infra
-          image: ghcr.io/babbage88/go-infra:v1.2.1
+          image: ghcr.io/babbage88/go-infra:v1.2.2
           imagePullPolicy: Always
           ports:
             - containerPort: 8993
+            - containerPort: 8090
           command: ["/app/server"]
           env:
             - name: JWT_KEY
@@ -75,6 +76,36 @@ spec:
                 secretKeyRef:
                   name: goinfra-app-secrets
                   key: CLOUDFLARE_DNS_API_TOKEN
+            - name: USER_SEC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: USER_SEC_KEY
+            - name: WEBSOCKET_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: WEBSOCKET_BASE
+            - name: VALKEY_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: VALKEY_ADDR
+            - name: VALKEY_USER
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: VALKEY_USER
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: VALKEY_PASSWORD
+            - name: SSH_SESSION_STORE_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: goinfra-app-secrets
+                  key: SSH_SESSION_STORE_TYPE
           resources:
             limits:
               memory: "1Gi"

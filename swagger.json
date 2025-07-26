@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/permission": {
       "post": {
@@ -146,6 +146,525 @@
         }
       }
     },
+    "/external-applications": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get all external applications.",
+        "operationId": "getAllExternalApplications",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllExternalApplicationsResponse"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Create a new external application.",
+        "operationId": "createExternalApplication",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateExternalApplicationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "$ref": "#/responses/CreateExternalApplicationResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid input data"
+          },
+          "409": {
+            "description": "Conflict - application with this name already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/by-name/{name}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application by name.",
+        "operationId": "getExternalApplicationByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Name of the external application",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationByNameResponse"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Delete an external application by name.",
+        "operationId": "deleteExternalApplicationByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Name of the external application",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "External application deleted successfully"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/id/{name}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application ID by name.",
+        "operationId": "getExternalApplicationIdByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "description": "Name of the external application",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationIdByNameResponse"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/name/{ID}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application name by ID.",
+        "operationId": "getExternalApplicationNameById",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationNameByIdResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/external-applications/{ID}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Get an external application by ID.",
+        "operationId": "getExternalApplicationById",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetExternalApplicationByIdResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Update an external application.",
+        "operationId": "updateExternalApplication",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateExternalApplicationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdateExternalApplicationResponse"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format or request body"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "external-applications"
+        ],
+        "summary": "Delete an external application by ID.",
+        "operationId": "deleteExternalApplicationById",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the external application",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "External application deleted successfully"
+          },
+          "400": {
+            "description": "Bad request - invalid UUID format"
+          },
+          "404": {
+            "description": "External application not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/host-server-type-mappings": {
+      "post": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Create a mapping between a host server and a host server type.",
+        "operationId": "CreateHostServerTypeMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateHostServerTypeMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateHostServerTypeMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-server-types": {
+      "get": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Get all available host server types.",
+        "operationId": "GetAllHostServerTypes",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllHostServerTypesResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers": {
+      "get": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Get all host servers.",
+        "operationId": "GetAllHostServers",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServersResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers/create": {
+      "post": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Create a new host server.",
+        "operationId": "CreateHostServer",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateHostServerRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers/{ID}": {
+      "get": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Get a host server by ID.",
+        "operationId": "GetHostServer",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Update a host server.",
+        "operationId": "UpdateHostServer",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateHostServerRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Delete a host server.",
+        "operationId": "DeleteHostServer",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Host server deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/login": {
       "post": {
         "description": "Local Auth login with username and password",
@@ -179,6 +698,328 @@
         }
       }
     },
+    "/network/ping": {
+      "post": {
+        "tags": [
+          "network-ping"
+        ],
+        "summary": "Ping an arbitrary hostname or IP address.",
+        "operationId": "pingHost",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/PingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/ping-host-server": {
+      "post": {
+        "tags": [
+          "network-ping"
+        ],
+        "summary": "Ping a managed host server by its ID.",
+        "operationId": "pingHostServer",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/PingHostServerRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/ping/{target}": {
+      "get": {
+        "tags": [
+          "network-ping"
+        ],
+        "summary": "Ping an arbitrary hostname or IP address using GET method.",
+        "operationId": "pingHostGet",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Target",
+            "description": "Target hostname or IP address to ping",
+            "name": "target",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-tcp-host-id": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a TCP port on a managed host server by its ID.",
+        "operationId": "probeTCPByHostId",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-tcp-hostname": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a TCP port on a host by hostname.",
+        "operationId": "probeTCPByHostname",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostnameRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-tcp/{target}/{port}": {
+      "get": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a TCP port on a host using GET method.",
+        "operationId": "probeTCPGet",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Target",
+            "description": "Target hostname to probe",
+            "name": "target",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Port",
+            "description": "Port number to probe",
+            "name": "port",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-udp-host-id": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a UDP port on a managed host server by its ID.",
+        "operationId": "probeUDPByHostId",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-udp-hostname": {
+      "post": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a UDP port on a host by hostname.",
+        "operationId": "probeUDPByHostname",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProbeByHostnameRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/network/probe-udp/{target}/{port}": {
+      "get": {
+        "tags": [
+          "network-probe"
+        ],
+        "summary": "Probe a UDP port on a host using GET method.",
+        "operationId": "probeUDPGet",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Target",
+            "description": "Target hostname to probe",
+            "name": "target",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Port",
+            "description": "Port number to probe",
+            "name": "port",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/NetworkProbeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/permissions": {
       "get": {
         "security": [
@@ -203,6 +1044,59 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/platform-type-mappings": {
+      "post": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Create a mapping between a host server, platform type, and host server type.",
+        "operationId": "CreatePlatformTypeMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreatePlatformTypeMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreatePlatformTypeMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/platform-types": {
+      "get": {
+        "tags": [
+          "host-servers"
+        ],
+        "summary": "Get all available platform types.",
+        "operationId": "GetAllPlatformTypes",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetAllPlatformTypesResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error"
@@ -338,7 +1232,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Secret stored successfully"
+            "$ref": "#/responses/CreateSecretResponse"
           },
           "400": {
             "description": "Invalid request"
@@ -408,6 +1302,481 @@
           },
           "404": {
             "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/create": {
+      "post": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Create a new SSH key host mapping.",
+        "operationId": "createSshKeyHostMapping",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateSshKeyHostMappingRequestWithoutUserID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateSshKeyHostMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/host/{hostId}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get all SSH key host mappings for a host server.",
+        "operationId": "getSshKeyHostMappingsByHostId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "HostID",
+            "description": "ID of the host server to get mappings for",
+            "name": "hostId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingsByHostIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/key/{keyId}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get all SSH key host mappings for an SSH key.",
+        "operationId": "getSshKeyHostMappingsByKeyId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "KeyID",
+            "description": "ID of the SSH key to get mappings for",
+            "name": "keyId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingsByKeyIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/user/{userId}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get all SSH key host mappings for a user.",
+        "operationId": "getSshKeyHostMappingsByUserId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "ID of the user to get mappings for",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingsByUserIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-key-host-mappings/{id}": {
+      "get": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Get an SSH key host mapping by ID.",
+        "operationId": "getSshKeyHostMappingById",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key host mapping to retrieve",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeyHostMappingByIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Update an SSH key host mapping.",
+        "operationId": "updateSshKeyHostMapping",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key host mapping to update",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateSshKeyHostMappingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdateSshKeyHostMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ssh-key-host-mappings"
+        ],
+        "summary": "Delete an SSH key host mapping.",
+        "operationId": "deleteSshKeyHostMapping",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key host mapping to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/DeleteSshKeyHostMappingResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-keys/create": {
+      "post": {
+        "tags": [
+          "ssh-keys"
+        ],
+        "summary": "Create a new SSH key.",
+        "operationId": "createSshKey",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateSshKeyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateSshKeyResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-keys/user/{userId}": {
+      "get": {
+        "tags": [
+          "ssh-keys"
+        ],
+        "summary": "Get all SSH keys owned by a user.",
+        "operationId": "getSshKeysByUserId",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "ID of the user to get SSH keys for",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetSshKeysByUserIdResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh-keys/{id}": {
+      "delete": {
+        "tags": [
+          "ssh-keys"
+        ],
+        "summary": "Delete an SSH key and its associated secret.",
+        "operationId": "deleteSshKey",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "description": "ID of the SSH key to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/DeleteSshKeyResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/connect": {
+      "post": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "Create a new SSH connection to a host server.",
+        "operationId": "createSshConnection",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SshConnectionRequestDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SshConnectionResponse",
+            "schema": {
+              "$ref": "#/definitions/SshConnectionResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Host server not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/connect/{CONNID}": {
+      "delete": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "Close an SSH connection.",
+        "operationId": "closeSshConnection",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "CONNID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SshConnectionCloseResponse",
+            "schema": {
+              "$ref": "#/definitions/SshConnectionCloseResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid connection ID"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Session not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ssh/sessions": {
+      "get": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "List all active SSH sessions.",
+        "operationId": "listSshSessions",
+        "responses": {
+          "200": {
+            "description": "SshSessionSummary",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SshSessionSummary"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/ssh/websocket/{CONNID}": {
+      "get": {
+        "tags": [
+          "ssh"
+        ],
+        "summary": "WebSocket endpoint for SSH terminal communication.",
+        "operationId": "sshWebSocket",
+        "responses": {
+          "101": {
+            "description": "Switching Protocols"
+          },
+          "400": {
+            "description": "Invalid connection ID"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Session not found"
           }
         }
       }
@@ -834,7 +2203,7 @@
           }
         ],
         "tags": [
-          "users"
+          "UserCRUD"
         ],
         "summary": "Returns all active users.",
         "operationId": "GetAllUsers",
@@ -865,7 +2234,7 @@
           }
         ],
         "tags": [
-          "users"
+          "UserCRUD"
         ],
         "summary": "Returns User Info for the user id specified in URL users.",
         "operationId": "getUserById",
@@ -930,16 +2299,21 @@
     "AppPermissionDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "id": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "uuid",
+          "x-go-name": "Id"
         },
-        "newPermissionInfo": {
-          "$ref": "#/definitions/AppPermissionDao"
+        "permissionDescription": {
+          "type": "string",
+          "x-go-name": "PermissionDescription"
+        },
+        "permissionName": {
+          "type": "string",
+          "x-go-name": "PermissionName"
         }
       },
-      "x-go-name": "CreateAppPermissionResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "AuthToken": {
       "type": "object",
@@ -1103,6 +2477,127 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "CreateAppPermissionResult": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "newPermissionInfo": {
+          "$ref": "#/definitions/AppPermissionDao"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "CreateExternalApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "appDescription": {
+          "type": "string",
+          "x-go-name": "AppDescription"
+        },
+        "endpointUrl": {
+          "type": "string",
+          "x-go-name": "EndpointUrl"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/external_applications"
+    },
+    "CreateHostServerRequest": {
+      "type": "object",
+      "required": [
+        "hostname",
+        "ip_address"
+      ],
+      "properties": {
+        "host_server_type_ids": {
+          "description": "Host server type IDs that this server supports",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x-go-name": "HostServerTypeIDs",
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174000",
+            "123e4567-e89b-12d3-a456-426614174001"
+          ]
+        },
+        "hostname": {
+          "description": "Hostname of the server",
+          "type": "string",
+          "x-go-name": "Hostname",
+          "example": "server-01.example.com"
+        },
+        "ip_address": {
+          "description": "IP address of the server",
+          "type": "string",
+          "x-go-name": "IPAddress",
+          "example": "192.168.1.100"
+        },
+        "platform_type_ids": {
+          "description": "Platform type IDs that this server supports",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x-go-name": "PlatformTypeIDs",
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174002",
+            "123e4567-e89b-12d3-a456-426614174003"
+          ]
+        },
+        "ssh_key_id": {
+          "description": "SSH key ID for authentication",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SSHKeyID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "sudo_password_token_id": {
+          "description": "Optional sudo password token ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenID",
+          "example": "123e4567-e89b-12d3-a456-426614174001"
+        },
+        "username": {
+          "description": "Username for SSH connection",
+          "type": "string",
+          "x-go-name": "Username",
+          "example": "admin"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "CreateHostServerTypeMappingRequest": {
+      "type": "object",
+      "required": [
+        "hostServerId",
+        "hostServerTypeId"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "Host server ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerId"
+        },
+        "hostServerTypeId": {
+          "description": "Host server type ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerTypeId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
     "CreateNewUserRequest": {
       "type": "object",
       "properties": {
@@ -1121,6 +2616,35 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "CreatePlatformTypeMappingRequest": {
+      "type": "object",
+      "required": [
+        "hostServerId",
+        "platformTypeId",
+        "hostServerTypeId"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "Host server ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerId"
+        },
+        "hostServerTypeId": {
+          "description": "Host server type ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerTypeId"
+        },
+        "platformTypeId": {
+          "description": "Platform type ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PlatformTypeId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
     "CreateRolePermissionMappingRequest": {
       "type": "object",
       "properties": {
@@ -1133,6 +2657,19 @@
           "type": "string",
           "format": "uuid",
           "x-go-name": "RoleId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "CreateRolePermissionMappingResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "newMappingInfo": {
+          "$ref": "#/definitions/RolePermissionMappingDao"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -1157,6 +2694,229 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_secrets"
     },
+    "CreateSshKeyHostMappingRequest": {
+      "type": "object",
+      "required": [
+        "sshKeyId",
+        "hostServerId",
+        "userId",
+        "hostserverUsername"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "ID of the host server to map to",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "hostserverUsername": {
+          "description": "Username to use on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "sshKeyId": {
+          "description": "ID of the SSH key to map",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyID"
+        },
+        "sudoPasswordTokenId": {
+          "description": "ID of the sudo password token",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenId"
+        },
+        "userId": {
+          "description": "ID of the user who owns the mapping",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "CreateSshKeyHostMappingRequestWithoutUserID": {
+      "type": "object",
+      "required": [
+        "sshKeyId",
+        "hostServerId",
+        "hostserverUsername"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "ID of the host server to map to",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "hostserverUsername": {
+          "description": "Username to use on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "sshKeyId": {
+          "description": "ID of the SSH key to map",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyID"
+        },
+        "sudoPasswordTokenId": {
+          "description": "ID of the sudo password token",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "CreateSshKeyHostMappingResponse": {
+      "type": "object",
+      "required": [
+        "id",
+        "sshKeyId",
+        "hostServerId",
+        "userId",
+        "hostserverUsername",
+        "createdAt",
+        "lastModified"
+      ],
+      "properties": {
+        "createdAt": {
+          "description": "Creation timestamp",
+          "type": "string",
+          "x-go-name": "CreatedAt"
+        },
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "hostServerId": {
+          "description": "ID of the host server",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "hostserverUsername": {
+          "description": "Username on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "id": {
+          "description": "ID of the created mapping",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "lastModified": {
+          "description": "Last modification timestamp",
+          "type": "string",
+          "x-go-name": "LastModified"
+        },
+        "sshKeyId": {
+          "description": "ID of the SSH key",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyID"
+        },
+        "userId": {
+          "description": "ID of the user",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "CreateSshKeyRequest": {
+      "type": "object",
+      "required": [
+        "name",
+        "publicKey",
+        "privateKey",
+        "keyType"
+      ],
+      "properties": {
+        "description": {
+          "description": "Description of the SSH key",
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "hostServerId": {
+          "description": "Optional host server ID to associate the key with",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerId"
+        },
+        "keyType": {
+          "description": "Type of the SSH key (e.g., rsa, ed25519)",
+          "type": "string",
+          "x-go-name": "KeyType"
+        },
+        "name": {
+          "description": "Name of the SSH key",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "passphrase": {
+          "description": "Optional ssh key passphrase",
+          "type": "string",
+          "x-go-name": "Passphrase"
+        },
+        "privateKey": {
+          "description": "Private key in PEM format",
+          "type": "string",
+          "x-go-name": "PrivateKey"
+        },
+        "publicKey": {
+          "description": "Public key in OpenSSH format",
+          "type": "string",
+          "x-go-name": "PublicKey"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "CreateSshKeyResponse": {
+      "type": "object",
+      "required": [
+        "sshKeyId",
+        "privKeySecretId",
+        "passphraseSecretId",
+        "userId"
+      ],
+      "properties": {
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "passphraseSecretId": {
+          "description": "ID of the stored private key secret",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PassphraseSecretId"
+        },
+        "privKeySecretId": {
+          "description": "ID of the stored private key secret",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PrivKeySecretId"
+        },
+        "sshKeyId": {
+          "description": "ID of the created SSH key",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SshKeyId"
+        },
+        "userId": {
+          "description": "ID of the user who owns the key",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
     "CreateUserRoleRequest": {
       "type": "object",
       "properties": {
@@ -1170,6 +2930,20 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "DeleteSshKeyHostMappingResponse": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "description": "Success message",
+          "type": "string",
+          "x-go-name": "Message"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
     },
     "DisableUserRequest": {
       "type": "object",
@@ -1237,6 +3011,39 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_secrets"
+    },
+    "ExternalApplicationDao": {
+      "type": "object",
+      "properties": {
+        "appDescription": {
+          "type": "string",
+          "x-go-name": "AppDescription"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "endpointUrl": {
+          "type": "string",
+          "x-go-name": "EndpointUrl"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/external_applications"
     },
     "ExternalApplicationInfo": {
       "type": "object",
@@ -1343,6 +3150,102 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
+    "HostServerResponse": {
+      "type": "object",
+      "title": "HostServerResponse represents a host server response.",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "host_server_types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HostServerType"
+          },
+          "x-go-name": "HostServerTypes"
+        },
+        "hostname": {
+          "type": "string",
+          "x-go-name": "Hostname"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "ip_address": {
+          "type": "string",
+          "x-go-name": "IPAddress"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "platform_types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PlatformType"
+          },
+          "x-go-name": "PlatformTypes"
+        },
+        "ssh_key_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SSHKeyID"
+        },
+        "sudo_password_token_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenID"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "HostServerType": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "last_modified"
+      ],
+      "properties": {
+        "id": {
+          "description": "Unique identifier for the host server type",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "last_modified": {
+          "description": "Last modification timestamp",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified",
+          "example": "2024-01-15T10:30:00Z"
+        },
+        "name": {
+          "description": "Name of the host server type",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Database Server"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "HostServersResponse": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/HostServerResponse"
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
     "HostedDbPlatform": {
       "type": "object",
       "properties": {
@@ -1393,6 +3296,190 @@
       "x-go-name": "LocalLoginResponse",
       "x-go-package": "github.com/babbage88/go-infra/api/authapi"
     },
+    "NetworkProbeResponse": {
+      "type": "object",
+      "required": [
+        "targetHostName",
+        "targetPort",
+        "success",
+        "latency"
+      ],
+      "properties": {
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "latency": {
+          "description": "Latency of the probe operation",
+          "type": "string",
+          "x-go-name": "Latency"
+        },
+        "success": {
+          "description": "Whether the probe was successful",
+          "type": "boolean",
+          "x-go-name": "Success"
+        },
+        "targetHostId": {
+          "description": "ID of the target host server (if applicable)",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetHostId"
+        },
+        "targetHostName": {
+          "description": "Name of the target host",
+          "type": "string",
+          "x-go-name": "TargetHostName"
+        },
+        "targetPort": {
+          "description": "Port number that was probed",
+          "type": "integer",
+          "format": "uint16",
+          "x-go-name": "TargetPort"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PingHostServerRequest": {
+      "type": "object",
+      "required": [
+        "hostServerId"
+      ],
+      "properties": {
+        "hostServerId": {
+          "description": "ID of the host server to ping",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PingRequest": {
+      "type": "object",
+      "required": [
+        "target"
+      ],
+      "properties": {
+        "target": {
+          "description": "Target hostname or IP address to ping",
+          "type": "string",
+          "x-go-name": "Target"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PingResponse": {
+      "type": "object",
+      "required": [
+        "targetHostName",
+        "success",
+        "latency"
+      ],
+      "properties": {
+        "error": {
+          "description": "Error message if the operation failed",
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "latency": {
+          "description": "Latency of the ping operation",
+          "type": "string",
+          "x-go-name": "Latency"
+        },
+        "success": {
+          "description": "Whether the ping was successful",
+          "type": "boolean",
+          "x-go-name": "Success"
+        },
+        "targetHostId": {
+          "description": "ID of the target host server (if applicable)",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetHostId"
+        },
+        "targetHostName": {
+          "description": "Name of the target host",
+          "type": "string",
+          "x-go-name": "TargetHostName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "PlatformType": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "last_modified"
+      ],
+      "properties": {
+        "id": {
+          "description": "Unique identifier for the platform type",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "123e4567-e89b-12d3-a456-426614174001"
+        },
+        "last_modified": {
+          "description": "Last modification timestamp",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified",
+          "example": "2024-01-15T10:30:00Z"
+        },
+        "name": {
+          "description": "Name of the platform type",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Docker Host"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "ProbeByHostIdRequest": {
+      "type": "object",
+      "required": [
+        "targetHostId",
+        "port"
+      ],
+      "properties": {
+        "port": {
+          "description": "Port number to probe",
+          "type": "integer",
+          "format": "uint16",
+          "x-go-name": "Port"
+        },
+        "targetHostId": {
+          "description": "ID of the target host server",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetHostId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
+    "ProbeByHostnameRequest": {
+      "type": "object",
+      "required": [
+        "targetHostName",
+        "port"
+      ],
+      "properties": {
+        "port": {
+          "description": "Port number to probe",
+          "type": "integer",
+          "format": "uint16",
+          "x-go-name": "Port"
+        },
+        "targetHostName": {
+          "description": "Target hostname to probe",
+          "type": "string",
+          "x-go-name": "TargetHostName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
+    },
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
@@ -1426,7 +3513,6 @@
           "x-go-name": "RoleId"
         }
       },
-      "x-go-name": "CreateRolePermissionMappingResponse",
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "SoftDeleteUserByIdRequest": {
@@ -1453,6 +3539,178 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "SshConnectionCloseResponse": {
+      "description": "SSH Connection Close Response",
+      "type": "object",
+      "properties": {
+        "message": {
+          "description": "Success message",
+          "type": "string",
+          "x-go-name": "Message",
+          "example": "Connection closed successfully"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
+    "SshConnectionRequestDetails": {
+      "description": "SSH Connection Request",
+      "type": "object",
+      "required": [
+        "hostServerId",
+        "username"
+      ],
+      "properties": {
+        "columns": {
+          "description": "Terminal column width",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Columns",
+          "example": 120
+        },
+        "hostServerId": {
+          "description": "Host server ID to connect to",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "rows": {
+          "description": "Terminal row height",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Rows",
+          "example": 30
+        },
+        "username": {
+          "description": "Username to connect as on the remote server",
+          "type": "string",
+          "x-go-name": "Username",
+          "example": "admin"
+        }
+      },
+      "x-go-name": "SshConnectionRequest",
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
+    "SshConnectionResponse": {
+      "description": "SSH Connection Response",
+      "type": "object",
+      "properties": {
+        "connectionId": {
+          "description": "Unique connection identifier",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ConnectionID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "error": {
+          "description": "Error message if connection failed",
+          "type": "string",
+          "x-go-name": "Error",
+          "example": "SSH key not found"
+        },
+        "success": {
+          "description": "Whether the connection was successful",
+          "type": "boolean",
+          "x-go-name": "Success",
+          "example": true
+        },
+        "websocketUrl": {
+          "description": "WebSocket URL for terminal communication",
+          "type": "string",
+          "x-go-name": "WebsocketURL",
+          "example": "ws://localhost:8080/ssh/websocket/123e4567-e89b-12d3-a456-426614174000"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
+    "SshKeyListItem": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "keyType": {
+          "type": "string",
+          "x-go-name": "KeyType"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "ownerUserId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "OwnerUserID"
+        },
+        "passphraseId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PassphraseSecretId"
+        },
+        "privateKeyId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "PrivateKeyId"
+        },
+        "publicKey": {
+          "type": "string",
+          "x-go-name": "PublicKey"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
+    },
+    "SshSessionSummary": {
+      "description": "SshSessionSummary is a safe summary for listing sessions",
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "hostServerId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "HostServerID"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "lastActivity": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastActivity"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_connections"
+    },
     "TokenRefreshReq": {
       "type": "object",
       "properties": {
@@ -1471,6 +3729,109 @@
         "format": "uuid"
       },
       "x-go-package": "github.com/google/uuid"
+    },
+    "UpdateExternalApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "appDescription": {
+          "type": "string",
+          "x-go-name": "AppDescription"
+        },
+        "endpointUrl": {
+          "type": "string",
+          "x-go-name": "EndpointUrl"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/external_applications"
+    },
+    "UpdateHostServerRequest": {
+      "type": "object",
+      "properties": {
+        "host_server_type_ids": {
+          "description": "Host server type IDs that this server supports",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x-go-name": "HostServerTypeIDs",
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174000",
+            "123e4567-e89b-12d3-a456-426614174001"
+          ]
+        },
+        "hostname": {
+          "description": "Hostname of the server",
+          "type": "string",
+          "x-go-name": "Hostname",
+          "example": "server-01.example.com"
+        },
+        "ip_address": {
+          "description": "IP address of the server",
+          "type": "string",
+          "x-go-name": "IPAddress",
+          "example": "192.168.1.100"
+        },
+        "platform_type_ids": {
+          "description": "Platform type IDs that this server supports",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x-go-name": "PlatformTypeIDs",
+          "example": [
+            "123e4567-e89b-12d3-a456-426614174002",
+            "123e4567-e89b-12d3-a456-426614174003"
+          ]
+        },
+        "ssh_key_id": {
+          "description": "SSH key ID for authentication",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SSHKeyID",
+          "example": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "sudo_password_token_id": {
+          "description": "Optional sudo password token ID",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "SudoPasswordTokenID",
+          "example": "123e4567-e89b-12d3-a456-426614174001"
+        },
+        "username": {
+          "description": "Username for SSH connection",
+          "type": "string",
+          "x-go-name": "Username",
+          "example": "admin"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "UpdateSshKeyHostMappingRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "hostserverUsername"
+      ],
+      "properties": {
+        "hostserverUsername": {
+          "description": "Username to use on the host server",
+          "type": "string",
+          "x-go-name": "HostserverUsername"
+        },
+        "id": {
+          "description": "ID of the SSH key host mapping to update",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
     },
     "UpdateUserPasswordRequest": {
       "type": "object",
@@ -1659,40 +4020,16 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "createdAt": {
+        "error": {
           "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
+          "x-go-name": "Error"
         },
-        "enabled": {
-          "type": "boolean",
-          "x-go-name": "Enabled"
-        },
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
-        },
-        "isDeleted": {
-          "type": "boolean",
-          "x-go-name": "IsDeleted"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "LastModified"
-        },
-        "roleDesc": {
-          "type": "string",
-          "x-go-name": "RoleDescription"
-        },
-        "roleName": {
-          "type": "string",
-          "x-go-name": "RoleName"
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "UserSecretEntry": {
       "type": "object",
@@ -1720,13 +4057,68 @@
     "CreateAppPermissionResponse": {
       "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/AppPermissionDao"
+        "$ref": "#/definitions/CreateAppPermissionResult"
+      }
+    },
+    "CreateExternalApplicationResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "CreateHostServerTypeMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "x-go-name": "Success"
+          }
+        }
+      }
+    },
+    "CreatePlatformTypeMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "x-go-name": "Success"
+          }
+        }
       }
     },
     "CreateRolePermissionMapptingResponse": {
       "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/RolePermissionMappingDao"
+        "$ref": "#/definitions/CreateRolePermissionMappingResponse"
+      }
+    },
+    "CreateSecretResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "x-go-name": "ID"
+          }
+        }
+      }
+    },
+    "CreateSshKeyHostMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+      }
+    },
+    "CreateSshKeyResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyResponse"
       }
     },
     "CreateUserResponse": {
@@ -1739,6 +4131,25 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserRoleDao"
+      }
+    },
+    "DeleteSshKeyHostMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/DeleteSshKeyHostMappingResponse"
+      }
+    },
+    "DeleteSshKeyResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "description": "Success message",
+            "type": "string",
+            "x-go-name": "Message"
+          }
+        }
       }
     },
     "EnableDisableUserResponse": {
@@ -1754,6 +4165,33 @@
       },
       "headers": {
         "body": {}
+      }
+    },
+    "GetAllExternalApplicationsResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ExternalApplicationDao"
+        }
+      }
+    },
+    "GetAllHostServerTypesResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/HostServerType"
+        }
+      }
+    },
+    "GetAllPlatformTypesResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/PlatformType"
+        }
       }
     },
     "GetAllRolesResponse": {
@@ -1776,6 +4214,85 @@
         }
       }
     },
+    "GetExternalApplicationByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "GetExternalApplicationByNameResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "GetExternalApplicationIdByNameResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "x-go-name": "ID"
+          }
+        }
+      }
+    },
+    "GetExternalApplicationNameByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "x-go-name": "Name"
+          }
+        }
+      }
+    },
+    "GetSshKeyHostMappingByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+      }
+    },
+    "GetSshKeyHostMappingsByHostIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
+    "GetSshKeyHostMappingsByKeyIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
+    "GetSshKeyHostMappingsByUserIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
+        }
+      }
+    },
+    "GetSshKeysByUserIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/SshKeyListItem"
+        }
+      }
+    },
     "GetUserByIdResponse": {
       "description": "(empty)",
       "schema": {
@@ -1791,6 +4308,21 @@
         }
       }
     },
+    "HostServerResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/HostServerResponse"
+      }
+    },
+    "HostServersResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/HostServerResponse"
+        }
+      }
+    },
     "LocalLoginResponse": {
       "description": "(empty)",
       "schema": {
@@ -1798,6 +4330,18 @@
       },
       "headers": {
         "Body": {}
+      }
+    },
+    "NetworkProbeResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/NetworkProbeResponse"
+      }
+    },
+    "PingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/PingResponse"
       }
     },
     "RefreshAccessTokenResponse": {
@@ -1842,6 +4386,18 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/SoftDeleteUserByIdResponse"
+      }
+    },
+    "UpdateExternalApplicationResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ExternalApplicationDao"
+      }
+    },
+    "UpdateSshKeyHostMappingResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "UpdateUserRoleMappingResponse": {

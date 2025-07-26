@@ -43,11 +43,12 @@ type ExternalAuthToken struct {
 }
 
 type ExternalIntegrationApp struct {
-	ID           uuid.UUID
-	Name         string
-	CreatedAt    pgtype.Timestamptz
-	LastModified pgtype.Timestamptz
-	EndpointUrl  pgtype.Text
+	ID             uuid.UUID
+	Name           string
+	CreatedAt      pgtype.Timestamptz
+	LastModified   pgtype.Timestamptz
+	EndpointUrl    pgtype.Text
+	AppDescription pgtype.Text
 }
 
 type HealthCheck struct {
@@ -59,13 +60,34 @@ type HealthCheck struct {
 }
 
 type HostServer struct {
+	ID           uuid.UUID
+	Hostname     string
+	IpAddress    netip.Addr
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+type HostServerSshMapping struct {
+	ID                  uuid.UUID
+	HostServerID        uuid.UUID
+	SshKeyID            uuid.UUID
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
+	UserID              uuid.UUID
+	HostserverUsername  string
+}
+
+type HostServerType struct {
+	HostServerTypeID uuid.UUID
+	Name             string
+	LastModified     pgtype.Timestamptz
+}
+
+type HostServerTypeMapping struct {
 	ID               uuid.UUID
-	Hostname         string
-	IpAddress        netip.Addr
-	IsContainerHost  pgtype.Bool
-	IsVmHost         pgtype.Bool
-	IsVirtualMachine pgtype.Bool
-	IDDbHost         pgtype.Bool
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
 	CreatedAt        pgtype.Timestamptz
 	LastModified     pgtype.Timestamptz
 }
@@ -74,6 +96,21 @@ type HostedDbPlatform struct {
 	ID                int32
 	PlatformName      string
 	DefaultListenPort pgtype.Int4
+}
+
+type PlatformType struct {
+	PlatformTypeID uuid.UUID
+	Name           string
+	LastModified   pgtype.Timestamptz
+}
+
+type PlatformTypeMapping struct {
+	ID               uuid.UUID
+	PlatformTypeID   uuid.UUID
+	HostServerID     uuid.UUID
+	HostServerTypeID uuid.UUID
+	CreatedAt        pgtype.Timestamptz
+	LastModified     pgtype.Timestamptz
 }
 
 type RolePermissionMapping struct {
@@ -92,14 +129,47 @@ type RolePermissionsView struct {
 	Permission   pgtype.Text
 }
 
+type SshConnectionLog struct {
+	ID           uuid.UUID
+	SessionID    uuid.UUID
+	UserID       uuid.UUID
+	HostServerID pgtype.UUID
+	Action       string
+	Details      []byte
+	CreatedAt    pgtype.Timestamp
+}
+
 type SshKey struct {
 	ID           uuid.UUID
 	Name         string
 	Description  pgtype.Text
-	PrivSecretID pgtype.UUID
+	PrivSecretID uuid.UUID
 	PublicKey    string
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
+	KeyTypeID    uuid.UUID
+	OwnerUserID  uuid.UUID
+	PassphraseID *uuid.UUID
+}
+
+type SshKeyType struct {
+	ID           uuid.UUID
+	Name         string
+	Description  pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	LastModified pgtype.Timestamptz
+}
+
+type SshSession struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	HostServerID uuid.UUID
+	Username     string
+	CreatedAt    pgtype.Timestamptz
+	LastActivity pgtype.Timestamptz
+	IsActive     bool
+	ClientIp     *netip.Addr
+	UserAgent    pgtype.Text
 }
 
 type TempAdminInfo struct {
@@ -200,6 +270,23 @@ type UserRolesActive struct {
 	LastModified    pgtype.Timestamptz
 	Enabled         bool
 	IsDeleted       bool
+}
+
+// View showing all SSH key mappings for users, including host server details and key information
+type UserSshKeyMapping struct {
+	MappingID           uuid.UUID
+	UserID              uuid.UUID
+	Username            pgtype.Text
+	HostServerName      string
+	HostServerID        uuid.UUID
+	PublicKey           string
+	SshKeyID            uuid.UUID
+	ExternalAuthTokenID pgtype.UUID
+	SshKeyType          string
+	HostserverUsername  string
+	SudoPasswordTokenID pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	LastModified        pgtype.Timestamptz
 }
 
 type UsersAudit struct {

@@ -11,7 +11,6 @@ import (
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type RetrievedUserSecret struct {
@@ -41,7 +40,7 @@ type ExternalAppSecretMetadata struct {
 }
 
 type UserSecretProvider interface {
-	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error
+	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error)
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
 	GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error)
 	GetUserSecretEntriesByAppId(userId uuid.UUID, appId uuid.UUID) ([]UserSecretEntry, error)
@@ -52,7 +51,11 @@ type UserSecretProvider interface {
 // Implementing UserSecretProvider for scenarios where the user supplied secret has only one value that needs to be encrypted
 // such as JWT a single bearer token such as a cloudflare token
 type PgUserSecretStore struct {
-	DbConn *pgxpool.Pool `json:"dbConn"`
+	db infra_db_pg.DBTX
+}
+
+func NewPgUserSecretStore(db infra_db_pg.DBTX) *PgUserSecretStore {
+	return &PgUserSecretStore{db: db}
 }
 
 type PgEncrytpedSecret struct {
@@ -61,11 +64,11 @@ type PgEncrytpedSecret struct {
 	UserSecret    *EncryptedUserSecretsAES256GCM `json:"userSecret"`
 }
 
-func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) error {
+func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error) {
 	userCipherText, err := Encrypt(plaintextSecret)
 	if err != nil {
 		slog.Error("Error encrypting user secret", slog.String("Error", err.Error()))
-		return err
+		return uuid.Nil, err
 	}
 
 	userSecret := PgEncrytpedSecret{
@@ -77,7 +80,7 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 	jsonData, err := json.Marshal(userSecret)
 	if err != nil {
 		slog.Error("Failed to marshal encrypted secret to JSON", slog.String("error", err.Error()))
-		return err
+		return uuid.Nil, err
 	}
 
 	if expiry.IsZero() {
@@ -85,18 +88,22 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 		expiry = today.AddDate(0, 0, 31)
 	}
 
-	qry := infra_db_pg.New(p.DbConn)
+	qry := infra_db_pg.New(p.db)
 	params := infra_db_pg.InsertExternalAuthTokenParams{
 		UserID:        userId,
 		ExternalAppID: appId,
 		Token:         jsonData,
 		Expiration:    pgtype.Timestamptz{Time: expiry, Valid: true},
 	}
-	return qry.InsertExternalAuthToken(context.Background(), params)
+	secretId, err := qry.InsertExternalAuthToken(context.Background(), params)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return secretId, nil
 }
 
 func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error) {
-	qry := infra_db_pg.New(p.DbConn)
+	qry := infra_db_pg.New(p.db)
 	record, err := qry.GetExternalAuthTokenById(context.Background(), secretId)
 	if err != nil {
 		slog.Error("Error retrieving user secret from database", slog.String("error", err.Error()))
@@ -131,14 +138,14 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 }
 
 func (p *PgUserSecretStore) DeleteSecret(secretId uuid.UUID) error {
-	qry := infra_db_pg.New(p.DbConn)
+	qry := infra_db_pg.New(p.db)
 	result := qry.DeleteExternalAuthTokenById(context.Background(), secretId)
 	return result
 }
 
 func (p *PgUserSecretStore) GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error) {
 	userSecrets := make([]UserSecretEntry, 0)
-	qry := infra_db_pg.New(p.DbConn)
+	qry := infra_db_pg.New(p.db)
 	tokens, err := qry.GetUserSecretsByUserId(context.Background(), userId)
 	if err != nil {
 		slog.Error("Error retrieving token metadata from database", slog.String("error", err.Error()))
@@ -155,7 +162,7 @@ func (p *PgUserSecretStore) GetUserSecretEntries(userId uuid.UUID) ([]UserSecret
 
 func (p *PgUserSecretStore) GetUserSecretEntriesByAppId(userId uuid.UUID, appId uuid.UUID) ([]UserSecretEntry, error) {
 	userSecrets := make([]UserSecretEntry, 0)
-	qry := infra_db_pg.New(p.DbConn)
+	qry := infra_db_pg.New(p.db)
 	params := &infra_db_pg.GetUserSecretsByAppIdParams{UserID: userId, ApplicationID: appId}
 	tokens, err := qry.GetUserSecretsByAppId(context.Background(), *params)
 	if err != nil {
@@ -173,7 +180,7 @@ func (p *PgUserSecretStore) GetUserSecretEntriesByAppId(userId uuid.UUID, appId 
 
 func (p *PgUserSecretStore) GetUserSecretEntriesByAppName(userId uuid.UUID, appName string) ([]UserSecretEntry, error) {
 	userSecrets := make([]UserSecretEntry, 0)
-	qry := infra_db_pg.New(p.DbConn)
+	qry := infra_db_pg.New(p.db)
 	params := &infra_db_pg.GetUserSecretsByAppNameParams{UserID: userId, ApplicationName: appName}
 	tokens, err := qry.GetUserSecretsByAppName(context.Background(), *params)
 	if err != nil {

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-infra-service
+  labels:
+    app: go-infra
+spec:
+  allocateLoadBalancerNodePorts: false
+  selector:
+    app: go-infra
+  ports:
+  - protocol: TCP
+    port: 8993
+    targetPort: 8993
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-infra-websocket
+  labels:
+    app: go-infra
+spec:
+  type: ClusterIP
+  selector:
+    app: go-infra
+  ports:
+    - name: websocket
+      protocol: TCP
+      port: 8090
+      targetPort: 8090
+

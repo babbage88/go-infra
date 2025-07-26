@@ -9,9 +9,23 @@ sql:
         out: "database/infra_db_pg/"
         sql_package: "pgx/v5"
         overrides:
+          - column: "ssh_keys.passphrase_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+              pointer: true
+            nullable: true
           - column: "users_with_roles.roles"
             go_type:
               type: "[]string"
+          - column: "ssh_keys.priv_secret_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "ssh_keys.passphrase_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
           - column: "users_with_roles.role_ids"
             go_type:
               import: "github.com/google/uuid"

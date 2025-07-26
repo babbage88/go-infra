@@ -1,0 +1,49 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"autoscaling/v2","kind":"HorizontalPodAutoscaler","metadata":{"annotations":{},"name":"go-infra-hpa","namespace":"default"},"spec":{"maxReplicas":20,"metrics":[{"resource":{"name":"cpu","target":{"averageUtilization":40,"type":"Utilization"}},"type":"Resource"}],"minReplicas":5,"scaleTargetRef":{"apiVersion":"apps/v1","kind":"Deployment","name":"go-infra"}}}
+  creationTimestamp: "2024-11-08T05:54:26Z"
+  name: go-infra-hpa
+  namespace: default
+  resourceVersion: "49572291"
+  uid: eabcc41b-76d0-4f12-8dee-fab0b1767c0a
+spec:
+  maxReplicas: 20
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 40
+        type: Utilization
+    type: Resource
+  minReplicas: 5
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: go-infra
+status:
+  conditions:
+  - lastTransitionTime: "2025-01-18T14:38:12Z"
+    message: 'the HPA controller was unable to get the target''s current scale: deployments/scale.apps
+      "go-infra" not found'
+    reason: FailedGetScale
+    status: "False"
+    type: AbleToScale
+  - lastTransitionTime: "2025-01-18T08:34:05Z"
+    message: 'the HPA was unable to compute the replica count: failed to get cpu utilization:
+      did not receive metrics for targeted pods (pods might be unready)'
+    reason: FailedGetResourceMetric
+    status: "False"
+    type: ScalingActive
+  - lastTransitionTime: "2025-01-17T13:53:22Z"
+    message: the desired count is within the acceptable range
+    reason: DesiredWithinRange
+    status: "False"
+    type: ScalingLimited
+  currentMetrics:
+  - type: ""
+  currentReplicas: 5
+  desiredReplicas: 5
+  lastScaleTime: "2025-01-18T14:28:11Z"

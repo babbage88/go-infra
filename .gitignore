@@ -1,3 +1,5 @@
+internal/embedbin/goinfra-goosey
+ws_known_hosts
 secrets.yaml
 scratch.sql
 trahan-dev-certs.yaml
