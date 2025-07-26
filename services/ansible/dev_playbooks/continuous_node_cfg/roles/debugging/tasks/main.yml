@@ -1,0 +1,9 @@
+- name: Print Debugging Info
+  debug:
+    msg: |
+      === {{ inventory_hostname }} === \n\r
+       ansible_os_family: {{ ansible_os_family }}\n\r
+       ansible_distribution: {{ ansible_distribution }}\n\r
+  when: ansible_os_family != "Archlinux"
+  #  - ansible_os_family != "Debian"
+  #  - inventory_hostname != "minio1"

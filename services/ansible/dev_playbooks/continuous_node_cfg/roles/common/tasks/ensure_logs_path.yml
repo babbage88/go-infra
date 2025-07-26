@@ -1,0 +1,11 @@
+- name: Build timestamped directory path
+  set_fact:
+    update_log_dir: "{{ ansible_env.HOME }}/.logs/automation/updates/{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.year[2:] }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
+
+- name: Ensure update log directory exists
+  file:
+    path: "{{ update_log_dir }}"
+    state: directory
+    mode: '0715'
+    owner: 1000
+    group: 1000

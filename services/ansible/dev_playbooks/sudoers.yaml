@@ -1,0 +1,22 @@
+---
+- name: Update system packages and list what changed
+  hosts: trahplex2.trahan.dev
+  become: yes
+  gather_facts: yes
+
+  vars_files:
+  - vars.yml
+
+  tasks:
+    - name: Configure sudoers settings for users.
+      community.general.sudoers:
+        name: "{{ item.username }}-sudoers-config"
+        state: present
+        user: "{{ item.username }}"
+        commands: ALL
+        sudoers_path: /etc/sudoers.d
+        nopassword: "{{ item.nopw_sudo }}"
+      loop: "{{ dev_server_users }}"
+      become: yes
+
+
