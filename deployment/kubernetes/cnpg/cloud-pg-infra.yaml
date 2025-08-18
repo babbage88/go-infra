@@ -22,7 +22,7 @@ spec:
       secret:
         name: infra-db-user
   storage:
-    size: 7Gi
+    size: 15Gi
   postgresql:
     pg_hba:
       - host all all all scram-sha-256
