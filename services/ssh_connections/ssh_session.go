@@ -60,6 +60,7 @@ func initializeSshClient(host string, user string, port uint, privateKey string,
 		Auth:     auth,
 		Callback: VerifyHost,
 	})
+
 	if err != nil {
 		slog.Error("Failed to initialize SSH client", "error", err)
 		return nil, err
