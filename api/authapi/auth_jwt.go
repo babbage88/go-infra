@@ -16,6 +16,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	defaultRefreshTokenExpirationMinutes int64 = 2880
+	defaultAuthTokenExpirationMinutes    int64 = 15
+)
+
 func NewAccessTokenWithExp(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMethod jwt.SigningMethod, expTime time.Time) (string, error) {
 	// Create token
 	token := jwt.New(signingMethod)
@@ -54,12 +59,16 @@ func NewAccessToken(id uuid.UUID, roleIds uuid.UUIDs, email string, signingMetho
 	var expireMinutes int64
 	token := jwt.New(signingMethod)
 	envExp := os.Getenv("EXPIRATION_MINUTES")
-	expireMinutesInt, err := type_helper.ParseIntegerFromString[int64](envExp)
-	if err != nil {
+	expireMinutes, err := type_helper.ParseIntegerFromString[int64](envExp)
+	switch {
+	case err != nil:
 		slog.Error("Error parsing JWT Expiration minutes from env var EXPIRATION_MINUTS")
-		expireMinutes = int64(15)
+		expireMinutes = defaultAuthTokenExpirationMinutes
+	case expireMinutes == 0:
+		slog.Info("Parsed 0 from EXPIRATION_MINUTES, falling back to default",
+			slog.Int64("defaultAuthTokenExpirationMinutes", defaultAuthTokenExpirationMinutes))
+		expireMinutes = defaultAuthTokenExpirationMinutes
 	}
-	expireMinutes = expireMinutesInt
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = id
@@ -79,21 +88,27 @@ func NewRefreshToken(id uuid.UUID, signingMethod jwt.SigningMethod) (string, err
 	refreshToken := jwt.New(signingMethod)
 	refrshLengthEnv := os.Getenv("REFRESH_TOKEN_EXPIRIRATION_MINUTES")
 	expireMinutesInt, err := type_helper.ParseIntegerFromString[int64](refrshLengthEnv)
-	if err != nil {
-		slog.Error("Error parsing JWT Expiration minutes from env var EXPIRATION_MINUTS")
-		expireMinutesInt = int64(2880)
+
+	switch {
+	case err != nil:
+		slog.Error("Error parsing JWT Expiration minutes from env var REFRESH_TOKEN_EXPIRIRATION_MINUTES")
+		expireMinutesInt = defaultRefreshTokenExpirationMinutes
+	case expireMinutesInt == 0:
+		slog.Info("Parsed 0 from REFRESH_TOKEN_EXPIRIRATION_MINUTES, falling back to default",
+			slog.Int64("defaultRefreshTokenExpirationMinutes", defaultRefreshTokenExpirationMinutes))
+		expireMinutesInt = defaultRefreshTokenExpirationMinutes
 	}
 
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
 	rtClaims["sub"] = id
-	rtClaims["exp"] = time.Now().Add(time.Hour * time.Duration(expireMinutesInt)).Unix()
+	rtClaims["exp"] = time.Now().Add(time.Minute * time.Duration(expireMinutesInt)).Unix()
 
 	rt, err := refreshToken.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
 		return "", err
 	}
 
-	return rt, err
+	return rt, nil
 }
 
 func ParseAccessToken(accessToken string) *InfraJWTClaim {
@@ -138,7 +153,7 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 	var tokenPair AuthToken
 	// Parse the refresh token and validate
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
+		// Validate algoritm is correct
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -158,10 +173,9 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 
 		tokenPair.UserID = uid
 
+		// Verify u
 		usrInfo, err := a.GetUserById(uid)
-		// Get the user record from database or
-		// run through your business logic to verify if the user can log in
-		if err == nil {
+		if err == nil && usrInfo.Enabled {
 			signingMethod := getJwtSigningMenthodFromEnv()
 			tokenPair.Token, err = NewAccessToken(usrInfo.Id, usrInfo.RoleIds, usrInfo.Email, signingMethod)
 			if err != nil {
