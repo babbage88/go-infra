@@ -24,7 +24,8 @@ type PingResult struct {
 }
 
 type NetworkPinger interface {
-	Ping(target string) PingResult
+	Ping(remoteHost string) PingResult
+	ArpPing(remoteHost string) PingResult
 	PingHostServerNode(hostServerNodeID uuid.UUID) PingResult
 	ProbeTCPPortByHostId(targetHostId uuid.UUID, port uint16) NetworkProbeResult
 	ProbeUDPPortByHostId(targetHostId uuid.UUID, port uint16) NetworkProbeResult
