@@ -2289,12 +2289,24 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/services/node_networking
     PingResponse:
         properties:
+            PacketsRecv:
+                description: Total number of recieved packets
+                format: int64
+                type: integer
+            PacketsSent:
+                description: Total number of packets sent
+                format: int64
+                type: integer
             error:
                 description: Error message if the operation failed
                 type: string
                 x-go-name: Error
+            ipAddr:
+                description: resolved ip address from hostname
+                type: string
+                x-go-name: IpAddrString
             latency:
-                description: Latency of the ping operation
+                description: Average Latency of the ping operation
                 type: string
                 x-go-name: Latency
             success:

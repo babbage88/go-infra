@@ -39,8 +39,11 @@ func PingHandler(pinger NetworkPinger) http.HandlerFunc {
 		// Prepare response
 		resp := PingResponse{
 			TargetHostName: result.TargetHostName,
+			IpAddrString:   result.IpAddrString,
 			Success:        result.Success,
-			Latency:        result.Latency.String(),
+			Latency:        result.AverageLatency.String(),
+			PacketsSent:    result.PacketsSent,
+			PacketsRecv:    result.PacketsRecv,
 		}
 
 		// Set TargetHostId if it's not zero
@@ -94,8 +97,11 @@ func PingHostServerHandler(pinger NetworkPinger) http.HandlerFunc {
 		resp := PingResponse{
 			TargetHostId:   &req.HostServerID,
 			TargetHostName: result.TargetHostName,
+			IpAddrString:   result.IpAddrString,
 			Success:        result.Success,
-			Latency:        result.Latency.String(),
+			Latency:        result.AverageLatency.String(),
+			PacketsSent:    result.PacketsSent,
+			PacketsRecv:    result.PacketsRecv,
 		}
 
 		// Set TargetHostId if it's not zero
@@ -373,8 +379,11 @@ func PingGetHandler(pinger NetworkPinger) http.HandlerFunc {
 		// Prepare response
 		resp := PingResponse{
 			TargetHostName: result.TargetHostName,
+			IpAddrString:   result.IpAddrString,
 			Success:        result.Success,
-			Latency:        result.Latency.String(),
+			Latency:        result.AverageLatency.String(),
+			PacketsSent:    result.PacketsSent,
+			PacketsRecv:    result.PacketsRecv,
 		}
 
 		// Set TargetHostId if it's not zero

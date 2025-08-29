@@ -16,11 +16,14 @@ type NetworkProbeResult struct {
 }
 
 type PingResult struct {
-	TargetHostId   uuid.UUID
-	TargetHostName string
-	Success        bool
-	Error          error
-	Latency        time.Duration
+	TargetHostId   uuid.UUID     `json:"targetHostId"`
+	TargetHostName string        `json:"targetHostName"`
+	IpAddrString   string        `json:"ipAddr,omitempty"`
+	Success        bool          `json:"success"`
+	Error          error         `json:"error"`
+	AverageLatency time.Duration `json:"averageLatency"`
+	PacketsSent    int           `json:"PacketsSent"`
+	PacketsRecv    int           `json:"PacketsRecv"`
 }
 
 type NetworkPinger interface {

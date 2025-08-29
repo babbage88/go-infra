@@ -13,23 +13,23 @@ import (
 	ping "github.com/prometheus-community/pro-bing"
 )
 
-// NetworkPingerImpl implements the NetworkPinger interface
-type NetworkPingerImpl struct {
+// GoInfraRESTApiPinger implements the NetworkPinger interface
+type GoInfraRESTApiPinger struct {
 	hostServerProvider host_servers.HostServerProvider
 }
 
 // NewNetworkPinger creates a new NetworkPinger instance
 func NewNetworkPinger(hostServerProvider host_servers.HostServerProvider) NetworkPinger {
-	return &NetworkPingerImpl{
+	return &GoInfraRESTApiPinger{
 		hostServerProvider: hostServerProvider,
 	}
 }
 
-func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
+func (n *GoInfraRESTApiPinger) ArpPing(remoteHost string) PingResult {
 	start := time.Now()
 	ip := net.ParseIP(remoteHost)
 	if ip == nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("invalid IP"), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("invalid IP"), AverageLatency: time.Since(start)}
 	}
 
 	// choose an interface (first non-loopback)
@@ -42,7 +42,7 @@ func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
 		}
 	}
 	if iface == nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no usable interface"), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no usable interface"), AverageLatency: time.Since(start)}
 	}
 
 	// get source IPv4 from iface
@@ -55,13 +55,13 @@ func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
 		}
 	}
 	if srcIP == nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no IPv4 on iface"), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no IPv4 on iface"), AverageLatency: time.Since(start)}
 	}
 
 	// open raw socket
 	fd, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(htons(syscall.ETH_P_ARP)))
 	if err != nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("raw socket: %w", err), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("raw socket: %w", err), AverageLatency: time.Since(start)}
 	}
 	defer syscall.Close(fd)
 
@@ -71,7 +71,7 @@ func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
 		Ifindex:  iface.Index,
 	}
 	if err := syscall.Bind(fd, &sll); err != nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("bind: %w", err), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("bind: %w", err), AverageLatency: time.Since(start)}
 	}
 
 	// build ARP request
@@ -96,7 +96,7 @@ func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
 
 	// send
 	if err := syscall.Sendto(fd, packet, 0, &sll); err != nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("send: %w", err), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("send: %w", err), AverageLatency: time.Since(start)}
 	}
 
 	// wait for reply
@@ -104,7 +104,7 @@ func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
 	syscall.SetsockoptTimeval(fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &syscall.Timeval{Sec: 2})
 	_, from, err := syscall.Recvfrom(fd, buf, 0)
 	if err != nil {
-		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no reply: %w", err), Latency: time.Since(start)}
+		return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no reply: %w", err), AverageLatency: time.Since(start)}
 	}
 
 	// confirm it's ARP reply
@@ -112,15 +112,15 @@ func (n *NetworkPingerImpl) ArpPing(remoteHost string) PingResult {
 	if binary.BigEndian.Uint16(buf[12:14]) == 0x0806 { // Ethertype = ARP
 		op := binary.BigEndian.Uint16(buf[20:22])
 		if op == 2 { // reply
-			return PingResult{TargetHostName: remoteHost, Success: true, Error: nil, Latency: time.Since(start)}
+			return PingResult{TargetHostName: remoteHost, Success: true, Error: nil, AverageLatency: time.Since(start)}
 		}
 	}
 
-	return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no ARP reply received"), Latency: time.Since(start)}
+	return PingResult{TargetHostName: remoteHost, Success: false, Error: fmt.Errorf("no ARP reply received"), AverageLatency: time.Since(start)}
 }
 
 // Ping pings an arbitrary IP address or hostname
-func (n *NetworkPingerImpl) Ping(remoteHost string) PingResult {
+func (n *GoInfraRESTApiPinger) Ping(remoteHost string) PingResult {
 	start := time.Now()
 
 	pinger, err := ping.NewPinger(remoteHost)
@@ -129,7 +129,7 @@ func (n *NetworkPingerImpl) Ping(remoteHost string) PingResult {
 			TargetHostName: remoteHost,
 			Success:        false,
 			Error:          fmt.Errorf("failed to create pinger: %w", err),
-			Latency:        time.Since(start),
+			AverageLatency: time.Since(start),
 		}
 	}
 
@@ -143,9 +143,10 @@ func (n *NetworkPingerImpl) Ping(remoteHost string) PingResult {
 	if err != nil {
 		return PingResult{
 			TargetHostName: remoteHost,
+			IpAddrString:   "",
 			Success:        false,
 			Error:          fmt.Errorf("ping failed: %w", err),
-			Latency:        time.Since(start),
+			AverageLatency: time.Since(start),
 		}
 	}
 
@@ -154,14 +155,17 @@ func (n *NetworkPingerImpl) Ping(remoteHost string) PingResult {
 
 	return PingResult{
 		TargetHostName: remoteHost,
+		IpAddrString:   stats.IPAddr.String(),
 		Success:        success,
 		Error:          nil,
-		Latency:        stats.AvgRtt,
+		AverageLatency: stats.AvgRtt,
+		PacketsSent:    stats.PacketsSent,
+		PacketsRecv:    stats.PacketsRecv,
 	}
 }
 
 // PingHostServerNode pings a managed HostServer by its ID
-func (n *NetworkPingerImpl) PingHostServerNode(hostServerNodeID uuid.UUID) PingResult {
+func (n *GoInfraRESTApiPinger) PingHostServerNode(hostServerNodeID uuid.UUID) PingResult {
 	// Get the host server information
 	hostServer, err := n.hostServerProvider.GetHostServer(context.Background(), hostServerNodeID)
 	if err != nil {
@@ -170,7 +174,7 @@ func (n *NetworkPingerImpl) PingHostServerNode(hostServerNodeID uuid.UUID) PingR
 			TargetHostName: "",
 			Success:        false,
 			Error:          fmt.Errorf("failed to get host server: %w", err),
-			Latency:        0,
+			AverageLatency: 0,
 		}
 	}
 
@@ -187,7 +191,7 @@ func (n *NetworkPingerImpl) PingHostServerNode(hostServerNodeID uuid.UUID) PingR
 }
 
 // ProbeTCPPortByHostId probes a TCP port on a managed HostServer by its ID
-func (n *NetworkPingerImpl) ProbeTCPPortByHostId(targetHostId uuid.UUID, port uint16) NetworkProbeResult {
+func (n *GoInfraRESTApiPinger) ProbeTCPPortByHostId(targetHostId uuid.UUID, port uint16) NetworkProbeResult {
 	// Get the host server information
 	hostServer, err := n.hostServerProvider.GetHostServer(context.Background(), targetHostId)
 	if err != nil {
@@ -214,7 +218,7 @@ func (n *NetworkPingerImpl) ProbeTCPPortByHostId(targetHostId uuid.UUID, port ui
 }
 
 // ProbeUDPPortByHostId probes a UDP port on a managed HostServer by its ID
-func (n *NetworkPingerImpl) ProbeUDPPortByHostId(targetHostId uuid.UUID, port uint16) NetworkProbeResult {
+func (n *GoInfraRESTApiPinger) ProbeUDPPortByHostId(targetHostId uuid.UUID, port uint16) NetworkProbeResult {
 	// Get the host server information
 	hostServer, err := n.hostServerProvider.GetHostServer(context.Background(), targetHostId)
 	if err != nil {
@@ -241,21 +245,21 @@ func (n *NetworkPingerImpl) ProbeUDPPortByHostId(targetHostId uuid.UUID, port ui
 }
 
 // ProbeTCPPortByHostName probes a TCP port on a host by hostname
-func (n *NetworkPingerImpl) ProbeTCPPortByHostName(targetHostName string, port uint16) NetworkProbeResult {
+func (n *GoInfraRESTApiPinger) ProbeTCPPortByHostName(targetHostName string, port uint16) NetworkProbeResult {
 	result := n.probeTCPPort(targetHostName, port)
 	result.TargetHostName = targetHostName
 	return result
 }
 
 // ProbeUDPPortByHostName probes a UDP port on a host by hostname
-func (n *NetworkPingerImpl) ProbeUDPPortByHostName(targetHostName string, port uint16) NetworkProbeResult {
+func (n *GoInfraRESTApiPinger) ProbeUDPPortByHostName(targetHostName string, port uint16) NetworkProbeResult {
 	result := n.probeUDPPort(targetHostName, port)
 	result.TargetHostName = targetHostName
 	return result
 }
 
 // probeTCPPort performs a TCP port probe
-func (n *NetworkPingerImpl) probeTCPPort(target string, port uint16) NetworkProbeResult {
+func (n *GoInfraRESTApiPinger) probeTCPPort(target string, port uint16) NetworkProbeResult {
 	start := time.Now()
 
 	address := fmt.Sprintf("%s:%d", target, port)
@@ -281,7 +285,7 @@ func (n *NetworkPingerImpl) probeTCPPort(target string, port uint16) NetworkProb
 }
 
 // probeUDPPort performs a UDP port probe
-func (n *NetworkPingerImpl) probeUDPPort(target string, port uint16) NetworkProbeResult {
+func (n *GoInfraRESTApiPinger) probeUDPPort(target string, port uint16) NetworkProbeResult {
 	start := time.Now()
 
 	address := fmt.Sprintf("%s:%d", target, port)

@@ -13,7 +13,8 @@ SPEC_YAML_SRC_FILE := spec/swagger.local-https.json
 tag := $(shell cat version.yaml | yq -r .version)
 
 check-swagger:
-	which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
+	@printf "#### [INFO - Local Dev] #### [%s] Ensuring go-swagger cli is installed...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@which swagger || (GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger)
 
 swagger:
 	swagger generate spec -o ./swagger.yaml --scan-models && swagger generate spec -o swagger.json --scan-models
@@ -25,28 +26,45 @@ dev-swagger: check-swagger
 	rm dev-swagger.json && rm dev-swagger.yaml
 
 local-swagger: check-swagger
-	swagger generate spec -o ./local-swagger.yaml --scan-models && swagger generate spec --scan-models -o local-swagger.json --scan-models
-	swagger mixin spec/swagger.local.json local-swagger.json --output swagger.json --format=json
-	swagger mixin spec/swagger.local.yaml local-swagger.yaml --output swagger.yaml --format=yaml
-	rm local-swagger.json && rm local-swagger.yaml
+	@printf "#### [INFO - Local Dev] #### [%s] Generating swagger YAML spec...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger generate spec -o ./local-swagger.yaml --scan-models
+	@printf "#### [INFO - Local Dev] #### [%s] Generating swagger JSON spec...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger generate spec -o local-swagger.json --scan-models
+	@printf "#### [INFO - Local Dev] #### [%s] Merging JSON spec into swagger.json...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.json --output swagger.json --format=json
+	@printf "#### [INFO - Local Dev] #### [%s] Merging YAML spec into swagger.yaml...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.yaml --output swagger.yaml --format=yaml
+	@printf "#### [INFO - Local Dev] #### [%s] Cleaning up temporary swagger files...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@rm local-swagger.json local-swagger.yaml
 
 local-swagger-https: check-swagger
-	swagger generate spec -o ./local-swagger.yaml --scan-models && swagger generate spec --scan-models -o local-swagger.json --scan-models
-	swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.json --output swagger.json --format=json
-	swagger mixin $(SPEC_YAML_SRC_FILE) local-swagger.yaml --output swagger.yaml --format=yaml
-	rm local-swagger.json && rm local-swagger.yaml
+	@printf "#### [INFO - Local Dev] #### [%s] Generating swagger YAML spec...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger generate spec -o ./local-swagger.yaml --scan-models
+	@printf "#### [INFO - Local Dev] #### [%s] Generating swagger JSON spec...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger generate spec -o local-swagger.json --scan-models
+	@printf "#### [INFO - Local Dev] #### [%s] Merging JSON spec into swagger.json...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.json --output swagger.json --format=json
+	@printf "#### [INFO - Local Dev] #### [%s] Merging YAML spec into swagger.yaml...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@swagger mixin $(SPEC_YAML_SRC_FILE) local-swagger.yaml --output swagger.yaml --format=yaml
+	@printf "#### [INFO - Local Dev] #### [%s] Cleaning up temporary swagger files...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
+	@rm local-swagger.json local-swagger.yaml
 
-k3local-swagger: check-swagger
-	swagger generate spec -o ./k3local-swagger.yaml --scan-models && swagger generate spec -o k3local-swagger.json --scan-models
-	swagger mixin spec/swagger.localdev.json k3local-swagger.json --output swagger.json --format=json
-	swagger mixin spec/swagger.localdev.yaml k3local-swagger.yaml --output swagger.yaml --format=yaml
-	rm k3local-swagger.json && rm k3local-swagger.yaml
+# Helper target: ensure valkey service is running
+ensure-valkey:
+	@if ! systemctl is-active --quiet valkey; then \
+		printf "#### [INFO - Local Dev] #### [%s] Starting valkey service...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"; \
+		sudo systemctl start valkey; \
+	else \
+		printf "#### [INFO - Local Dev] #### [%s] valkey service is already running....\n" "$$(date '+%Y-%m-%d %H:%M:%S')"; \
+	fi
 
-run-local: local-swagger
-	go run . --local-development
+run-local: ensure-valkey local-swagger
+	@printf "#### [INFO - Local Dev] #### [%s] Starting go-infra application...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"; 
+	@go run . --local-development
 
-run-local-with-https: local-swagger-https
-	go run . --local-development --use-https
+run-local-with-https: ensure-valkey local-swagger-https
+	@printf "#### [INFO - Local Dev] #### [%s] Starting go-infra application with https-...\n" "$$(date '+%Y-%m-%d %H:%M:%S')";
+	@go run . --local-development --use-https
 
 embed-swagger:
 	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json

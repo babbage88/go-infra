@@ -35,17 +35,28 @@ type PingResponse struct {
 	// required: true
 	TargetHostName string `json:"targetHostName"`
 
+	// resolved ip address from hostname
+	IpAddrString string `json:"ipAddr,omitempty"`
+
 	// Whether the ping was successful
 	// required: true
 	Success bool `json:"success"`
 
-	// Latency of the ping operation
+	// Average Latency of the ping operation
 	// required: true
 	Latency string `json:"latency"`
 
 	// Error message if the operation failed
 	// required: false
 	Error string `json:"error,omitempty"`
+
+	// Total number of packets sent
+	// required: false
+	PacketsSent int `json:"PacketsSent,omitempty"`
+
+	// Total number of recieved packets
+	// required: false
+	PacketsRecv int `json:"PacketsRecv,omitempty"`
 }
 
 // Ping Host Server Request/Response structs
