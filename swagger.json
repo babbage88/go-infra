@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
+  "host": "infra.trahan.dev",
   "paths": {
     "/create/permission": {
       "post": {
@@ -4020,16 +4020,40 @@
     "UserRoleDao": {
       "type": "object",
       "properties": {
-        "error": {
+        "createdAt": {
           "type": "string",
-          "x-go-name": "Error"
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
         },
-        "newUserRoleInfo": {
-          "$ref": "#/definitions/UserRoleDao"
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "Id"
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "x-go-name": "IsDeleted"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "roleDesc": {
+          "type": "string",
+          "x-go-name": "RoleDescription"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
         }
       },
       "x-go-name": "CreateUserRoleResponse",
-      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+      "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
       "type": "object",

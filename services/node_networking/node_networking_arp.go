@@ -48,3 +48,7 @@ func (a *arpPacket) Marshal() []byte {
 	copy(buf[24:28], a.DstIP.To4())
 	return buf
 }
+
+func htons(i uint16) uint16 {
+	return (i<<8)&0xff00 | i>>8
+}
