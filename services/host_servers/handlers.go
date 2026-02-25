@@ -371,3 +371,65 @@ func CreatePlatformTypeMappingHandler(provider HostServerProvider) http.HandlerF
 		}{Success: true})
 	}
 }
+
+// swagger:route POST /host-servers/{NAME} host-servers CreatePlatformType
+// Create a new PlatformType with the specified NAME
+// responses:
+//
+//	200: CreatePlatformTypeResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	404: description:Not Found
+//	500: description:Internal Server Error
+func CreatePlatformTypeHandler(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var response CreatePlatformTypeResponse
+		var err error
+
+		response.Body.Name = r.PathValue("NAME")
+		response.Body.Id, err = provider.CreatePlatformType(r.Context(), response.Body.Name)
+		if err != nil {
+			http.Error(w, "failed to create platform type", http.StatusInternalServerError)
+			return
+		}
+
+		jsonBytes, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Error marshaling CreatePlatformType repose to bytes")
+			http.Error(w, "error marshaling CreatePlatformType repose to bytes", http.StatusInternalServerError)
+
+		}
+		w.Write(jsonBytes)
+	}
+}
+
+// swagger:route POST /host-servers/{NAME} host-servers CreateHostServerType
+// Create a new HostServerType with the specified NAME
+// responses:
+//
+//	200: CreateHostServerTypeResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	404: description:Not Found
+//	500: description:Internal Server Error
+func CreateHostServerType(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var response CreatePlatformTypeResponse
+		var err error
+
+		response.Body.Name = r.PathValue("NAME")
+		response.Body.Id, err = provider.CreateHostServerType(r.Context(), response.Body.Name)
+		if err != nil {
+			http.Error(w, "failed to create newhost server type", http.StatusInternalServerError)
+			return
+		}
+
+		jsonBytes, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Error marshaling CreatePlatformType repose to bytes")
+			http.Error(w, "error marshaling CreatePlatformType repose to bytes", http.StatusInternalServerError)
+
+		}
+		w.Write(jsonBytes)
+	}
+}

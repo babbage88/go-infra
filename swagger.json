@@ -21,7 +21,7 @@
     },
     "version": "v1.1.0"
   },
-  "host": "infra.trahan.dev",
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -649,6 +649,32 @@
         "responses": {
           "200": {
             "description": "Host server deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-servers/{NAME}": {
+      "post": {
+        "description": "Create a new HostServerType with the specified NAME",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "CreateHostServerType",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateHostServerTypeResponse"
           },
           "400": {
             "description": "Invalid request"
@@ -4093,6 +4119,23 @@
         }
       }
     },
+    "CreateHostServerTypeResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "hostServerId": {
+            "type": "string",
+            "format": "uuid",
+            "x-go-name": "Id"
+          },
+          "name": {
+            "type": "string",
+            "x-go-name": "Name"
+          }
+        }
+      }
+    },
     "CreatePlatformTypeMappingResponse": {
       "description": "(empty)",
       "schema": {
@@ -4101,6 +4144,23 @@
           "success": {
             "type": "boolean",
             "x-go-name": "Success"
+          }
+        }
+      }
+    },
+    "CreatePlatformTypeResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "x-go-name": "Name"
+          },
+          "platformId": {
+            "type": "string",
+            "format": "uuid",
+            "x-go-name": "Id"
           }
         }
       }

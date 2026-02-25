@@ -213,3 +213,35 @@ type CreatePlatformTypeMappingResponseWrapper struct {
 		Success bool `json:"success"`
 	} `json:"body"`
 }
+
+// swagger:parameters CreatePlatformType
+// @Description Request to create a new platform type by name
+type CreatePlatformTypeRequest struct {
+	// in: path
+	NAME string `json:"NAME"`
+}
+
+// swagger:parameters CreatePlatformType
+// @Description Request to create a new host server type by name
+type CreateHostServerTypeRequest struct {
+	// in: path
+	NAME string `json:"NAME"`
+}
+
+// swagger:response CreatePlatformTypeResponse
+type CreatePlatformTypeResponse struct {
+	// in:body
+	Body struct {
+		Id   uuid.UUID `json:"platformId"`
+		Name string    `json:"name"`
+	} `json:"body"`
+}
+
+// swagger:response CreateHostServerTypeResponse
+type CreateHostServerTypeResponse struct {
+	// in:body
+	Body struct {
+		Id   uuid.UUID `json:"hostServerId"`
+		Name string    `json:"name"`
+	} `json:"body"`
+}

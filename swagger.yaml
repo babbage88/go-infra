@@ -14,7 +14,7 @@ info:
     termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
     title: go-infra API.
     version: v1.1.0
-host: infra.trahan.dev
+host: localhost:8993
 paths:
     /create/permission:
         post:
@@ -418,6 +418,23 @@ paths:
                 "500":
                     description: Internal Server Error
             summary: Update a host server.
+            tags:
+                - host-servers
+    /host-servers/{NAME}:
+        post:
+            description: Create a new HostServerType with the specified NAME
+            operationId: CreateHostServerType
+            responses:
+                "200":
+                    $ref: '#/responses/CreateHostServerTypeResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
             tags:
                 - host-servers
     /login:
@@ -2797,14 +2814,33 @@ definitions:
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     UserRoleDao:
         properties:
-            error:
+            createdAt:
+                format: date-time
                 type: string
-                x-go-name: Error
-            newUserRoleInfo:
-                $ref: '#/definitions/UserRoleDao'
+                x-go-name: CreatedAt
+            enabled:
+                type: boolean
+                x-go-name: Enabled
+            id:
+                format: uuid
+                type: string
+                x-go-name: Id
+            isDeleted:
+                type: boolean
+                x-go-name: IsDeleted
+            lastModified:
+                format: date-time
+                type: string
+                x-go-name: LastModified
+            roleDesc:
+                type: string
+                x-go-name: RoleDescription
+            roleName:
+                type: string
+                x-go-name: RoleName
         type: object
         x-go-name: CreateUserRoleResponse
-        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+        x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
     UserSecretEntry:
         properties:
             appInfo:
@@ -2836,6 +2872,18 @@ responses:
                     type: boolean
                     x-go-name: Success
             type: object
+    CreateHostServerTypeResponse:
+        description: (empty)
+        schema:
+            properties:
+                hostServerId:
+                    format: uuid
+                    type: string
+                    x-go-name: Id
+                name:
+                    type: string
+                    x-go-name: Name
+            type: object
     CreatePlatformTypeMappingResponse:
         description: (empty)
         schema:
@@ -2843,6 +2891,18 @@ responses:
                 success:
                     type: boolean
                     x-go-name: Success
+            type: object
+    CreatePlatformTypeResponse:
+        description: (empty)
+        schema:
+            properties:
+                name:
+                    type: string
+                    x-go-name: Name
+                platformId:
+                    format: uuid
+                    type: string
+                    x-go-name: Id
             type: object
     CreateRolePermissionMapptingResponse:
         description: (empty)

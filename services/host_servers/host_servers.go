@@ -3,6 +3,7 @@ package host_servers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/netip"
 	"time"
 
@@ -508,4 +509,28 @@ func (p *HostServerProviderImpl) GetAllPlatformTypes(ctx context.Context) ([]Pla
 	}
 
 	return result, nil
+}
+
+// CreatePlatformType creates a new PlatformType with the specified name
+func (p *HostServerProviderImpl) CreatePlatformType(ctx context.Context, name string) (uuid.UUID, error) {
+	pt, err := p.db.CreatePlatformType(ctx, name)
+	if err != nil {
+		slog.Error("Error creating PlatformType", slog.String("name", name), "error", err.Error())
+		return uuid.Nil, err
+	}
+	slog.Info("Created new PlatformType", slog.String("name", pt.Name), slog.String("id", pt.PlatformTypeID.String()))
+
+	return pt.PlatformTypeID, err
+}
+
+// CreateHostServerType creates a new HostServerType with the specified name
+func (p *HostServerProviderImpl) CreateHostServerType(ctx context.Context, name string) (uuid.UUID, error) {
+	t, err := p.db.CreateHostServerType(ctx, name)
+	if err != nil {
+		slog.Error("Error creating HostServerType", slog.String("name", name), "error", err.Error())
+		return uuid.Nil, err
+	}
+	slog.Info("Created new HostServerType", slog.String("name", t.Name), slog.String("id", t.HostServerTypeID.String()))
+
+	return t.HostServerTypeID, err
 }
