@@ -3,6 +3,7 @@ GHCR_REPO_TEST:=jtrahan88/goinfra-test:
 GOINFRA_SRC_DIR:=$$HOME/projects/go-infra
 GOOSEY_ENV_FILE:=.env
 GOOSEY_PROJ_DIR:=../infra-db
+GOOSEY_EMBED_BIN:=./internal/embedbin/goinfra-goosey
 ENV_FILE:=.env
 BUILDER := infrabuilder
 CUR_DUR := $(shell pwd)
@@ -10,7 +11,7 @@ mig:=$(shell date '+%m%d%Y.%H%M%S')
 SHELL := /bin/bash
 SPEC_JSON_SRC_FILE := spec/swagger.local-https.json
 SPEC_YAML_SRC_FILE := spec/swagger.local-https.json
-tag := $(shell cat version.yaml | yq -r .version)
+tag := $(shell if command -v yq >/dev/null 2>&1 && [ -f version.yaml ]; then yq -r .version version.yaml; fi)
 
 check-swagger:
 	@printf "#### [INFO - Local Dev] #### [%s] Ensuring go-swagger cli is installed...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
@@ -114,12 +115,27 @@ apply-migration:
 	@set -o allexport && source .env && set +o allexport && \
 		goose up -v
 
+verify-goosey:
+	@if [ ! -f "$(GOOSEY_EMBED_BIN)" ]; then \
+		echo "Missing embedded goosey binary: $(GOOSEY_EMBED_BIN)"; \
+		echo "Run 'make build-goosey' from the go-infra module to generate it."; \
+		exit 1; \
+	fi
+	@if [ ! -x "$(GOOSEY_EMBED_BIN)" ]; then \
+		echo "Embedded goosey binary exists but is not executable: $(GOOSEY_EMBED_BIN)"; \
+		echo "Run 'chmod +x $(GOOSEY_EMBED_BIN)' or rebuild it with 'make build-goosey'."; \
+		exit 1; \
+	fi
+	@echo "Embedded goosey binary ready: $(GOOSEY_EMBED_BIN)"
+
 build-goosey:
 	@echo building goosey binary in $(GOOSEY_PROJ_DIR)
-	@cd $(GOOSEY_PROJ_DIR) && set -o allexport && source .env && set +o allexport && \
-		go build -v -o goosey . && cd $(CUR_DUR)
-	@echo copying goosey binary from $(GOOSEY_PROJ_DIR) to current directory
-	@cp $(GOOSEY_PROJ_DIR)/goosey ./goosey
+	@cd $(GOOSEY_PROJ_DIR) && \
+		GOCACHE=$$(pwd)/.gocache go build -v -o goosey . && cd $(CUR_DUR)
+	@echo copying goosey binary from $(GOOSEY_PROJ_DIR) to $(GOOSEY_EMBED_BIN)
+	@cp $(GOOSEY_PROJ_DIR)/goosey $(GOOSEY_EMBED_BIN)
+	@chmod +x $(GOOSEY_EMBED_BIN)
+	@$(MAKE) verify-goosey
 
 fetch-tags:
 	@{ \
