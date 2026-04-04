@@ -8,6 +8,7 @@ import (
 type AuthService interface {
 	VerifyUser(userid uuid.UUID) bool
 	Login(loginReq *UserLoginRequest) UserLoginResponse
+	GetUserByUsernameOrEmail(identifier string) (*user_crud_svc.UserDao, error)
 	VerifyUserPermission(executionUserId uuid.UUID, permissionsName string) (bool, error)
 	CreateAuthTokenOnLogin(userid uuid.UUID, roleIds uuid.UUIDs, email string) (AuthToken, error)
 	VerifyToken(tokenString string) error

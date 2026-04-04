@@ -44,6 +44,12 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(authapi.LoginHandler(authService)))
+	mux.Handle("/auth/github/start", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authapi.GitHubLoginStartHandler().ServeHTTP(w, r)
+	}))
+	mux.Handle("/auth/github/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authapi.GitHubLoginCallbackHandler(authService, userCRUDService).ServeHTTP(w, r)
+	}))
 	mux.Handle("/dbhealth", cors.CORSWithGET(healthCheckService.DbReadHealthCheckHandler()))
 	mux.Handle("/token/verify", cors.CORSWithPOST(authapi.VerifyTokenHandler(authService)))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(authapi.RefreshAccessTokensHandler(authService)))

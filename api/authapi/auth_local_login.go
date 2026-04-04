@@ -2,6 +2,7 @@ package authapi
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/internal/type_helper"
+	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -133,6 +135,25 @@ func (a *LocalAuthService) Login(loginReq *UserLoginRequest) UserLoginResponse {
 	response.UserInfo.ParseUserRowFromDb(qry)
 
 	return response
+}
+
+func (a *LocalAuthService) GetUserByUsernameOrEmail(identifier string) (*user_crud_svc.UserDao, error) {
+	user := &user_crud_svc.UserDao{}
+	queries := infra_db_pg.New(a.DbConn)
+	qry, err := queries.GetUserLogin(context.Background(), pgtype.Text{String: identifier, Valid: true})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+
+		slog.Error("Error querying database for user",
+			slog.String("identifier", identifier),
+			slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	user.ParseUserRowFromDb(qry)
+	return user, nil
 }
 
 func (a *LocalAuthService) VerifyToken(tokenString string) error {
