@@ -10,8 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -52,8 +54,14 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 
 	provider := user_secrets.NewPgUserSecretStore(pool)
 
-	userId := uuid.MustParse(os.Getenv("DEV_USER_UUID"))
-	appId := uuid.MustParse("f69a0abc-d82c-4013-9b25-b8abf4e4a896")
+	userId, err := resolveTestUserID(pool)
+	if err != nil {
+		t.Fatalf("failed to resolve test user id: %v", err)
+	}
+	appId, err := resolveTestAppID(pool)
+	if err != nil {
+		t.Fatalf("failed to resolve test external app id: %v", err)
+	}
 
 	uniqueCiphertexts := make(map[string]struct{}, totalSecrets)
 	secretIDs := make([]uuid.UUID, 0, totalSecrets)
@@ -144,4 +152,41 @@ func expandPath(path string) string {
 		}
 	}
 	return path
+}
+
+func resolveTestUserID(pool *pgxpool.Pool) (uuid.UUID, error) {
+	if raw := os.Getenv("DEV_USER_UUID"); raw != "" {
+		parsed, err := uuid.Parse(raw)
+		if err != nil {
+			return uuid.Nil, fmt.Errorf("parse DEV_USER_UUID: %w", err)
+		}
+		return parsed, nil
+	}
+
+	qry := infra_db_pg.New(pool)
+	userID, err := qry.GetUserIdByName(context.Background(), pgtype.Text{String: "devuser", Valid: true})
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("lookup devuser in test database: %w", err)
+	}
+
+	return userID, nil
+}
+
+func resolveTestAppID(pool *pgxpool.Pool) (uuid.UUID, error) {
+	qry := infra_db_pg.New(pool)
+
+	appID, err := qry.GetExternalAppIdByName(context.Background(), "cloudflare")
+	if err == nil {
+		return appID, nil
+	}
+
+	created, createErr := qry.InsertExternalAppIntegrationByName(context.Background(), infra_db_pg.InsertExternalAppIntegrationByNameParams{
+		ID:   uuid.New(),
+		Name: "gotest-app",
+	})
+	if createErr != nil {
+		return uuid.Nil, fmt.Errorf("lookup cloudflare app: %w; create fallback test app: %v", err, createErr)
+	}
+
+	return created.ID, nil
 }
