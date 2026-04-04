@@ -27,6 +27,7 @@ type UserCRUD interface {
 	UpdateUserPasswordById(targetUserId uuid.UUID, newPassword string) error
 	UpdateUserEmailById(id uuid.UUID, email string)
 	VerifyAlterUser(executionUserId uuid.UUID) (bool, error)
+	VerifyDeleteRole(executionUserId uuid.UUID) (bool, error)
 	UpdateUserPasswordWithAuth(execUserId uuid.UUID, targetUserId uuid.UUID, newPassword string) error
 	EnableUserById(targetUserId uuid.UUID) (UserDao, error)
 	DisableUserById(targetUserId uuid.UUID) (UserDao, error)
@@ -68,7 +69,21 @@ func (us *UserCRUDService) UpdateUserPasswordWithAuth(execUserId uuid.UUID, targ
 func (us *UserCRUDService) VerifyAlterUser(ueid uuid.UUID) (bool, error) {
 	params := infra_db_pg.VerifyUserPermissionByIdParams{
 		UserId:     pgtype.UUID{Bytes: ueid, Valid: true},
-		Permission: pgtype.Text{String: "AlterUser", Valid: true},
+		Permission: pgtype.Text{String: "AlterUsers", Valid: true},
+	}
+	queries := infra_db_pg.New(us.DbConn)
+	qry, err := queries.VerifyUserPermissionById(context.Background(), params)
+	if err != nil {
+		slog.Error("Error verifying user permissions", slog.String("Error", err.Error()))
+		return false, err
+	}
+	return qry, err
+}
+
+func (us *UserCRUDService) VerifyDeleteRole(ueid uuid.UUID) (bool, error) {
+	params := infra_db_pg.VerifyUserPermissionByIdParams{
+		UserId:     pgtype.UUID{Bytes: ueid, Valid: true},
+		Permission: pgtype.Text{String: "DeleteRole", Valid: true},
 	}
 	queries := infra_db_pg.New(us.DbConn)
 	qry, err := queries.VerifyUserPermissionById(context.Background(), params)
@@ -208,8 +223,20 @@ func (us *UserCRUDService) GetAllAppPermissions() ([]AppPermissionDao, error) {
 	return appPermissionDaos, nil
 }
 
-func (us *UserCRUDService) EnableUserById(targetUserid uuid.UUID) (*UserDao, error) {
+func (us *UserCRUDService) EnableUserById(execUserId uuid.UUID, targetUserid uuid.UUID) (*UserDao, error) {
 	user := &UserDao{Id: targetUserid}
+
+	// Check if executing user has AlterUsers permission
+	isAdmin, err := us.VerifyAlterUser(execUserId)
+	if err != nil {
+		slog.Error("Error verifying user permissions", slog.String("ID", fmt.Sprint(execUserId)), slog.String("Error", err.Error()))
+		return user, err
+	}
+
+	if !isAdmin {
+		permErr := fmt.Errorf("execution userId %s does not have the AlterUsers permission", fmt.Sprint(execUserId))
+		return user, permErr
+	}
 
 	params := infra_db_pg.EnableUserByIdParams{ID: targetUserid, Enabled: true}
 	queries := infra_db_pg.New(us.DbConn)
@@ -223,15 +250,27 @@ func (us *UserCRUDService) EnableUserById(targetUserid uuid.UUID) (*UserDao, err
 	return user, err
 }
 
-func (us *UserCRUDService) DisableUserById(targetUserid uuid.UUID) (*UserDao, error) {
+func (us *UserCRUDService) DisableUserById(execUserId uuid.UUID, targetUserid uuid.UUID) (*UserDao, error) {
 	user := &UserDao{Id: targetUserid}
+
+	// Check if executing user has AlterUsers permission
+	isAdmin, err := us.VerifyAlterUser(execUserId)
+	if err != nil {
+		slog.Error("Error verifying user permissions", slog.String("ID", fmt.Sprint(execUserId)), slog.String("Error", err.Error()))
+		return user, err
+	}
+
+	if !isAdmin {
+		permErr := fmt.Errorf("execution userId %s does not have the AlterUsers permission", fmt.Sprint(execUserId))
+		return user, permErr
+	}
 
 	params := infra_db_pg.DisableUserByIdParams{ID: targetUserid, Enabled: false}
 	queries := infra_db_pg.New(us.DbConn)
 	rows, err := queries.DisableUserById(context.Background(), params)
 	if err != nil {
 		user.ParseUserFromDb(rows)
-		slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(targetUserid)))
+		slog.Error("error disabling user", slog.String("targetUser", fmt.Sprint(targetUserid)))
 		return user, err
 	}
 	user.ParseUserFromDb(rows)

@@ -236,3 +236,24 @@ type SoftDeleteUserByIdResponse struct {
 	DeletedUserInfo *user_crud_svc.UserDao `json:"deletedUserInfo"`
 	Error           error                  `json:"error"`
 }
+
+// Mark role as deleted in Database. Will no longer show in UI unless explicitly restored
+// swagger:parameters SoftDeleteRoleById
+type SoftDeleteRoleByIdRequestWrapper struct {
+	//in: body
+	Body SoftDeleteRoleByIdRequest `json:"body"`
+}
+
+type SoftDeleteRoleByIdRequest struct {
+	TargetRoleId uuid.UUID `json:"targetRoleId"`
+}
+
+// swagger:response SoftDeleteRoleByIdResponse
+type SoftDeleteRoleByIdResponseWrapper struct {
+	// in: body
+	Body SoftDeleteRoleByIdResponse `json:"body"`
+}
+
+type SoftDeleteRoleByIdResponse struct {
+	Error error `json:"error"`
+}

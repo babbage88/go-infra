@@ -55,13 +55,14 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/token/verify", cors.CORSWithPOST(authapi.VerifyTokenHandler(authService)))
 	mux.Handle("/token/refresh", cors.CORSWithPOST(authapi.RefreshAccessTokensHandler(authService)))
 	mux.Handle("/create/user", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateUser", userapi.CreateUserHandler(userCRUDService))))
-	mux.Handle("/update/userpass", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.UpdateUserPasswordHandler(userCRUDService))))
-	mux.Handle("/user/enable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.EnableUserHandler(userCRUDService))))
-	mux.Handle("/user/disable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.DisableUserHandler(userCRUDService))))
+	mux.Handle("/update/userpass", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUsers", userapi.UpdateUserPasswordHandler(userCRUDService))))
+	mux.Handle("/user/enable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUsers", userapi.EnableUserHandler(userCRUDService))))
+	mux.Handle("/user/disable", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUsers", userapi.DisableUserHandler(userCRUDService))))
 	mux.Handle("/user/delete", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "DeleteUser", userapi.SoftDeleteUserHandler(userCRUDService))))
-	mux.Handle("/user/role", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.UpdateUserRoleMappingHandler(userCRUDService))))
-	mux.Handle("/user/role/remove", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", userapi.DisableUserRoleMappingHandler(userCRUDService))))
+	mux.Handle("/user/role", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUsers", userapi.UpdateUserRoleMappingHandler(userCRUDService))))
+	mux.Handle("/user/role/remove", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterUsers", userapi.DisableUserRoleMappingHandler(userCRUDService))))
 	mux.Handle("/create/role", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreateRole", userapi.CreateUserRoleHandler(userCRUDService))))
+	mux.Handle("/role/delete", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "DeleteRole", userapi.SoftDeleteRoleHandler(userCRUDService))))
 	mux.Handle("/create/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "CreatePermission", userapi.CreateAppPermissionHandler(userCRUDService))))
 	mux.Handle("/roles/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterRole", userapi.CreateRolePermissionMappingHandler(userCRUDService))))
 	mux.Handle("/roles", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadRoles", userapi.GetAllRolesHandler(userCRUDService))))
@@ -159,20 +160,20 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 
 	s3AdminService := s3_admin.NewService(hostServerProvider)
 	// Allow users with the Admin role or the existing admin-style permission until dedicated S3 permissions are added.
-	mux.Handle("/storage/s3/endpoints", cors.CORSWithGET(authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.ListEndpointsHandler(s3AdminService))))
+	mux.Handle("/storage/s3/endpoints", cors.CORSWithGET(authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.ListEndpointsHandler(s3AdminService))))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets", cors.CORSWithMethods(
-		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.BucketsHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.BucketsHandler(s3AdminService)),
 		http.MethodGet, http.MethodPost,
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}", cors.CORSWithDELETE(
-		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.BucketByNameHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.BucketByNameHandler(s3AdminService)),
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/objects", cors.CORSWithMethods(
-		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.ObjectsHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.ObjectsHandler(s3AdminService)),
 		http.MethodGet, http.MethodPost, http.MethodDelete,
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/download", cors.CORSWithGET(
-		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.DownloadObjectHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.DownloadObjectHandler(s3AdminService)),
 	))
 
 	// Add Swagger UI handler

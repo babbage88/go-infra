@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/google/uuid"
 )
@@ -103,7 +104,7 @@ func UpdateUserPasswordHandleFunc(uc_service *user_crud_svc.UserCRUDService) fun
 		response.Body.Error = uc_service.UpdateUserPasswordById(request.TargetUserId, request.NewPassword)
 		if response.Body.Error != nil {
 			response.Body.Success = false
-			http.Error(w, "error updating user password "+err.Error(), http.StatusUnauthorized)
+			http.Error(w, "error updating user password "+response.Body.Error.Error(), http.StatusUnauthorized)
 			return
 		}
 		response.Body.Success = true
@@ -308,9 +309,17 @@ func EnableUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		// Extract the executing user from context
+		execUserId, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			slog.Error("Failed to extract user ID from context", slog.String("Error", err.Error()))
+			http.Error(w, fmt.Sprintf(`{"error": "Unauthorized: %s"}`, err.Error()), http.StatusUnauthorized)
+			return
+		}
+
 		var request EnableUserRequest
 
-		err := json.NewDecoder(r.Body).Decode(&request)
+		err = json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
@@ -324,9 +333,10 @@ func EnableUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http
 			},
 		}
 
-		response.Body.ModifiedUserInfo, response.Body.Error = uc_service.EnableUserById(request.TargetUserId)
+		response.Body.ModifiedUserInfo, response.Body.Error = uc_service.EnableUserById(execUserId, request.TargetUserId)
 		if response.Body.Error != nil {
-			http.Error(w, "error enabling user password "+response.Body.Error.Error(), http.StatusUnauthorized)
+			slog.Error("error enabling user", slog.String("targetUser", fmt.Sprint(request.TargetUserId)), slog.String("Error", response.Body.Error.Error()))
+			http.Error(w, fmt.Sprintf(`{"error": "%s"}`, response.Body.Error.Error()), http.StatusForbidden)
 			return
 		}
 
@@ -362,9 +372,17 @@ func DisableUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w htt
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		// Extract the executing user from context
+		execUserId, err := authapi.GetUserIDFromContext(r.Context())
+		if err != nil {
+			slog.Error("Failed to extract user ID from context", slog.String("Error", err.Error()))
+			http.Error(w, fmt.Sprintf(`{"error": "Unauthorized: %s"}`, err.Error()), http.StatusUnauthorized)
+			return
+		}
+
 		var request DisableUserRequest
 
-		err := json.NewDecoder(r.Body).Decode(&request)
+		err = json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
 			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
@@ -378,9 +396,10 @@ func DisableUserHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w htt
 			},
 		}
 
-		response.Body.ModifiedUserInfo, response.Body.Error = uc_service.DisableUserById(request.TargetUserId)
+		response.Body.ModifiedUserInfo, response.Body.Error = uc_service.DisableUserById(execUserId, request.TargetUserId)
 		if response.Body.Error != nil {
-			http.Error(w, "error enabling user password "+response.Body.Error.Error(), http.StatusUnauthorized)
+			slog.Error("error disabling user", slog.String("targetUser", fmt.Sprint(request.TargetUserId)), slog.String("Error", response.Body.Error.Error()))
+			http.Error(w, fmt.Sprintf(`{"error": "%s"}`, response.Body.Error.Error()), http.StatusForbidden)
 			return
 		}
 
