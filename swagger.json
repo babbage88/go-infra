@@ -5,6 +5,9 @@
   "produces": [
     "application/json"
   ],
+  "schemes": [
+    "https"
+  ],
   "swagger": "2.0",
   "info": {
     "title": "go-infra API.",
@@ -18,6 +21,7 @@
     },
     "version": "v1.1.0"
   },
+  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
@@ -4502,7 +4506,7 @@
   },
   "responses": {
     "CertificateDataRenewResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CertificateData"
       },
@@ -4511,19 +4515,19 @@
       }
     },
     "CreateAppPermissionResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateAppPermissionResult"
       }
     },
     "CreateExternalApplicationResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "CreateHostServerTypeMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4535,7 +4539,7 @@
       }
     },
     "CreateHostServerTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4552,7 +4556,7 @@
       }
     },
     "CreatePlatformTypeMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4564,7 +4568,7 @@
       }
     },
     "CreatePlatformTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4581,13 +4585,13 @@
       }
     },
     "CreateRolePermissionMapptingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateRolePermissionMappingResponse"
       }
     },
     "CreateSecretResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4600,37 +4604,37 @@
       }
     },
     "CreateSshKeyHostMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "CreateSshKeyResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyResponse"
       }
     },
     "CreateUserResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserDao"
       }
     },
     "CreateUserRoleResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserRoleDao"
       }
     },
     "DeleteSshKeyHostMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/DeleteSshKeyHostMappingResponse"
       }
     },
     "DeleteSshKeyResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4643,13 +4647,13 @@
       }
     },
     "EnableDisableUserResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/EnableDisableUserResponse"
       }
     },
     "GetAllAppPermissionsResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetAllAppPermissionsResponse"
       },
@@ -4658,7 +4662,7 @@
       }
     },
     "GetAllExternalApplicationsResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4667,7 +4671,7 @@
       }
     },
     "GetAllHostServerTypesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4676,7 +4680,7 @@
       }
     },
     "GetAllPlatformTypesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4685,7 +4689,7 @@
       }
     },
     "GetAllRolesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetAllRolesResponse"
       },
@@ -4694,7 +4698,7 @@
       }
     },
     "GetAllUsersResponse": {
-      "description": "",
+      "description": "(empty)",
       "headers": {
         "users": {
           "type": "array",
@@ -4705,19 +4709,19 @@
       }
     },
     "GetExternalApplicationByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "GetExternalApplicationByNameResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "GetExternalApplicationIdByNameResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4730,7 +4734,7 @@
       }
     },
     "GetExternalApplicationNameByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4742,13 +4746,13 @@
       }
     },
     "GetSshKeyHostMappingByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "GetSshKeyHostMappingsByHostIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4757,7 +4761,7 @@
       }
     },
     "GetSshKeyHostMappingsByKeyIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4766,7 +4770,7 @@
       }
     },
     "GetSshKeyHostMappingsByUserIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4775,7 +4779,7 @@
       }
     },
     "GetSshKeysByUserIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4784,13 +4788,13 @@
       }
     },
     "GetUserByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetUserByIdResponse"
       }
     },
     "GetUserSecretEntriesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4799,19 +4803,19 @@
       }
     },
     "HostServerResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/HostServerResponse"
       }
     },
     "HostServerTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/HostServerType"
       }
     },
     "HostServersResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -4820,7 +4824,7 @@
       }
     },
     "LocalLoginResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/LoginResponseInfo"
       },
@@ -4829,31 +4833,31 @@
       }
     },
     "NetworkProbeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/NetworkProbeResponse"
       }
     },
     "PingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/PingResponse"
       }
     },
     "PlatformTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/PlatformType"
       }
     },
     "RefreshAccessTokenResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/AccessTokens"
       }
     },
     "RetrievedSecretResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -4885,31 +4889,31 @@
       }
     },
     "SoftDeleteUserByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/SoftDeleteUserByIdResponse"
       }
     },
     "UpdateExternalApplicationResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "UpdateSshKeyHostMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "UpdateUserRoleMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UpdateUserRoleMappingResponse"
       }
     },
     "UserPasswordUpdateResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserPasswordUpdateResponse"
       }
