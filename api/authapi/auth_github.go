@@ -192,7 +192,7 @@ func findOrCreateGitHubUser(ctx context.Context, authService AuthService, userCR
 		roleName = defaultGitHubUserRoleName
 	}
 
-	roleID, err := infra_db_pg.New(userCRUDService.DbConn).GetRoleIdByName(ctx, roleName)
+	roleID, err := getRoleIDByName(ctx, userCRUDService, roleName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve default github role %q: %w", roleName, err)
 	}
@@ -499,4 +499,12 @@ func getFrontendRedirectURI(r *http.Request) string {
 	}
 
 	return fmt.Sprintf("%s://%s%s", scheme, r.Host, defaultGitHubFrontendRoute)
+}
+
+func getRoleIDByName(ctx context.Context, userCRUDService *user_crud_svc.UserCRUDService, roleName string) (uuid.UUID, error) {
+	id, err := infra_db_pg.New(userCRUDService.DbConn).GetRoleIdByName(ctx, roleName)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return id, nil
 }

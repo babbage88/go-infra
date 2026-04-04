@@ -187,11 +187,7 @@ WHERE user_id = $1 AND role_id = $2
 RETURNING *;
 
 -- name: GetRoleIdByName :one
-SELECT
-  "id" AS "RoleId"
-FROM
-  public. public.user_roles
-WHERE "role_name" = $1;
+SELECT id FROM public.user_roles WHERE role_name = $1;
 
 -- name: InsertOrUpdateUserRole :one
 INSERT INTO user_roles (id, role_name, role_description, created_at, last_modified, "enabled", "is_deleted")
