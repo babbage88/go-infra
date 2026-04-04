@@ -70,7 +70,7 @@ func (c *CertDnsRenewReq) InitAcmeRenewRequest() *cf_acme.CertificateRenewalRequ
 func (c *CertificateData) ParseAcmeCertStruct(acmeCert *cf_acme.CertificateData) {
 	c.DomainNames = acmeCert.DomainNames
 	c.CertPEM = acmeCert.CertPEM
-	c.ChainPEM = acmeCert.CertPEM
+	c.ChainPEM = acmeCert.ChainPEM
 	c.Fullchain = acmeCert.Fullchain
 	c.PrivKey = acmeCert.PrivKey
 	c.ZipDir = acmeCert.ZipDir
@@ -139,24 +139,57 @@ func (c *CertDnsRenewReq) Renew() (certData *CertificateData, err error) {
 	acmeRenewal := c.InitAcmeRenewRequest()
 	certificates, err := acmeRenewal.Renew(c.Token, c.RecursiveNameServers, c.Timeout)
 	if err != nil {
-		slog.Error("error renewing certificate")
+		slog.Error("error renewing certificate", slog.String("error", err.Error()))
+		return certData, err
 	}
-	manifest := NewKubeTlsSecretManifest(certificates.CertPEM, certificates.PrivKey, c.KubeSecretName())
-	out, _ := manifest.ToYaml()
-	files := make(map[string][]byte)
-	files["kube_secret.yaml"] = out
-	certificates.PushCertBufferToS3WithFiles(c.ZipFileName(), files)
-	if err != nil {
-		slog.Error("error pushing zip file to S3", slog.String("error", err.Error()))
-	}
-	err = os.Remove(certificates.ZipDir)
-	if err != nil {
-		slog.Error("error removing zip file", slog.String("error", err.Error()))
+
+	if c.PushS3 {
+		manifest := NewKubeTlsSecretManifest(certificates.CertPEM, certificates.PrivKey, c.KubeSecretName())
+		out, yamlErr := manifest.ToYaml()
+		if yamlErr != nil {
+			return certData, yamlErr
+		}
+
+		files := make(map[string][]byte)
+		files["kube_secret.yaml"] = out
+		certificates.PushCertBufferToS3WithFiles(c.ZipFileName(), files)
+
+		if certificates.ZipDir != "" {
+			removeErr := os.Remove(certificates.ZipDir)
+			if removeErr != nil {
+				slog.Error("error removing zip file", slog.String("error", removeErr.Error()))
+			}
+		}
 	}
 
 	certData.ParseAcmeCertStruct(&certificates)
 
 	return certData, err
+}
+
+func (c *CertDnsRenewReq) Validate() error {
+	if len(c.DomainNames) == 0 {
+		return fmt.Errorf("at least one domain name is required")
+	}
+	if strings.TrimSpace(c.AcmeEmail) == "" {
+		return fmt.Errorf("acmeEmail is required")
+	}
+	if strings.TrimSpace(c.AcmeUrl) == "" {
+		return fmt.Errorf("acmeUrl is required")
+	}
+	if strings.TrimSpace(c.Token) == "" {
+		return fmt.Errorf("token is required")
+	}
+	return nil
+}
+
+func (c *CertDnsRenewReq) NormalizeTimeout() {
+	switch {
+	case c.Timeout <= 0:
+		c.Timeout = 120 * time.Second
+	case c.Timeout < time.Second:
+		c.Timeout = c.Timeout * time.Second
+	}
 }
 
 // ReadAndTrimFile reads the content of a file, removes the PEM delimiters, and returns the trimmed content.

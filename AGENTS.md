@@ -78,7 +78,7 @@
 *Purpose*: HTTP server, routing, and request handling
 
 **Responsibilities:**
-- Start HTTP server on configured port (default: 8080)
+- Start HTTP server on configured port (default: 8993)
 - Route requests to appropriate handlers
 - CORS handling for browser clients
 - Middleware chain (logging, authentication, panic recovery)
@@ -315,7 +315,6 @@ PlatformType {
 - Audit trail of secret access
 - Automatic secret rotation (planned)
 - Access control by user role
-
 ---
 
 #### **services/ssh_connections/** - WebSocket SSH Terminal

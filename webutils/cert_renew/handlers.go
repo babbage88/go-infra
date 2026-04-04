@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"time"
 )
 
 // swagger:route POST /renew Certificates Renew
@@ -29,21 +28,29 @@ func Renewcert_renew() http.HandlerFunc {
 			return
 		}
 
+		if err := req.Validate(); err != nil {
+			slog.Error("Invalid certificate renewal request", slog.String("error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		req.NormalizeTimeout()
+
 		slog.Info("Decoded request body", slog.String("DomainName", req.DomainNames[0]))
 
-		// Pass envars to the Renew method
-		req.Timeout = req.Timeout * time.Second
-		cert_info, err := req.Renew()
+		certInfo, err := req.Renew()
 		if err != nil {
 			slog.Error("error renewing cert", slog.String("error", err.Error()))
+			http.Error(w, "Failed renewing certificate: "+err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		slog.Info("Renewal command executed")
 
 		// Prepare the response
-		slog.Info("Marshaling JSON response", slog.String("DomainName", cert_info.DomainNames[0]))
+		slog.Info("Marshaling JSON response", slog.String("DomainName", certInfo.DomainNames[0]))
 		// Serialize response to JSON
-		jsonResponse, err := json.Marshal(cert_info)
+		jsonResponse, err := json.Marshal(certInfo)
 		if err != nil {
 			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
 			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
