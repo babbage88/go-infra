@@ -5,9 +5,6 @@
   "produces": [
     "application/json"
   ],
-  "schemes": [
-    "https"
-  ],
   "swagger": "2.0",
   "info": {
     "title": "go-infra API.",
@@ -21,15 +18,9 @@
     },
     "version": "v1.1.0"
   },
-  "host": "localhost:8993",
   "paths": {
     "/create/permission": {
       "post": {
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "tags": [
           "PermissionsCRUD"
         ],
@@ -61,16 +52,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/create/role": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/create/role": {
+      "post": {
         "tags": [
           "RolesCRUD"
         ],
@@ -102,16 +93,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/create/user": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/create/user": {
+      "post": {
         "tags": [
           "UserCRUD"
         ],
@@ -143,16 +134,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/external-applications": {
-      "get": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/external-applications": {
+      "get": {
         "tags": [
           "external-applications"
         ],
@@ -165,14 +156,14 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      },
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      },
+      "post": {
         "tags": [
           "external-applications"
         ],
@@ -201,16 +192,16 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      }
-    },
-    "/external-applications/by-name/{name}": {
-      "get": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/external-applications/by-name/{name}": {
+      "get": {
         "tags": [
           "external-applications"
         ],
@@ -236,14 +227,14 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      },
+      "delete": {
         "tags": [
           "external-applications"
         ],
@@ -269,16 +260,16 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      }
-    },
-    "/external-applications/id/{name}": {
-      "get": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/external-applications/id/{name}": {
+      "get": {
         "tags": [
           "external-applications"
         ],
@@ -304,16 +295,16 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      }
-    },
-    "/external-applications/name/{ID}": {
-      "get": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/external-applications/name/{ID}": {
+      "get": {
         "tags": [
           "external-applications"
         ],
@@ -341,16 +332,16 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      }
-    },
-    "/external-applications/{ID}": {
-      "get": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/external-applications/{ID}": {
+      "get": {
         "tags": [
           "external-applications"
         ],
@@ -378,14 +369,14 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      },
-      "put": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      },
+      "put": {
         "tags": [
           "external-applications"
         ],
@@ -421,14 +412,14 @@
           "500": {
             "description": "Internal server error"
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      },
+      "delete": {
         "tags": [
           "external-applications"
         ],
@@ -456,7 +447,12 @@
           "500": {
             "description": "Internal server error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/host-server-type-mappings": {
@@ -505,6 +501,171 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new host server type (CRUD endpoint)",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "CreateHostServerTypeBody",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-server-types/by-name/{name}": {
+      "get": {
+        "description": "Get a host server type by name",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "GetHostServerTypeByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/host-server-types/{ID}": {
+      "get": {
+        "description": "Get a host server type by ID",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "GetHostServerTypeById",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a host server type",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "UpdateHostServerType",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateHostServerTypeBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/HostServerTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a host server type",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "DeleteHostServerType",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Host server type deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
@@ -672,6 +833,16 @@
           "host-servers"
         ],
         "operationId": "CreateHostServerType",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateHostServerTypeBodyRequest"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/CreateHostServerTypeResponse"
@@ -1048,11 +1219,6 @@
     },
     "/permissions": {
       "get": {
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "description": "Returns all App Permissions",
         "tags": [
           "PermissionsCRUD"
@@ -1074,7 +1240,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/platform-type-mappings": {
@@ -1128,6 +1299,181 @@
             "description": "Internal Server Error"
           }
         }
+      },
+      "post": {
+        "description": "Create a new platform type (CRUD endpoint)",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "CreatePlatformTypeBody",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreatePlatformTypeBodyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PlatformTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/platform-types/by-name/{name}": {
+      "get": {
+        "description": "Get a platform type by name",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "GetPlatformTypeByName",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PlatformTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/platform-types/{ID}": {
+      "get": {
+        "description": "Get a platform type by ID",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "GetPlatformTypeById",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PlatformTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a platform type",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "UpdatePlatformType",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdatePlatformTypeBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/PlatformTypeResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a platform type",
+        "tags": [
+          "host-servers"
+        ],
+        "operationId": "DeletePlatformType",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform type deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/renew": {
@@ -1169,11 +1515,6 @@
     },
     "/roles": {
       "get": {
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "tags": [
           "RolesCRUD"
         ],
@@ -1195,16 +1536,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/roles/permission": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/roles/permission": {
+      "post": {
         "tags": [
           "PermissionsCRUD"
         ],
@@ -1236,7 +1577,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/secrets/create": {
@@ -1862,11 +2208,6 @@
     },
     "/update/userpass": {
       "post": {
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "tags": [
           "UserCRUD"
         ],
@@ -1898,16 +2239,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/user/delete": {
-      "delete": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/user/delete": {
+      "delete": {
         "tags": [
           "UserCRUD"
         ],
@@ -1939,16 +2280,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/user/disable": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/user/disable": {
+      "post": {
         "tags": [
           "UserCRUD"
         ],
@@ -1980,16 +2321,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/user/enable": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/user/enable": {
+      "post": {
         "tags": [
           "UserCRUD"
         ],
@@ -2021,16 +2362,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/user/role": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/user/role": {
+      "post": {
         "description": "Update User Role Mapping",
         "tags": [
           "RolesCRUD"
@@ -2062,16 +2403,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/user/role/remove": {
-      "post": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/user/role/remove": {
+      "post": {
         "description": "Disable User Role Mapping",
         "tags": [
           "UserCRUD"
@@ -2103,7 +2444,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/user/secrets/by-name/{APPNAME}/{USERID}": {
@@ -2223,11 +2569,6 @@
     },
     "/users": {
       "get": {
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "tags": [
           "UserCRUD"
         ],
@@ -2249,16 +2590,16 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
-      }
-    },
-    "/users/{ID}": {
-      "get": {
+        },
         "security": [
           {
             "bearer": []
           }
-        ],
+        ]
+      }
+    },
+    "/users/{ID}": {
+      "get": {
         "tags": [
           "UserCRUD"
         ],
@@ -2289,7 +2630,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     }
   },
@@ -2508,7 +2854,8 @@
       "properties": {
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         },
         "newPermissionInfo": {
           "$ref": "#/definitions/AppPermissionDao"
@@ -2564,6 +2911,7 @@
           "description": "IP address of the server",
           "type": "string",
           "x-go-name": "IPAddress",
+          "x-go-type": "net/netip.Addr",
           "example": "192.168.1.100"
         },
         "platform_type_ids": {
@@ -2600,6 +2948,22 @@
           "example": "admin"
         }
       },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "CreateHostServerTypeBodyRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the host server type",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Database Server"
+        }
+      },
+      "x-go-name": "CreateHostServerTypeBodyRequestBody",
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
     "CreateHostServerTypeMappingRequest": {
@@ -2641,6 +3005,22 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "CreatePlatformTypeBodyRequest": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the platform type",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Docker Host"
+        }
+      },
+      "x-go-name": "CreatePlatformTypeBodyRequestBody",
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
     },
     "CreatePlatformTypeMappingRequest": {
       "type": "object",
@@ -2692,7 +3072,8 @@
       "properties": {
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         },
         "newMappingInfo": {
           "$ref": "#/definitions/RolePermissionMappingDao"
@@ -2993,7 +3374,8 @@
       "properties": {
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         },
         "modifiedUserInfo": {
           "$ref": "#/definitions/UserDao"
@@ -3149,7 +3531,8 @@
           "type": "boolean"
         },
         "IpAddress": {
-          "type": "string"
+          "type": "string",
+          "x-go-type": "net/netip.Addr"
         },
         "IsContainerHost": {
           "type": "boolean"
@@ -3203,7 +3586,8 @@
         },
         "ip_address": {
           "type": "string",
-          "x-go-name": "IPAddress"
+          "x-go-name": "IPAddress",
+          "x-go-type": "net/netip.Addr"
         },
         "last_modified": {
           "type": "string",
@@ -3575,7 +3959,8 @@
         },
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -3815,6 +4200,7 @@
           "description": "IP address of the server",
           "type": "string",
           "x-go-name": "IPAddress",
+          "x-go-type": "net/netip.Addr",
           "example": "192.168.1.100"
         },
         "platform_type_ids": {
@@ -3849,6 +4235,30 @@
           "type": "string",
           "x-go-name": "Username",
           "example": "admin"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "UpdateHostServerTypeBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name of the host server type",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Database Server"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
+    },
+    "UpdatePlatformTypeBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name of the platform type",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Docker Host"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
@@ -3910,7 +4320,8 @@
       "properties": {
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         },
         "success": {
           "type": "boolean",
@@ -4006,10 +4417,12 @@
           "format": "int32"
         },
         "PrivateIpAddress": {
-          "type": "string"
+          "type": "string",
+          "x-go-type": "net/netip.Addr"
         },
         "PubIpAddress": {
-          "type": "string"
+          "type": "string",
+          "x-go-type": "net/netip.Addr"
         },
         "UserApplicationIds": {
           "type": "array",
@@ -4044,7 +4457,8 @@
       "properties": {
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         },
         "success": {
           "type": "boolean",
@@ -4063,7 +4477,8 @@
       "properties": {
         "error": {
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "x-go-type": "error"
         },
         "newUserRoleInfo": {
           "$ref": "#/definitions/UserRoleDao"
@@ -4087,7 +4502,7 @@
   },
   "responses": {
     "CertificateDataRenewResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CertificateData"
       },
@@ -4096,19 +4511,19 @@
       }
     },
     "CreateAppPermissionResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CreateAppPermissionResult"
       }
     },
     "CreateExternalApplicationResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "CreateHostServerTypeMappingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4120,7 +4535,7 @@
       }
     },
     "CreateHostServerTypeResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4137,7 +4552,7 @@
       }
     },
     "CreatePlatformTypeMappingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4149,7 +4564,7 @@
       }
     },
     "CreatePlatformTypeResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4166,13 +4581,13 @@
       }
     },
     "CreateRolePermissionMapptingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CreateRolePermissionMappingResponse"
       }
     },
     "CreateSecretResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4185,37 +4600,37 @@
       }
     },
     "CreateSshKeyHostMappingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "CreateSshKeyResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyResponse"
       }
     },
     "CreateUserResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/UserDao"
       }
     },
     "CreateUserRoleResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/UserRoleDao"
       }
     },
     "DeleteSshKeyHostMappingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/DeleteSshKeyHostMappingResponse"
       }
     },
     "DeleteSshKeyResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4228,13 +4643,13 @@
       }
     },
     "EnableDisableUserResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/EnableDisableUserResponse"
       }
     },
     "GetAllAppPermissionsResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/GetAllAppPermissionsResponse"
       },
@@ -4243,7 +4658,7 @@
       }
     },
     "GetAllExternalApplicationsResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4252,7 +4667,7 @@
       }
     },
     "GetAllHostServerTypesResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4261,7 +4676,7 @@
       }
     },
     "GetAllPlatformTypesResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4270,7 +4685,7 @@
       }
     },
     "GetAllRolesResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/GetAllRolesResponse"
       },
@@ -4279,7 +4694,7 @@
       }
     },
     "GetAllUsersResponse": {
-      "description": "(empty)",
+      "description": "",
       "headers": {
         "users": {
           "type": "array",
@@ -4290,19 +4705,19 @@
       }
     },
     "GetExternalApplicationByIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "GetExternalApplicationByNameResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "GetExternalApplicationIdByNameResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4315,7 +4730,7 @@
       }
     },
     "GetExternalApplicationNameByIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4327,13 +4742,13 @@
       }
     },
     "GetSshKeyHostMappingByIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "GetSshKeyHostMappingsByHostIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4342,7 +4757,7 @@
       }
     },
     "GetSshKeyHostMappingsByKeyIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4351,7 +4766,7 @@
       }
     },
     "GetSshKeyHostMappingsByUserIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4360,7 +4775,7 @@
       }
     },
     "GetSshKeysByUserIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4369,13 +4784,13 @@
       }
     },
     "GetUserByIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/GetUserByIdResponse"
       }
     },
     "GetUserSecretEntriesResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4384,13 +4799,19 @@
       }
     },
     "HostServerResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/HostServerResponse"
       }
     },
+    "HostServerTypeResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/HostServerType"
+      }
+    },
     "HostServersResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "array",
         "items": {
@@ -4399,7 +4820,7 @@
       }
     },
     "LocalLoginResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/LoginResponseInfo"
       },
@@ -4408,25 +4829,31 @@
       }
     },
     "NetworkProbeResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/NetworkProbeResponse"
       }
     },
     "PingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/PingResponse"
       }
     },
+    "PlatformTypeResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/PlatformType"
+      }
+    },
     "RefreshAccessTokenResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/AccessTokens"
       }
     },
     "RetrievedSecretResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "type": "object",
         "properties": {
@@ -4458,31 +4885,31 @@
       }
     },
     "SoftDeleteUserByIdResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/SoftDeleteUserByIdResponse"
       }
     },
     "UpdateExternalApplicationResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "UpdateSshKeyHostMappingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "UpdateUserRoleMappingResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/UpdateUserRoleMappingResponse"
       }
     },
     "UserPasswordUpdateResponse": {
-      "description": "(empty)",
+      "description": "",
       "schema": {
         "$ref": "#/definitions/UserPasswordUpdateResponse"
       }
