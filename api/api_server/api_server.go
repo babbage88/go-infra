@@ -13,6 +13,7 @@ import (
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	"github.com/babbage88/go-infra/services/node_networking"
+	"github.com/babbage88/go-infra/services/s3_admin"
 	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
@@ -132,6 +133,24 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("/external-applications/name/{ID}", cors.CORSWithGET(
 		external_applications.GetExternalApplicationNameByIdHandler(externalAppsService),
+	))
+
+	s3AdminService := s3_admin.NewService(hostServerProvider)
+	// Reuse AlterUser as the existing admin-only gate until dedicated S3 permissions are added.
+	mux.Handle("/storage/s3/endpoints", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.ListEndpointsHandler(s3AdminService))))
+	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.BucketsHandler(s3AdminService)),
+		http.MethodGet, http.MethodPost,
+	))
+	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}", cors.CORSWithDELETE(
+		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.BucketByNameHandler(s3AdminService)),
+	))
+	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/objects", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.ObjectsHandler(s3AdminService)),
+		http.MethodGet, http.MethodPost, http.MethodDelete,
+	))
+	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/download", cors.CORSWithGET(
+		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.DownloadObjectHandler(s3AdminService)),
 	))
 
 	// Add Swagger UI handler
