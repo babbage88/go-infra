@@ -21,7 +21,7 @@ import (
 
 const defaultEndpointName = "default"
 
-type Service struct {
+type S3Service struct {
 	hostServerProvider host_servers.HostServerProvider
 }
 
@@ -57,13 +57,13 @@ type ObjectSummary struct {
 	ContentType  string    `json:"contentType,omitempty"`
 }
 
-func NewService(hostServerProvider host_servers.HostServerProvider) *Service {
-	return &Service{
+func NewService(hostServerProvider host_servers.HostServerProvider) *S3Service {
+	return &S3Service{
 		hostServerProvider: hostServerProvider,
 	}
 }
 
-func (s *Service) ListEndpoints(ctx context.Context) ([]EndpointSummary, error) {
+func (s *S3Service) ListEndpoints(ctx context.Context) ([]EndpointSummary, error) {
 	defaultEndpoint, err := s.getDefaultEndpointSummary(ctx)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (s *Service) ListEndpoints(ctx context.Context) ([]EndpointSummary, error) 
 	return []EndpointSummary{defaultEndpoint}, nil
 }
 
-func (s *Service) ListBuckets(ctx context.Context, endpointName string) ([]BucketSummary, error) {
+func (s *S3Service) ListBuckets(ctx context.Context, endpointName string) ([]BucketSummary, error) {
 	client, cfg, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (s *Service) ListBuckets(ctx context.Context, endpointName string) ([]Bucke
 	return summaries, nil
 }
 
-func (s *Service) CreateBucket(ctx context.Context, endpointName string, bucketName string) error {
+func (s *S3Service) CreateBucket(ctx context.Context, endpointName string, bucketName string) error {
 	client, _, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (s *Service) CreateBucket(ctx context.Context, endpointName string, bucketN
 	return nil
 }
 
-func (s *Service) DeleteBucket(ctx context.Context, endpointName string, bucketName string) error {
+func (s *S3Service) DeleteBucket(ctx context.Context, endpointName string, bucketName string) error {
 	client, _, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (s *Service) DeleteBucket(ctx context.Context, endpointName string, bucketN
 	return nil
 }
 
-func (s *Service) ListObjects(ctx context.Context, endpointName string, bucketName string, prefix string) ([]ObjectSummary, error) {
+func (s *S3Service) ListObjects(ctx context.Context, endpointName string, bucketName string, prefix string) ([]ObjectSummary, error) {
 	client, _, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (s *Service) ListObjects(ctx context.Context, endpointName string, bucketNa
 	return summaries, nil
 }
 
-func (s *Service) UploadObject(ctx context.Context, endpointName string, bucketName string, objectKey string, reader io.Reader, size int64, contentType string) error {
+func (s *S3Service) UploadObject(ctx context.Context, endpointName string, bucketName string, objectKey string, reader io.Reader, size int64, contentType string) error {
 	client, _, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return err
@@ -185,7 +185,7 @@ func (s *Service) UploadObject(ctx context.Context, endpointName string, bucketN
 	return nil
 }
 
-func (s *Service) DeleteObject(ctx context.Context, endpointName string, bucketName string, objectKey string) error {
+func (s *S3Service) DeleteObject(ctx context.Context, endpointName string, bucketName string, objectKey string) error {
 	client, _, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return err
@@ -198,7 +198,7 @@ func (s *Service) DeleteObject(ctx context.Context, endpointName string, bucketN
 	return nil
 }
 
-func (s *Service) DownloadObject(ctx context.Context, endpointName string, bucketName string, objectKey string) (*minio.Object, minio.ObjectInfo, error) {
+func (s *S3Service) DownloadObject(ctx context.Context, endpointName string, bucketName string, objectKey string) (*minio.Object, minio.ObjectInfo, error) {
 	client, _, err := s.clientForEndpoint(endpointName)
 	if err != nil {
 		return nil, minio.ObjectInfo{}, err
@@ -228,7 +228,7 @@ type endpointConfig struct {
 	defaultBucket string
 }
 
-func (s *Service) clientForEndpoint(endpointName string) (*minio.Client, endpointConfig, error) {
+func (s *S3Service) clientForEndpoint(endpointName string) (*minio.Client, endpointConfig, error) {
 	cfg, err := s.resolveEndpoint(endpointName)
 	if err != nil {
 		return nil, endpointConfig{}, err
@@ -245,7 +245,7 @@ func (s *Service) clientForEndpoint(endpointName string) (*minio.Client, endpoin
 	return client, cfg, nil
 }
 
-func (s *Service) resolveEndpoint(endpointName string) (endpointConfig, error) {
+func (s *S3Service) resolveEndpoint(endpointName string) (endpointConfig, error) {
 	if endpointName != "" && endpointName != defaultEndpointName {
 		return endpointConfig{}, fmt.Errorf("unknown s3 endpoint %q", endpointName)
 	}
@@ -270,7 +270,7 @@ func (s *Service) resolveEndpoint(endpointName string) (endpointConfig, error) {
 	}, nil
 }
 
-func (s *Service) getDefaultEndpointSummary(ctx context.Context) (EndpointSummary, error) {
+func (s *S3Service) getDefaultEndpointSummary(ctx context.Context) (EndpointSummary, error) {
 	client, cfg, err := s.clientForEndpoint(defaultEndpointName)
 	if err != nil {
 		return EndpointSummary{}, err
@@ -303,7 +303,7 @@ func (s *Service) getDefaultEndpointSummary(ctx context.Context) (EndpointSummar
 	return summary, nil
 }
 
-func (s *Service) getBucketStats(ctx context.Context, client *minio.Client, bucketName string) (int, int64, error) {
+func (s *S3Service) getBucketStats(ctx context.Context, client *minio.Client, bucketName string) (int, int64, error) {
 	objects := client.ListObjects(ctx, bucketName, minio.ListObjectsOptions{Recursive: true})
 	var count int
 	var totalSize int64
@@ -319,7 +319,7 @@ func (s *Service) getBucketStats(ctx context.Context, client *minio.Client, buck
 	return count, totalSize, nil
 }
 
-func (s *Service) matchHostServer(ctx context.Context, endpoint string) (*uuid.UUID, string) {
+func (s *S3Service) matchHostServer(ctx context.Context, endpoint string) (*uuid.UUID, string) {
 	host := hostFromEndpoint(endpoint)
 	if host == "" {
 		return nil, ""

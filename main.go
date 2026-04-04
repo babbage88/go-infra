@@ -90,7 +90,14 @@ func main() {
 
 	switch {
 	case initDevUser:
-		userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
+		err :=
+			userService.UpdateUserPasswordById(uuid.Must(uuid.Parse(os.Getenv("DEV_USER_UUID"))), os.Getenv("DEV_APP_PASS"))
+		if err != nil {
+			slog.Error("failed to update dev user password", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		slog.Info("dev user password updated successfully")
+		return
 	}
 
 	apiServer.StartAPIServices(&srvport)

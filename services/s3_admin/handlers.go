@@ -14,7 +14,7 @@ type createBucketRequest struct {
 	Name string `json:"name"`
 }
 
-func ListEndpointsHandler(service *Service) http.HandlerFunc {
+func ListEndpointsHandler(service *S3Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		endpoints, err := service.ListEndpoints(r.Context())
 		if err != nil {
@@ -27,7 +27,7 @@ func ListEndpointsHandler(service *Service) http.HandlerFunc {
 	}
 }
 
-func BucketsHandler(service *Service) http.HandlerFunc {
+func BucketsHandler(service *S3Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		endpointName := r.PathValue("endpoint")
 
@@ -65,7 +65,7 @@ func BucketsHandler(service *Service) http.HandlerFunc {
 	}
 }
 
-func BucketByNameHandler(service *Service) http.HandlerFunc {
+func BucketByNameHandler(service *S3Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		endpointName := r.PathValue("endpoint")
 		bucketName := BucketNameFromURLValue(r.PathValue("bucket"))
@@ -89,7 +89,7 @@ func BucketByNameHandler(service *Service) http.HandlerFunc {
 	}
 }
 
-func ObjectsHandler(service *Service) http.HandlerFunc {
+func ObjectsHandler(service *S3Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		endpointName := r.PathValue("endpoint")
 		bucketName := BucketNameFromURLValue(r.PathValue("bucket"))
@@ -134,7 +134,7 @@ func ObjectsHandler(service *Service) http.HandlerFunc {
 	}
 }
 
-func DownloadObjectHandler(service *Service) http.HandlerFunc {
+func DownloadObjectHandler(service *S3Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		endpointName := r.PathValue("endpoint")
 		bucketName := BucketNameFromURLValue(r.PathValue("bucket"))
@@ -168,7 +168,7 @@ func DownloadObjectHandler(service *Service) http.HandlerFunc {
 	}
 }
 
-func handleUploadObject(w http.ResponseWriter, r *http.Request, service *Service, endpointName string, bucketName string) error {
+func handleUploadObject(w http.ResponseWriter, r *http.Request, service *S3Service, endpointName string, bucketName string) error {
 	if err := r.ParseMultipartForm(128 << 20); err != nil {
 		return fmt.Errorf("failed to parse multipart upload: %w", err)
 	}

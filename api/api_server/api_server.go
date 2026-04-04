@@ -87,8 +87,30 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/host-servers", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServersHandler(hostServerProvider))))
 
 	// Host server types and platform types routes
-	mux.Handle("/host-server-types", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServerTypesHandler(hostServerProvider))))
-	mux.Handle("/platform-types", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllPlatformTypesHandler(hostServerProvider))))
+	mux.Handle("/host-server-types", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.HostServerTypeHandler(hostServerProvider, authService)),
+		http.MethodGet, http.MethodPost,
+	))
+	mux.Handle("/host-server-types/{ID}", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.HostServerTypeByIDHandler(hostServerProvider, authService)),
+		http.MethodGet, http.MethodPut, http.MethodDelete,
+	))
+	mux.Handle("/host-server-types/by-name/{name}", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.HostServerTypeByNameHandler(hostServerProvider, authService)),
+		http.MethodGet,
+	))
+	mux.Handle("/platform-types", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.PlatformTypeHandler(hostServerProvider, authService)),
+		http.MethodGet, http.MethodPost,
+	))
+	mux.Handle("/platform-types/{ID}", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.PlatformTypeByIDHandler(hostServerProvider, authService)),
+		http.MethodGet, http.MethodPut, http.MethodDelete,
+	))
+	mux.Handle("/platform-types/by-name/{name}", cors.CORSWithMethods(
+		authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.PlatformTypeByNameHandler(hostServerProvider, authService)),
+		http.MethodGet,
+	))
 	mux.Handle("/host-server-type-mappings", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreateHostServerTypeMappingHandler(hostServerProvider))))
 	mux.Handle("/platform-type-mappings", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "ManageHostServers", host_servers.CreatePlatformTypeMappingHandler(hostServerProvider))))
 

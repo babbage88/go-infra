@@ -21,4 +21,9 @@ SELECT
 FROM public.user_auth_app_mappings;
 --WHERE username = 'devuser' and application_name = 'CloudflareDNS';
 
+INSERT INTO public.user_role_mapping(user_id, role_id, enabled)
+VALUES ('99d41ae8-09ac-4e1b-87a8-318cf03f6695', '10db2807-6c74-4dc0-aed7-c046c76bebdf', TRUE)
+ON CONFLICT (user_id, role_id)
+DO UPDATE SET enabled = TRUE;
+
 

@@ -245,3 +245,121 @@ type CreateHostServerTypeResponse struct {
 		Name string    `json:"name"`
 	} `json:"body"`
 }
+
+// swagger:parameters CreateHostServerType
+// @Description Request to create a new host server type
+type CreateHostServerTypeBodyRequest struct {
+	// in: body
+	Body CreateHostServerTypeBodyRequestBody `json:"body"`
+}
+
+// swagger:model CreateHostServerTypeBodyRequest
+type CreateHostServerTypeBodyRequestBody struct {
+	// Name of the host server type
+	// required: true
+	// example: Database Server
+	Name string `json:"name" validate:"required"`
+}
+
+// swagger:parameters CreatePlatformTypeBody
+// @Description Request to create a new platform type
+type CreatePlatformTypeBodyRequest struct {
+	// in: body
+	Body CreatePlatformTypeBodyRequestBody `json:"body"`
+}
+
+// swagger:model CreatePlatformTypeBodyRequest
+type CreatePlatformTypeBodyRequestBody struct {
+	// Name of the platform type
+	// required: true
+	// example: Docker Host
+	Name string `json:"name" validate:"required"`
+}
+
+// swagger:response HostServerTypeResponse
+type HostServerTypeResponse struct {
+	// in: body
+	Body HostServerType `json:"body"`
+}
+
+// swagger:response PlatformTypeResponse
+type PlatformTypeResponse struct {
+	// in: body
+	Body PlatformType `json:"body"`
+}
+
+// swagger:parameters GetHostServerTypeById
+// @Description Request to get a host server type by ID
+type GetHostServerTypeByIdRequest struct {
+	// in: path
+	ID uuid.UUID `json:"ID"`
+}
+
+// swagger:parameters GetHostServerTypeByName
+// @Description Request to get a host server type by name
+type GetHostServerTypeByNameRequest struct {
+	// in: path
+	Name string `json:"name"`
+}
+
+// swagger:parameters UpdateHostServerType
+// @Description Request to update a host server type
+type UpdateHostServerTypeRequest struct {
+	// in: path
+	ID uuid.UUID `json:"ID"`
+	// in: body
+	Body UpdateHostServerTypeBody `json:"body"`
+}
+
+// swagger:model UpdateHostServerTypeBody
+type UpdateHostServerTypeBody struct {
+	// Name of the host server type
+	// required: false
+	// example: Database Server
+	Name *string `json:"name,omitempty"`
+}
+
+// swagger:parameters DeleteHostServerType
+// @Description Request to delete a host server type
+type DeleteHostServerTypeRequest struct {
+	// in: path
+	ID uuid.UUID `json:"ID"`
+}
+
+// swagger:parameters GetPlatformTypeById
+// @Description Request to get a platform type by ID
+type GetPlatformTypeByIdRequest struct {
+	// in: path
+	ID uuid.UUID `json:"ID"`
+}
+
+// swagger:parameters GetPlatformTypeByName
+// @Description Request to get a platform type by name
+type GetPlatformTypeByNameRequest struct {
+	// in: path
+	Name string `json:"name"`
+}
+
+// swagger:parameters UpdatePlatformType
+// @Description Request to update a platform type
+type UpdatePlatformTypeRequest struct {
+	// in: path
+	ID uuid.UUID `json:"ID"`
+	// in: body
+	Body UpdatePlatformTypeBody `json:"body"`
+}
+
+// swagger:model UpdatePlatformTypeBody
+type UpdatePlatformTypeBody struct {
+	// Name of the platform type
+	// required: false
+	// example: Docker Host
+	Name *string `json:"name,omitempty"`
+}
+
+// swagger:parameters DeletePlatformType
+// @Description Request to delete a platform type
+type DeletePlatformTypeRequest struct {
+	// in: path
+	ID uuid.UUID `json:"ID"`
+}
