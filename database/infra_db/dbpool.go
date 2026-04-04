@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -55,11 +56,18 @@ func pgxPoolConfig() *pgxpool.Config {
 	const defaultHealthCheckPeriod = time.Minute
 	const defaultConnectTimeout = time.Second * 5
 	connString := os.Getenv("DATABASE_URL")
+	if connString == "" {
+		slog.Error("DATABASE_URL environment variable is not set")
+		os.Exit(1)
+	}
 
 	dbConfig, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		slog.Error("Failed to create a config, error: ", "Error", err)
+		slog.Error("Failed to parse DATABASE_URL into pgx config", "error", err.Error())
+		os.Exit(1)
 	}
+
+	logDatabaseTarget(dbConfig)
 
 	dbConfig.MaxConns = defaultMaxConns
 	dbConfig.MinConns = defaultMinConns
@@ -84,27 +92,72 @@ func pgxPoolConfig() *pgxpool.Config {
 
 }
 
+func logDatabaseTarget(dbConfig *pgxpool.Config) {
+	if dbConfig == nil || dbConfig.ConnConfig == nil {
+		return
+	}
+
+	host := dbConfig.ConnConfig.Host
+	if host == "" && len(dbConfig.ConnConfig.Fallbacks) > 0 {
+		host = dbConfig.ConnConfig.Fallbacks[0].Host
+	}
+	if host == "" {
+		host = "localhost"
+	}
+
+	port := dbConfig.ConnConfig.Port
+	if port == 0 && len(dbConfig.ConnConfig.Fallbacks) > 0 {
+		port = dbConfig.ConnConfig.Fallbacks[0].Port
+	}
+
+	database := dbConfig.ConnConfig.Database
+	if database == "" {
+		database = "(default)"
+	}
+
+	user := dbConfig.ConnConfig.User
+	if user == "" {
+		user = "(default)"
+	}
+
+	slog.Info(
+		"Using database connection settings",
+		"user", user,
+		"database", database,
+		"host", host,
+		"port", port,
+		"sslmode", strings.TrimSpace(dbConfig.ConnConfig.RuntimeParams["sslmode"]),
+	)
+}
+
 func PgPoolInit() *pgxpool.Pool {
 	// Create database connection
 	connPool, err := pgxpool.NewWithConfig(context.Background(), pgxPoolConfig())
 	if err != nil {
-		slog.Error("Error while creating connection to the database!", "Error", err)
+		slog.Error("Error while creating connection to the database!", "error", err.Error())
+		os.Exit(1)
 	}
 
 	connection, err := connPool.Acquire(context.Background())
 	if err != nil {
-		slog.Error("Error while acquiring connection from the database pool!", "Error", err)
+		slog.Error("Error while acquiring connection from the database pool!", "error", err.Error())
+		connPool.Close()
+		os.Exit(1)
 	}
 	defer connection.Release()
 
 	err = connection.Ping(context.Background())
 	if err != nil {
-		slog.Error("Could not ping database")
+		slog.Error("Could not ping database", "error", err.Error())
+		connPool.Close()
+		os.Exit(1)
 	}
 
 	dbInfo, infoErr := getDbInfo(connection)
 	if infoErr != nil {
-		slog.Error("error retrieving db info", slog.String("error", err.Error()))
+		slog.Error("error retrieving db info", slog.String("error", infoErr.Error()))
+		connPool.Close()
+		os.Exit(1)
 	}
 
 	os.Setenv("DB_NAME", dbInfo.DbName)

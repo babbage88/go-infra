@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/babbage88/go-infra/database/bootstrap"
@@ -90,6 +91,26 @@ func startInLocalDevelopmentMode(envFile string) {
 	}
 }
 
+func loadEnvFileIfPresent(envFile string) {
+	if envFile == "" {
+		return
+	}
+
+	if _, err := os.Stat(envFile); err != nil {
+		if os.IsNotExist(err) {
+			slog.Info("No env file found, continuing with process environment only", slog.String("env-file", envFile))
+			return
+		}
+		slog.Error("error stating env file", slog.String("env-file", envFile), slog.String("error", err.Error()))
+		return
+	}
+
+	slog.Info("Loading environment variables from env file", slog.String("env-file", filepath.Clean(envFile)))
+	if err := godotenv.Load(envFile); err != nil {
+		slog.Error("error loading .env file", slog.String("env-file", envFile), slog.String("error", err.Error()))
+	}
+}
+
 func bumpVersionNumber(major, minor bool) {
 	var bumpErr error
 	switch {
@@ -142,6 +163,8 @@ func parseFlags() {
 func configureStartupOptions() {
 	if isLocalDevelopment || envFile != ".env" {
 		startInLocalDevelopmentMode(envFile)
+	} else {
+		loadEnvFileIfPresent(envFile)
 	}
 
 	if testEncryption {
