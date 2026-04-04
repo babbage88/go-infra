@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,6 +19,11 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 	const (
 		samplePlaintext = "this is a sample user token"
 		totalSecrets    = 1_000_000
+		testDBName      = "gotestdb"
+		testDBUser      = "gotestdb"
+		testDBPassword  = "dothetest"
+		testDBHost      = "10.2.10.248"
+		testDBPort      = 5432
 	)
 
 	// Ensure the encryption key is set and valid
@@ -27,7 +35,13 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 	// Connect to the test database (adjust DSN as needed)
 	dbURL := os.Getenv("PG_TEST_URL")
 	if dbURL == "" {
-		t.Fatal("PG_TEST_URL environment variable not set")
+		dbURL = fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", testDBUser, testDBPassword, testDBHost, testDBPort, testDBName)
+		if err := ensureTestDatabase(t, testDBName, testDBUser, testDBPassword, testDBHost); err != nil {
+			t.Fatalf("failed to provision test database: %v", err)
+		}
+		if err := os.Setenv("PG_TEST_URL", dbURL); err != nil {
+			t.Fatalf("failed to set PG_TEST_URL: %v", err)
+		}
 	}
 
 	pool, err := pgxpool.New(context.Background(), dbURL)
@@ -77,4 +91,57 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 	}
 
 	t.Logf("Successfully validated %d unique encrypted secrets.", totalSecrets)
+}
+
+func ensureTestDatabase(t *testing.T, dbName, dbUser, dbPassword, dbHost string) error {
+	t.Helper()
+
+	args := []string{
+		"database", "new-appdb",
+		"--ssh-remote-host", dbHost,
+		"--ssh-key", expandPath("~/.ssh/id_ed25519"),
+		"--ssh-remote-user", "root",
+		"--create-db",
+		"--connect-ssh",
+		"--drop-first",
+		"--db-name", dbName,
+		"--db-user", dbUser,
+		"--db-password", dbPassword,
+		"--goosey-path", filepath.Join("..", "infra-db", "goosey"),
+	}
+
+	cmd := exec.Command("infractl", args...)
+	cmd.Dir = filepath.Join("..", "infra-cli")
+	cmd.Env = os.Environ()
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Logf("provisioned test database with infractl")
+		return nil
+	}
+
+	if _, lookErr := exec.LookPath("infractl"); lookErr == nil {
+		return fmt.Errorf("run infractl: %w: %s", err, string(output))
+	}
+
+	fallbackArgs := append([]string{"run", filepath.Join("..", "infra-cli")}, args...)
+	fallback := exec.Command("go", fallbackArgs...)
+	fallback.Dir = filepath.Join("..", "infra-cli")
+	fallback.Env = os.Environ()
+	output, err = fallback.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("run fallback go command: %w: %s", err, string(output))
+	}
+
+	t.Logf("provisioned test database with go run fallback")
+	return nil
+}
+
+func expandPath(path string) string {
+	if len(path) > 1 && path[:2] == "~/" {
+		home, err := os.UserHomeDir()
+		if err == nil {
+			return filepath.Join(home, path[2:])
+		}
+	}
+	return path
 }
