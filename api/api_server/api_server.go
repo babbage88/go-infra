@@ -136,21 +136,21 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 
 	s3AdminService := s3_admin.NewService(hostServerProvider)
-	// Reuse AlterUser as the existing admin-only gate until dedicated S3 permissions are added.
-	mux.Handle("/storage/s3/endpoints", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.ListEndpointsHandler(s3AdminService))))
+	// Allow users with the Admin role or the existing admin-style permission until dedicated S3 permissions are added.
+	mux.Handle("/storage/s3/endpoints", cors.CORSWithGET(authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.ListEndpointsHandler(s3AdminService))))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets", cors.CORSWithMethods(
-		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.BucketsHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.BucketsHandler(s3AdminService)),
 		http.MethodGet, http.MethodPost,
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}", cors.CORSWithDELETE(
-		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.BucketByNameHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.BucketByNameHandler(s3AdminService)),
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/objects", cors.CORSWithMethods(
-		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.ObjectsHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.ObjectsHandler(s3AdminService)),
 		http.MethodGet, http.MethodPost, http.MethodDelete,
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/download", cors.CORSWithGET(
-		authapi.AuthMiddlewareRequirePermission(authService, "AlterUser", s3_admin.DownloadObjectHandler(s3AdminService)),
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUser", s3_admin.DownloadObjectHandler(s3AdminService)),
 	))
 
 	// Add Swagger UI handler
