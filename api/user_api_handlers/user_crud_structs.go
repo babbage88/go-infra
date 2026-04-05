@@ -257,3 +257,21 @@ type SoftDeleteRoleByIdResponseWrapper struct {
 type SoftDeleteRoleByIdResponse struct {
 	Error error `json:"error"`
 }
+
+// swagger:model RolePermissionCount
+type RolePermissionCount struct {
+	RoleId           uuid.UUID `json:"roleId"`
+	RoleName         string    `json:"roleName"`
+	PermissionCount  int64     `json:"permissionCount"`
+}
+
+// swagger:response GetRolesPermissionCountResponse
+type GetRolesPermissionCountResponseWrapper struct {
+	// in: body
+	Body GetRolesPermissionCountResponse `json:"body"`
+}
+
+type GetRolesPermissionCountResponse struct {
+	RolePermissionCounts []RolePermissionCount `json:"rolePermissionCounts"`
+	Error                error                 `json:"error,omitempty"`
+}

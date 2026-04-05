@@ -1517,6 +1517,47 @@
         }
       }
     },
+    "/role/delete": {
+      "delete": {
+        "tags": [
+          "RolesCRUD"
+        ],
+        "summary": "Soft Delete Role by id.",
+        "operationId": "SoftDeleteRoleById",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SoftDeleteRoleByIdRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/SoftDeleteRoleByIdResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/roles": {
       "get": {
         "tags": [
@@ -1577,6 +1618,31 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/roles/permission-counts": {
+      "get": {
+        "tags": [
+          "RolesCRUD"
+        ],
+        "summary": "Get permission counts for all roles.",
+        "operationId": "GetRolesPermissionCounts",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetRolesPermissionCountResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error"
@@ -3502,6 +3568,24 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
+    "GetRolesPermissionCountResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error",
+          "x-go-type": "error"
+        },
+        "rolePermissionCounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RolePermissionCount"
+          },
+          "x-go-name": "RolePermissionCounts"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
     "GetUserByIdResponse": {
       "type": "object",
       "properties": {
@@ -3909,6 +3993,26 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
     },
+    "RolePermissionCount": {
+      "type": "object",
+      "properties": {
+        "permissionCount": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PermissionCount"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "RoleId"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
     "RolePermissionMappingDao": {
       "type": "object",
       "properties": {
@@ -3943,6 +4047,28 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
+    },
+    "SoftDeleteRoleByIdRequest": {
+      "type": "object",
+      "properties": {
+        "targetRoleId": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TargetRoleId"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "SoftDeleteRoleByIdResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error",
+          "x-go-type": "error"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
     },
     "SoftDeleteUserByIdRequest": {
       "type": "object",
@@ -4768,6 +4894,12 @@
         }
       }
     },
+    "GetRolesPermissionCountResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/GetRolesPermissionCountResponse"
+      }
+    },
     "GetSshKeyHostMappingByIdResponse": {
       "description": "(empty)",
       "schema": {
@@ -4909,6 +5041,12 @@
             "x-go-name": "UserID"
           }
         }
+      }
+    },
+    "SoftDeleteRoleByIdResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/SoftDeleteRoleByIdResponse"
       }
     },
     "SoftDeleteUserByIdResponse": {

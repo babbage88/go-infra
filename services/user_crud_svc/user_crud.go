@@ -40,6 +40,7 @@ type UserCRUD interface {
 	EnableRoleById(id uuid.UUID) error
 	DisableRoleById(id uuid.UUID) error
 	SoftDeleteRoleById(id uuid.UUID) error
+	GetRolesPermissionCounts() ([]infra_db_pg.RolePermissionCount, error)
 }
 
 func (us *UserCRUDService) UpdateUserPasswordById(targetUserid uuid.UUID, newPassword string) error {
@@ -345,6 +346,17 @@ func (us *UserCRUDService) SoftDeleteRoleById(id uuid.UUID) error {
 		return err
 	}
 	return err
+}
+
+func (us *UserCRUDService) GetRolesPermissionCounts() ([]infra_db_pg.RolePermissionCount, error) {
+	queries := infra_db_pg.New(us.DbConn)
+	slog.Info("Executing GetRolesPermissionCount Query")
+	rows, err := queries.GetRolesPermissionCount(context.Background())
+	if err != nil {
+		slog.Error("Error executing GetRolesPermissionCount Query", slog.String("error", err.Error()))
+		return nil, err
+	}
+	return rows, nil
 }
 
 func (us *UserCRUDService) CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error) {

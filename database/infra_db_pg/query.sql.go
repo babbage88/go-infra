@@ -963,19 +963,40 @@ func (q *Queries) GetAllUserPermissions(ctx context.Context) ([]UserPermissionsV
 }
 
 const getAllUserRoles = `-- name: GetAllUserRoles :many
-SELECT "RoleId", "RoleName", "RoleDescription", "CreatedAt", "LastModified", "Enabled", "IsDeleted"
-FROM public.user_roles_active
+SELECT 
+  ura."RoleId", 
+  ura."RoleName", 
+  ura."RoleDescription", 
+  ura."CreatedAt", 
+  ura."LastModified", 
+  ura."Enabled", 
+  ura."IsDeleted",
+  COALESCE(COUNT(rpm.permission_id), 0)::bigint as permission_count
+FROM public.user_roles_active ura
+LEFT JOIN public.role_permission_mapping rpm ON ura."RoleId" = rpm.role_id
+GROUP BY ura."RoleId", ura."RoleName", ura."RoleDescription", ura."CreatedAt", ura."LastModified", ura."Enabled", ura."IsDeleted"
 `
 
-func (q *Queries) GetAllUserRoles(ctx context.Context) ([]UserRolesActive, error) {
+type GetAllUserRolesRow struct {
+	RoleId          uuid.UUID
+	RoleName        string
+	RoleDescription pgtype.Text
+	CreatedAt       pgtype.Timestamptz
+	LastModified    pgtype.Timestamptz
+	Enabled         bool
+	IsDeleted       bool
+	PermissionCount int64
+}
+
+func (q *Queries) GetAllUserRoles(ctx context.Context) ([]GetAllUserRolesRow, error) {
 	rows, err := q.db.Query(ctx, getAllUserRoles)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []UserRolesActive
+	var items []GetAllUserRolesRow
 	for rows.Next() {
-		var i UserRolesActive
+		var i GetAllUserRolesRow
 		if err := rows.Scan(
 			&i.RoleId,
 			&i.RoleName,
@@ -984,6 +1005,7 @@ func (q *Queries) GetAllUserRoles(ctx context.Context) ([]UserRolesActive, error
 			&i.LastModified,
 			&i.Enabled,
 			&i.IsDeleted,
+			&i.PermissionCount,
 		); err != nil {
 			return nil, err
 		}
