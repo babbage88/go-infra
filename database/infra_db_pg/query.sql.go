@@ -963,40 +963,19 @@ func (q *Queries) GetAllUserPermissions(ctx context.Context) ([]UserPermissionsV
 }
 
 const getAllUserRoles = `-- name: GetAllUserRoles :many
-SELECT 
-  ura."RoleId", 
-  ura."RoleName", 
-  ura."RoleDescription", 
-  ura."CreatedAt", 
-  ura."LastModified", 
-  ura."Enabled", 
-  ura."IsDeleted",
-  COALESCE(COUNT(rpm.permission_id), 0)::bigint as permission_count
-FROM public.user_roles_active ura
-LEFT JOIN public.role_permission_mapping rpm ON ura."RoleId" = rpm.role_id
-GROUP BY ura."RoleId", ura."RoleName", ura."RoleDescription", ura."CreatedAt", ura."LastModified", ura."Enabled", ura."IsDeleted"
+SELECT "RoleId", "RoleName", "RoleDescription", "CreatedAt", "LastModified", "Enabled", "IsDeleted"
+FROM public.user_roles_active
 `
 
-type GetAllUserRolesRow struct {
-	RoleId          uuid.UUID
-	RoleName        string
-	RoleDescription pgtype.Text
-	CreatedAt       pgtype.Timestamptz
-	LastModified    pgtype.Timestamptz
-	Enabled         bool
-	IsDeleted       bool
-	PermissionCount int64
-}
-
-func (q *Queries) GetAllUserRoles(ctx context.Context) ([]GetAllUserRolesRow, error) {
+func (q *Queries) GetAllUserRoles(ctx context.Context) ([]UserRolesActive, error) {
 	rows, err := q.db.Query(ctx, getAllUserRoles)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetAllUserRolesRow
+	var items []UserRolesActive
 	for rows.Next() {
-		var i GetAllUserRolesRow
+		var i UserRolesActive
 		if err := rows.Scan(
 			&i.RoleId,
 			&i.RoleName,
@@ -1005,7 +984,6 @@ func (q *Queries) GetAllUserRoles(ctx context.Context) ([]GetAllUserRolesRow, er
 			&i.LastModified,
 			&i.Enabled,
 			&i.IsDeleted,
-			&i.PermissionCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1680,6 +1658,98 @@ func (q *Queries) GetRoleIdByName(ctx context.Context, roleName string) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getRolePermissionMappingByRoleId = `-- name: GetRolePermissionMappingByRoleId :many
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "RoleId" = $1
+`
+
+type GetRolePermissionMappingByRoleIdRow struct {
+	RoleId       uuid.UUID
+	Role         string
+	PermissionId pgtype.UUID
+	Permission   pgtype.Text
+	Role_2       string
+}
+
+func (q *Queries) GetRolePermissionMappingByRoleId(ctx context.Context, roleid uuid.UUID) ([]GetRolePermissionMappingByRoleIdRow, error) {
+	rows, err := q.db.Query(ctx, getRolePermissionMappingByRoleId, roleid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRolePermissionMappingByRoleIdRow
+	for rows.Next() {
+		var i GetRolePermissionMappingByRoleIdRow
+		if err := rows.Scan(
+			&i.RoleId,
+			&i.Role,
+			&i.PermissionId,
+			&i.Permission,
+			&i.Role_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRolePermissionMappingByRoleName = `-- name: GetRolePermissionMappingByRoleName :many
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "Role" = $1
+`
+
+type GetRolePermissionMappingByRoleNameRow struct {
+	RoleId       uuid.UUID
+	Role         string
+	PermissionId pgtype.UUID
+	Permission   pgtype.Text
+	Role_2       string
+}
+
+func (q *Queries) GetRolePermissionMappingByRoleName(ctx context.Context, role string) ([]GetRolePermissionMappingByRoleNameRow, error) {
+	rows, err := q.db.Query(ctx, getRolePermissionMappingByRoleName, role)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRolePermissionMappingByRoleNameRow
+	for rows.Next() {
+		var i GetRolePermissionMappingByRoleNameRow
+		if err := rows.Scan(
+			&i.RoleId,
+			&i.Role,
+			&i.PermissionId,
+			&i.Permission,
+			&i.Role_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRolesPermissionCount = `-- name: GetRolesPermissionCount :many

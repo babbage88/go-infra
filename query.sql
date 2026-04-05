@@ -179,6 +179,28 @@ SELECT EXISTS (
   FROM
       public.role_permissions_view rpv;
 
+-- name: GetRolePermissionMappingByRoleId :many
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "RoleId" = $1;
+
+-- name: GetRolePermissionMappingByRoleName :many
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "Role" = $1;
+
 -- name: GetRolesPermissionCount :many
 SELECT
     id,
