@@ -840,6 +840,51 @@ func (q *Queries) GetAllPlatformTypes(ctx context.Context) ([]PlatformType, erro
 	return items, nil
 }
 
+const getAllRolePermissions = `-- name: GetAllRolePermissions :many
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+`
+
+type GetAllRolePermissionsRow struct {
+	RoleId       uuid.UUID
+	Role         string
+	PermissionId pgtype.UUID
+	Permission   pgtype.Text
+	Role_2       string
+}
+
+func (q *Queries) GetAllRolePermissions(ctx context.Context) ([]GetAllRolePermissionsRow, error) {
+	rows, err := q.db.Query(ctx, getAllRolePermissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllRolePermissionsRow
+	for rows.Next() {
+		var i GetAllRolePermissionsRow
+		if err := rows.Scan(
+			&i.RoleId,
+			&i.Role,
+			&i.PermissionId,
+			&i.Permission,
+			&i.Role_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllSSHKeyTypes = `-- name: GetAllSSHKeyTypes :many
 SELECT 
     id,
@@ -1371,6 +1416,39 @@ func (q *Queries) GetLatestExternalAuthTokenByAppName(ctx context.Context, arg G
 	return i, err
 }
 
+const getPermissionsByRoleId = `-- name: GetPermissionsByRoleId :one
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "RoleId" = $1
+`
+
+type GetPermissionsByRoleIdRow struct {
+	RoleId       uuid.UUID
+	Role         string
+	PermissionId pgtype.UUID
+	Permission   pgtype.Text
+	Role_2       string
+}
+
+func (q *Queries) GetPermissionsByRoleId(ctx context.Context, roleid uuid.UUID) (GetPermissionsByRoleIdRow, error) {
+	row := q.db.QueryRow(ctx, getPermissionsByRoleId, roleid)
+	var i GetPermissionsByRoleIdRow
+	err := row.Scan(
+		&i.RoleId,
+		&i.Role,
+		&i.PermissionId,
+		&i.Permission,
+		&i.Role_2,
+	)
+	return i, err
+}
+
 const getPlatformTypeById = `-- name: GetPlatformTypeById :one
 SELECT platform_type_id, name, last_modified
 FROM public.platform_types
@@ -1580,6 +1658,35 @@ func (q *Queries) GetRoleIdByName(ctx context.Context, roleName string) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getRolesPermissionCount = `-- name: GetRolesPermissionCount :many
+SELECT
+    id,
+    role_name,
+    permission_count
+FROM public.role_permission_counts rpc
+ORDER BY role_name ASC
+`
+
+func (q *Queries) GetRolesPermissionCount(ctx context.Context) ([]RolePermissionCount, error) {
+	rows, err := q.db.Query(ctx, getRolesPermissionCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RolePermissionCount
+	for rows.Next() {
+		var i RolePermissionCount
+		if err := rows.Scan(&i.ID, &i.RoleName, &i.PermissionCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSSHKeyById = `-- name: GetSSHKeyById :one

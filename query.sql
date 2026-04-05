@@ -158,6 +158,35 @@ SELECT EXISTS (
   WHERE "UserId" = $1 and "Permission" = $2
 );
 
+-- name: GetPermissionsByRoleId :one
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv
+  WHERE "RoleId" = $1;
+
+-- name: GetAllRolePermissions :many
+  SELECT
+    "RoleId",
+    "Role",
+    "PermissionId",
+    "Permission",
+    "Role"
+  FROM
+      public.role_permissions_view rpv;
+
+-- name: GetRolesPermissionCount :many
+SELECT
+    id,
+    role_name,
+    permission_count
+FROM public.role_permission_counts rpc
+ORDER BY role_name ASC;
+
 -- name: VerifyUserPermissionByRoleId :one
 SELECT EXISTS (
   SELECT

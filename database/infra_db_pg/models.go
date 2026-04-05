@@ -113,6 +113,12 @@ type PlatformTypeMapping struct {
 	LastModified     pgtype.Timestamptz
 }
 
+type RolePermissionCount struct {
+	ID              uuid.UUID
+	RoleName        string
+	PermissionCount int64
+}
+
 type RolePermissionMapping struct {
 	ID           uuid.UUID
 	RoleID       uuid.UUID
