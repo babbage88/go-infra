@@ -36,6 +36,7 @@ import (
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
+	rolesservice "github.com/babbage88/go-infra/services/roles_service"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
@@ -65,6 +66,7 @@ func main() {
 
 	connPool := initPgConnPool()
 	userService := &user_crud_svc.UserCRUDService{DbConn: connPool}
+	rolesService := &rolesservice.RoleCRUDService{DbConn: connPool}
 	authService := &authapi.LocalAuthService{DbConn: connPool}
 	healthCheckService := &user_crud_svc.HealthCheckService{DbConn: connPool}
 	secretProvider := user_secrets.NewPgUserSecretStore(connPool)
@@ -76,6 +78,7 @@ func main() {
 	apiServer := api_server.APIServer{
 		HealthCheckService:      healthCheckService,
 		AuthService:             authService,
+		RoleService:             rolesService,
 		UserCRUDService:         userService,
 		UserSecretsStoreService: secretProvider,
 		HostServerProvider:      hostServerProvider,

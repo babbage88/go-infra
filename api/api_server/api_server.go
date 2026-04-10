@@ -13,6 +13,7 @@ import (
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	"github.com/babbage88/go-infra/services/node_networking"
+	rolesservice "github.com/babbage88/go-infra/services/roles_service"
 	"github.com/babbage88/go-infra/services/s3_admin"
 	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
@@ -41,7 +42,7 @@ func hostServerByIDHandler(provider host_servers.HostServerProvider, authService
 	})
 }
 
-func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, userCRUDService *user_crud_svc.UserCRUDService,
+func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, roleService *rolesservice.RoleCRUDService, userCRUDService *user_crud_svc.UserCRUDService,
 	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(authapi.LoginHandler(authService)))
@@ -67,6 +68,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("/roles/permission", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "AlterRole", userapi.CreateRolePermissionMappingHandler(userCRUDService))))
 	mux.Handle("/roles", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadRoles", userapi.GetAllRolesHandler(userCRUDService))))
 	mux.Handle("/roles/permission-counts", cors.CORSWithGET(authapi.AuthMiddleware(userapi.GetRolesPermissionCountsHandler(userCRUDService))))
+	mux.Handle("/roles/permission-mappings", cors.CORSWithGET(authapi.AuthMiddleware(rolesservice.GetAllAppPermissionMappingsHandler(roleService))))
 	mux.Handle("/users/{ID}", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadUsers", userapi.GetUserByIdHandler(userCRUDService))))
 	mux.Handle("/permissions", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadPermissions", userapi.GetAllAppPermissionsHandler(userCRUDService))))
 	mux.Handle("/users", cors.CORSWithGET(authapi.AuthMiddleware(userapi.GetAllUsersHandler(userCRUDService))))
@@ -227,7 +229,7 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		slog.Info("WS_LISTEN_ADDR env variable is not set, using default :8090")
 		wsListenAddr = ":8090"
 	}
-	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
+	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.RoleService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
 
 	// Start a dedicated WebSocket server on :8090 with no middleware for /ssh/websocket/{connectionId}
 	go func() {

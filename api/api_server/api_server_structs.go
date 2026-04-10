@@ -4,6 +4,7 @@ import (
 	authapi "github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
+	rolesservice "github.com/babbage88/go-infra/services/roles_service"
 	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
@@ -14,6 +15,7 @@ import (
 type APIServer struct {
 	HealthCheckService      *user_crud_svc.HealthCheckService
 	AuthService             authapi.AuthService
+	RoleService             *rolesservice.RoleCRUDService
 	UserCRUDService         *user_crud_svc.UserCRUDService
 	UserSecretsStoreService user_secrets.UserSecretProvider
 	HostServerProvider      host_servers.HostServerProvider

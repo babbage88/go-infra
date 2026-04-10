@@ -578,7 +578,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Host server type ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -611,7 +611,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Host server type ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -652,7 +652,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Host server type ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -737,6 +737,15 @@
         ],
         "summary": "Get a host server by ID.",
         "operationId": "GetHostServer",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Host server ID",
+            "name": "ID",
+            "in": "path",
+            "required": true
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/HostServerResponse"
@@ -764,7 +773,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Host server ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -805,7 +814,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Host server ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -1381,7 +1390,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Platform type ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -1414,7 +1423,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Platform type ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -1455,7 +1464,7 @@
         "parameters": [
           {
             "type": "string",
-            "format": "uuid",
+            "description": "Platform type ID",
             "name": "ID",
             "in": "path",
             "required": true
@@ -1643,6 +1652,52 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/roles/permission-mappings": {
+      "get": {
+        "tags": [
+          "PermissionsCRUD",
+          ""
+        ],
+        "summary": "Returns all App Permission Mappings (which roles have which permissions).",
+        "operationId": "GetAllAppPermissionMappings",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Optional role ID filter.",
+            "name": "roleId",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Optional role name filter.",
+            "name": "roleName",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/GetRolePermissionMappingsResponse"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
@@ -2145,8 +2200,7 @@
         "operationId": "closeSshConnection",
         "parameters": [
           {
-            "type": "string",
-            "format": "uuid",
+            "$ref": "#/definitions/UUID",
             "name": "CONNID",
             "in": "path",
             "required": true
@@ -2531,8 +2585,7 @@
         "operationId": "GetUserSecretEntriesByAppName",
         "parameters": [
           {
-            "type": "string",
-            "format": "uuid",
+            "$ref": "#/definitions/UUID",
             "name": "USERID",
             "in": "path",
             "required": true
@@ -2575,8 +2628,7 @@
         "operationId": "GetUserSecretEntries",
         "parameters": [
           {
-            "type": "string",
-            "format": "uuid",
+            "$ref": "#/definitions/UUID",
             "name": "USERID",
             "in": "path",
             "required": true
@@ -2607,15 +2659,13 @@
         "operationId": "GetUserSecretEntriesByAppId",
         "parameters": [
           {
-            "type": "string",
-            "format": "uuid",
+            "$ref": "#/definitions/UUID",
             "name": "USERID",
             "in": "path",
             "required": true
           },
           {
-            "type": "string",
-            "format": "uuid",
+            "$ref": "#/definitions/UUID",
             "name": "APPID",
             "in": "path",
             "required": true
@@ -2730,21 +2780,23 @@
           "x-go-name": "Username"
         },
         "user_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-name": "AccessTokenRefreshResponse",
       "x-go-package": "github.com/babbage88/go-infra/api/authapi"
     },
+    "Addr": {
+      "description": "Unlike [net.IP] or [net.IPAddr], Addr is a comparable value\ntype (it supports == and can be a map key) and is immutable.\n\nThe zero Addr is not a valid IP address.\nAddr{} is distinct from both 0.0.0.0 and ::.",
+      "type": "object",
+      "title": "Addr represents an IPv4 or IPv6 address (with or without a scoped\naddressing zone), similar to [net.IP] or [net.IPAddr].",
+      "x-go-package": "net/netip"
+    },
     "AppPermissionDao": {
       "type": "object",
       "properties": {
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "permissionDescription": {
           "type": "string",
@@ -2783,9 +2835,7 @@
           "x-go-name": "Username"
         },
         "user_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/authapi"
@@ -2804,9 +2854,7 @@
           "x-go-name": "Expiration"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "last_modified": {
           "type": "string",
@@ -2818,9 +2866,7 @@
           "x-go-name": "Token"
         },
         "user_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
@@ -2962,8 +3008,7 @@
           "description": "Host server type IDs that this server supports",
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/definitions/UUID"
           },
           "x-go-name": "HostServerTypeIDs",
           "example": [
@@ -2978,18 +3023,13 @@
           "example": "server-01.example.com"
         },
         "ip_address": {
-          "description": "IP address of the server",
-          "type": "string",
-          "x-go-name": "IPAddress",
-          "x-go-type": "net/netip.Addr",
-          "example": "192.168.1.100"
+          "$ref": "#/definitions/Addr"
         },
         "platform_type_ids": {
           "description": "Platform type IDs that this server supports",
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/definitions/UUID"
           },
           "x-go-name": "PlatformTypeIDs",
           "example": [
@@ -2998,18 +3038,10 @@
           ]
         },
         "ssh_key_id": {
-          "description": "SSH key ID for authentication",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SSHKeyID",
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "$ref": "#/definitions/UUID"
         },
         "sudo_password_token_id": {
-          "description": "Optional sudo password token ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SudoPasswordTokenID",
-          "example": "123e4567-e89b-12d3-a456-426614174001"
+          "$ref": "#/definitions/UUID"
         },
         "username": {
           "description": "Username for SSH connection",
@@ -3044,16 +3076,10 @@
       ],
       "properties": {
         "hostServerId": {
-          "description": "Host server ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerId"
+          "$ref": "#/definitions/UUID"
         },
         "hostServerTypeId": {
-          "description": "Host server type ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerTypeId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
@@ -3101,22 +3127,13 @@
       ],
       "properties": {
         "hostServerId": {
-          "description": "Host server ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerId"
+          "$ref": "#/definitions/UUID"
         },
         "hostServerTypeId": {
-          "description": "Host server type ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerTypeId"
+          "$ref": "#/definitions/UUID"
         },
         "platformTypeId": {
-          "description": "Platform type ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PlatformTypeId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/host_servers"
@@ -3125,14 +3142,10 @@
       "type": "object",
       "properties": {
         "permId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
+          "$ref": "#/definitions/UUID"
         },
         "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -3155,9 +3168,7 @@
       "type": "object",
       "properties": {
         "application_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ApplicationID"
+          "$ref": "#/definitions/UUID"
         },
         "expiration": {
           "type": "string",
@@ -3181,10 +3192,7 @@
       ],
       "properties": {
         "hostServerId": {
-          "description": "ID of the host server to map to",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerID"
+          "$ref": "#/definitions/UUID"
         },
         "hostserverUsername": {
           "description": "Username to use on the host server",
@@ -3192,22 +3200,13 @@
           "x-go-name": "HostserverUsername"
         },
         "sshKeyId": {
-          "description": "ID of the SSH key to map",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SshKeyID"
+          "$ref": "#/definitions/UUID"
         },
         "sudoPasswordTokenId": {
-          "description": "ID of the sudo password token",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SudoPasswordTokenId"
+          "$ref": "#/definitions/UUID"
         },
         "userId": {
-          "description": "ID of the user who owns the mapping",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
@@ -3221,10 +3220,7 @@
       ],
       "properties": {
         "hostServerId": {
-          "description": "ID of the host server to map to",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerID"
+          "$ref": "#/definitions/UUID"
         },
         "hostserverUsername": {
           "description": "Username to use on the host server",
@@ -3232,16 +3228,10 @@
           "x-go-name": "HostserverUsername"
         },
         "sshKeyId": {
-          "description": "ID of the SSH key to map",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SshKeyID"
+          "$ref": "#/definitions/UUID"
         },
         "sudoPasswordTokenId": {
-          "description": "ID of the sudo password token",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SudoPasswordTokenId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
@@ -3269,10 +3259,7 @@
           "x-go-name": "Error"
         },
         "hostServerId": {
-          "description": "ID of the host server",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerID"
+          "$ref": "#/definitions/UUID"
         },
         "hostserverUsername": {
           "description": "Username on the host server",
@@ -3280,10 +3267,7 @@
           "x-go-name": "HostserverUsername"
         },
         "id": {
-          "description": "ID of the created mapping",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID"
+          "$ref": "#/definitions/UUID"
         },
         "lastModified": {
           "description": "Last modification timestamp",
@@ -3291,16 +3275,10 @@
           "x-go-name": "LastModified"
         },
         "sshKeyId": {
-          "description": "ID of the SSH key",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SshKeyID"
+          "$ref": "#/definitions/UUID"
         },
         "userId": {
-          "description": "ID of the user",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
@@ -3320,10 +3298,7 @@
           "x-go-name": "Description"
         },
         "hostServerId": {
-          "description": "Optional host server ID to associate the key with",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerId"
+          "$ref": "#/definitions/UUID"
         },
         "keyType": {
           "description": "Type of the SSH key (e.g., rsa, ed25519)",
@@ -3368,28 +3343,16 @@
           "x-go-name": "Error"
         },
         "passphraseSecretId": {
-          "description": "ID of the stored private key secret",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PassphraseSecretId"
+          "$ref": "#/definitions/UUID"
         },
         "privKeySecretId": {
-          "description": "ID of the stored private key secret",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PrivKeySecretId"
+          "$ref": "#/definitions/UUID"
         },
         "sshKeyId": {
-          "description": "ID of the created SSH key",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SshKeyId"
+          "$ref": "#/definitions/UUID"
         },
         "userId": {
-          "description": "ID of the user who owns the key",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
@@ -3404,6 +3367,20 @@
         "roleName": {
           "type": "string",
           "x-go-name": "RoleName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "CreateUserRoleResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error",
+          "x-go-type": "error"
+        },
+        "newUserRoleInfo": {
+          "$ref": "#/definitions/UserRoleDao"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -3426,9 +3403,7 @@
       "type": "object",
       "properties": {
         "targetUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetUserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -3457,9 +3432,7 @@
       "type": "object",
       "properties": {
         "targetUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetUserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -3478,14 +3451,10 @@
           "x-go-name": "Expiration"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "userId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_secrets"
@@ -3507,9 +3476,7 @@
           "x-go-name": "EndpointUrl"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "lastModified": {
           "type": "string",
@@ -3527,9 +3494,7 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "name": {
           "type": "string",
@@ -3567,6 +3532,39 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "GetRolePermissionMappingsResponse": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastModified"
+        },
+        "permission": {
+          "type": "string",
+          "x-go-name": "Permission"
+        },
+        "permissionId": {
+          "$ref": "#/definitions/UUID"
+        },
+        "roleId": {
+          "$ref": "#/definitions/UUID"
+        },
+        "roleName": {
+          "type": "string",
+          "x-go-name": "RoleName"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/roles_service"
     },
     "GetRolesPermissionCountResponse": {
       "type": "object",
@@ -3619,8 +3617,7 @@
           "type": "boolean"
         },
         "IpAddress": {
-          "type": "string",
-          "x-go-type": "net/netip.Addr"
+          "$ref": "#/definitions/Addr"
         },
         "IsContainerHost": {
           "type": "boolean"
@@ -3668,14 +3665,10 @@
           "x-go-name": "Hostname"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID"
+          "$ref": "#/definitions/UUID"
         },
         "ip_address": {
-          "type": "string",
-          "x-go-name": "IPAddress",
-          "x-go-type": "net/netip.Addr"
+          "$ref": "#/definitions/Addr"
         },
         "last_modified": {
           "type": "string",
@@ -3690,14 +3683,10 @@
           "x-go-name": "PlatformTypes"
         },
         "ssh_key_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SSHKeyID"
+          "$ref": "#/definitions/UUID"
         },
         "sudo_password_token_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SudoPasswordTokenID"
+          "$ref": "#/definitions/UUID"
         },
         "username": {
           "type": "string",
@@ -3715,11 +3704,7 @@
       ],
       "properties": {
         "id": {
-          "description": "Unique identifier for the host server type",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID",
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "$ref": "#/definitions/UUID"
         },
         "last_modified": {
           "description": "Last modification timestamp",
@@ -3786,9 +3771,7 @@
           "x-go-name": "Username"
         },
         "user_id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-name": "LocalLoginResponse",
@@ -3819,10 +3802,7 @@
           "x-go-name": "Success"
         },
         "targetHostId": {
-          "description": "ID of the target host server (if applicable)",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetHostId"
+          "$ref": "#/definitions/UUID"
         },
         "targetHostName": {
           "description": "Name of the target host",
@@ -3845,10 +3825,7 @@
       ],
       "properties": {
         "hostServerId": {
-          "description": "ID of the host server to ping",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
@@ -3906,10 +3883,7 @@
           "x-go-name": "Success"
         },
         "targetHostId": {
-          "description": "ID of the target host server (if applicable)",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetHostId"
+          "$ref": "#/definitions/UUID"
         },
         "targetHostName": {
           "description": "Name of the target host",
@@ -3928,11 +3902,7 @@
       ],
       "properties": {
         "id": {
-          "description": "Unique identifier for the platform type",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID",
-          "example": "123e4567-e89b-12d3-a456-426614174001"
+          "$ref": "#/definitions/UUID"
         },
         "last_modified": {
           "description": "Last modification timestamp",
@@ -3964,10 +3934,7 @@
           "x-go-name": "Port"
         },
         "targetHostId": {
-          "description": "ID of the target host server",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetHostId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/node_networking"
@@ -4002,9 +3969,7 @@
           "x-go-name": "PermissionCount"
         },
         "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+          "$ref": "#/definitions/UUID"
         },
         "roleName": {
           "type": "string",
@@ -4026,9 +3991,7 @@
           "x-go-name": "Enabled"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "lastModified": {
           "type": "string",
@@ -4036,14 +3999,10 @@
           "x-go-name": "LastModified"
         },
         "permissionId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PermissionId"
+          "$ref": "#/definitions/UUID"
         },
         "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
@@ -4052,9 +4011,7 @@
       "type": "object",
       "properties": {
         "targetRoleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetRoleId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -4074,9 +4031,7 @@
       "type": "object",
       "properties": {
         "targetUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetUserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -4124,11 +4079,7 @@
           "example": 120
         },
         "hostServerId": {
-          "description": "Host server ID to connect to",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerID",
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "$ref": "#/definitions/UUID"
         },
         "rows": {
           "description": "Terminal row height",
@@ -4152,11 +4103,7 @@
       "type": "object",
       "properties": {
         "connectionId": {
-          "description": "Unique connection identifier",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ConnectionID",
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "$ref": "#/definitions/UUID"
         },
         "error": {
           "description": "Error message if connection failed",
@@ -4192,9 +4139,7 @@
           "x-go-name": "Description"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID"
+          "$ref": "#/definitions/UUID"
         },
         "keyType": {
           "type": "string",
@@ -4210,19 +4155,13 @@
           "x-go-name": "Name"
         },
         "ownerUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "OwnerUserID"
+          "$ref": "#/definitions/UUID"
         },
         "passphraseId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PassphraseSecretId"
+          "$ref": "#/definitions/UUID"
         },
         "privateKeyId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "PrivateKeyId"
+          "$ref": "#/definitions/UUID"
         },
         "publicKey": {
           "type": "string",
@@ -4241,14 +4180,10 @@
           "x-go-name": "CreatedAt"
         },
         "hostServerId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "HostServerID"
+          "$ref": "#/definitions/UUID"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID"
+          "$ref": "#/definitions/UUID"
         },
         "lastActivity": {
           "type": "string",
@@ -4256,9 +4191,7 @@
           "x-go-name": "LastActivity"
         },
         "userId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "UserID"
+          "$ref": "#/definitions/UUID"
         },
         "username": {
           "type": "string",
@@ -4277,12 +4210,20 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/api/authapi"
     },
+    "UUID": {
+      "description": "A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC\n4122.",
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "format": "uint8"
+      },
+      "x-go-package": "github.com/google/uuid"
+    },
     "UUIDs": {
       "type": "array",
       "title": "UUIDs is a slice of UUID types.",
       "items": {
-        "type": "string",
-        "format": "uuid"
+        "$ref": "#/definitions/UUID"
       },
       "x-go-package": "github.com/google/uuid"
     },
@@ -4311,8 +4252,7 @@
           "description": "Host server type IDs that this server supports",
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/definitions/UUID"
           },
           "x-go-name": "HostServerTypeIDs",
           "example": [
@@ -4327,18 +4267,13 @@
           "example": "server-01.example.com"
         },
         "ip_address": {
-          "description": "IP address of the server",
-          "type": "string",
-          "x-go-name": "IPAddress",
-          "x-go-type": "net/netip.Addr",
-          "example": "192.168.1.100"
+          "$ref": "#/definitions/Addr"
         },
         "platform_type_ids": {
           "description": "Platform type IDs that this server supports",
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/definitions/UUID"
           },
           "x-go-name": "PlatformTypeIDs",
           "example": [
@@ -4347,18 +4282,10 @@
           ]
         },
         "ssh_key_id": {
-          "description": "SSH key ID for authentication",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SSHKeyID",
-          "example": "123e4567-e89b-12d3-a456-426614174000"
+          "$ref": "#/definitions/UUID"
         },
         "sudo_password_token_id": {
-          "description": "Optional sudo password token ID",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "SudoPasswordTokenID",
-          "example": "123e4567-e89b-12d3-a456-426614174001"
+          "$ref": "#/definitions/UUID"
         },
         "username": {
           "description": "Username for SSH connection",
@@ -4406,10 +4333,7 @@
           "x-go-name": "HostserverUsername"
         },
         "id": {
-          "description": "ID of the SSH key host mapping to update",
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "ID"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/ssh_key_provider"
@@ -4422,9 +4346,7 @@
           "x-go-name": "NewPassword"
         },
         "targetUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetUserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -4433,14 +4355,10 @@
       "type": "object",
       "properties": {
         "roleId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "RoleId"
+          "$ref": "#/definitions/UUID"
         },
         "targetUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetUserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -4478,9 +4396,7 @@
           "x-go-name": "Enabled"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "isDeleted": {
           "type": "boolean",
@@ -4547,12 +4463,10 @@
           "format": "int32"
         },
         "PrivateIpAddress": {
-          "type": "string",
-          "x-go-type": "net/netip.Addr"
+          "$ref": "#/definitions/Addr"
         },
         "PubIpAddress": {
-          "type": "string",
-          "x-go-type": "net/netip.Addr"
+          "$ref": "#/definitions/Addr"
         },
         "UserApplicationIds": {
           "type": "array",
@@ -4595,9 +4509,7 @@
           "x-go-name": "Success"
         },
         "targetUserId": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "TargetUserId"
+          "$ref": "#/definitions/UUID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
@@ -4615,9 +4527,7 @@
           "x-go-name": "Enabled"
         },
         "id": {
-          "type": "string",
-          "format": "uuid",
-          "x-go-name": "Id"
+          "$ref": "#/definitions/UUID"
         },
         "isDeleted": {
           "type": "boolean",
@@ -4637,7 +4547,6 @@
           "x-go-name": "RoleName"
         }
       },
-      "x-go-name": "CreateUserRoleResponse",
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
     "UserSecretEntry": {
@@ -4693,9 +4602,7 @@
         "type": "object",
         "properties": {
           "hostServerId": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "Id"
+            "$ref": "#/definitions/UUID"
           },
           "name": {
             "type": "string",
@@ -4726,9 +4633,7 @@
             "x-go-name": "Name"
           },
           "platformId": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "Id"
+            "$ref": "#/definitions/UUID"
           }
         }
       }
@@ -4745,9 +4650,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "ID"
+            "$ref": "#/definitions/UUID"
           }
         }
       }
@@ -4773,7 +4676,7 @@
     "CreateUserRoleResponse": {
       "description": "(empty)",
       "schema": {
-        "$ref": "#/definitions/UserRoleDao"
+        "$ref": "#/definitions/CreateUserRoleResponse"
       }
     },
     "DeleteSshKeyHostMappingResponse": {
@@ -4875,9 +4778,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "ID"
+            "$ref": "#/definitions/UUID"
           }
         }
       }
@@ -4891,6 +4792,15 @@
             "type": "string",
             "x-go-name": "Name"
           }
+        }
+      }
+    },
+    "GetRolePermissionMappingsResponse": {
+      "description": "(empty)",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/GetRolePermissionMappingsResponse"
         }
       }
     },
@@ -5022,23 +4932,17 @@
             "x-go-name": "Expiration"
           },
           "external_application_id": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "ExternalApplication"
+            "$ref": "#/definitions/UUID"
           },
           "id": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "ID"
+            "$ref": "#/definitions/UUID"
           },
           "secret": {
             "type": "string",
             "x-go-name": "Secret"
           },
           "user_id": {
-            "type": "string",
-            "format": "uuid",
-            "x-go-name": "UserID"
+            "$ref": "#/definitions/UUID"
           }
         }
       }

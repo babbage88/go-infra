@@ -1,8 +1,6 @@
 package userapi
 
 import (
-	"time"
-
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/google/uuid"
 )
@@ -165,7 +163,6 @@ type CreateUserRoleResponseWrapper struct {
 	Body CreateUserRoleResponse `json:"body"`
 }
 
-// swagger:model UserRoleDao
 type CreateUserRoleResponse struct {
 	Error           error                      `json:"error"`
 	NewUserRoleInfo *user_crud_svc.UserRoleDao `json:"newUserRoleInfo"`
@@ -259,21 +256,6 @@ type SoftDeleteRoleByIdResponseWrapper struct {
 
 type SoftDeleteRoleByIdResponse struct {
 	Error error `json:"error"`
-}
-
-// swagger:model RolePermissionMappingDao
-type RolePermissionMappingDao struct {
-	Id           uuid.UUID `json:"id"`
-	RoleId       uuid.UUID `json:"roleId"`
-	PermissionId uuid.UUID `json:"permissionId"`
-	CreatedAt    time.Time `json:"createdAt"`
-	LastModified time.Time `json:"lastModified"`
-}
-
-// swagger:response GetRolePermissionMappingsResponse
-type GetRolesPermissionMappingResponseWrapper struct {
-	// in: body
-	Body []RolePermissionMappingDao `json:"body"`
 }
 
 // swagger:model RolePermissionCount

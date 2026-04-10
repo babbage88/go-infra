@@ -55,8 +55,11 @@ type CreateHostServerRequest struct {
 // swagger:parameters UpdateHostServer
 // @Description Request to update an existing host server
 type UpdateHostServerRequestWrapper struct {
+	// Host server ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID string `json:"ID"`
 	// in: body
 	Body UpdateHostServerRequest `json:"body"`
 }
@@ -133,8 +136,21 @@ type HostServerResponseWrapper struct {
 // swagger:parameters DeleteHostServer
 // @Description Request to delete a host server
 type DeleteHostServerRequestWrapper struct {
+	// Host server ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID string `json:"ID"`
+}
+
+// swagger:parameters GetHostServer
+// @Description Request to get a host server by ID
+type GetHostServerRequestWrapper struct {
+	// Host server ID
+	// in: path
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID string `json:"ID"`
 }
 
 // swagger:parameters GetAllHostServerTypes
@@ -291,8 +307,11 @@ type PlatformTypeResponse struct {
 // swagger:parameters GetHostServerTypeById
 // @Description Request to get a host server type by ID
 type GetHostServerTypeByIdRequest struct {
+	// Host server type ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID string `json:"ID"`
 }
 
 // swagger:parameters GetHostServerTypeByName
@@ -305,8 +324,11 @@ type GetHostServerTypeByNameRequest struct {
 // swagger:parameters UpdateHostServerType
 // @Description Request to update a host server type
 type UpdateHostServerTypeRequest struct {
+	// Host server type ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID string `json:"ID"`
 	// in: body
 	Body UpdateHostServerTypeBody `json:"body"`
 }
@@ -322,15 +344,21 @@ type UpdateHostServerTypeBody struct {
 // swagger:parameters DeleteHostServerType
 // @Description Request to delete a host server type
 type DeleteHostServerTypeRequest struct {
+	// Host server type ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174000
+	ID string `json:"ID"`
 }
 
 // swagger:parameters GetPlatformTypeById
 // @Description Request to get a platform type by ID
 type GetPlatformTypeByIdRequest struct {
+	// Platform type ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174001
+	ID string `json:"ID"`
 }
 
 // swagger:parameters GetPlatformTypeByName
@@ -343,8 +371,11 @@ type GetPlatformTypeByNameRequest struct {
 // swagger:parameters UpdatePlatformType
 // @Description Request to update a platform type
 type UpdatePlatformTypeRequest struct {
+	// Platform type ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174001
+	ID string `json:"ID"`
 	// in: body
 	Body UpdatePlatformTypeBody `json:"body"`
 }
@@ -360,6 +391,9 @@ type UpdatePlatformTypeBody struct {
 // swagger:parameters DeletePlatformType
 // @Description Request to delete a platform type
 type DeletePlatformTypeRequest struct {
+	// Platform type ID
 	// in: path
-	ID uuid.UUID `json:"ID"`
+	// required: true
+	// example: 123e4567-e89b-12d3-a456-426614174001
+	ID string `json:"ID"`
 }
