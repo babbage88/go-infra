@@ -1782,22 +1782,33 @@ func (q *Queries) GetRolePermissionMappingByRoleName(ctx context.Context, role s
 
 const getRolesPermissionCount = `-- name: GetRolesPermissionCount :many
 SELECT
-    id,
-    role_name,
-    permission_count
-FROM public.role_permission_counts rpc
+    r.id,
+    r.role_name,
+    COUNT(rpm.permission_id) AS permission_count
+FROM public.user_roles r
+LEFT JOIN public.role_permission_mapping rpm
+  ON r.id = rpm.role_id
+ AND rpm.enabled = TRUE
+WHERE r.is_deleted = FALSE
+GROUP BY r.id, r.role_name
 ORDER BY role_name ASC
 `
 
-func (q *Queries) GetRolesPermissionCount(ctx context.Context) ([]RolePermissionCount, error) {
+type GetRolesPermissionCountRow struct {
+	ID              uuid.UUID
+	RoleName        string
+	PermissionCount int64
+}
+
+func (q *Queries) GetRolesPermissionCount(ctx context.Context) ([]GetRolesPermissionCountRow, error) {
 	rows, err := q.db.Query(ctx, getRolesPermissionCount)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []RolePermissionCount
+	var items []GetRolesPermissionCountRow
 	for rows.Next() {
-		var i RolePermissionCount
+		var i GetRolesPermissionCountRow
 		if err := rows.Scan(&i.ID, &i.RoleName, &i.PermissionCount); err != nil {
 			return nil, err
 		}

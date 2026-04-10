@@ -203,10 +203,15 @@ SELECT EXISTS (
 
 -- name: GetRolesPermissionCount :many
 SELECT
-    id,
-    role_name,
-    permission_count
-FROM public.role_permission_counts rpc
+    r.id,
+    r.role_name,
+    COUNT(rpm.permission_id) AS permission_count
+FROM public.user_roles r
+LEFT JOIN public.role_permission_mapping rpm
+  ON r.id = rpm.role_id
+ AND rpm.enabled = TRUE
+WHERE r.is_deleted = FALSE
+GROUP BY r.id, r.role_name
 ORDER BY role_name ASC;
 
 -- name: VerifyUserPermissionByRoleId :one
