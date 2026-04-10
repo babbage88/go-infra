@@ -215,6 +215,30 @@ type CreateRolePermissionMappingResponse struct {
 	Error          error                                   `json:"error"`
 }
 
+// Name and Description for removing App Permission from role
+// swagger:parameters DeleteRolePermissionMapping
+type DeleteRolePermissionMappingRequestWrapper struct {
+	//in: body
+	Body DeleteRolePermissionMappingRequest `json:"body"`
+}
+
+type DeleteRolePermissionMappingRequest struct {
+	RoleId       uuid.UUID `json:"roleId"`
+	PermissionId uuid.UUID `json:"permId"`
+}
+
+// swagger:response DeleteRolePermissionMappingResponse
+type DeleteRolePermissionMappingResponseWrapper struct {
+	// in: body
+	Body DeleteRolePermissionMappingResponse `json:"body"`
+}
+
+// swagger:model DeleteRolePermissionMappingResponse
+type DeleteRolePermissionMappingResponse struct {
+	RemovedMappingInfo *user_crud_svc.RolePermissionMappingDao `json:"removedMappingInfo"`
+	Error              error                                   `json:"error"`
+}
+
 // Mark user as deleted in Database. Will no longer show in UI unless explicityly restored
 // swagger:parameters SoftDeleteUserById
 type SoftDeleteUserByIdRequestWrapper struct {

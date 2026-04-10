@@ -37,6 +37,7 @@ type UserCRUD interface {
 	CreateOrUpdateUserRole(roleName string, roleDescr string) (*UserRoleDao, error)
 	CreateOrUpdateAppPermission(name string, desc string) (*AppPermissionDao, error)
 	CreateOrUpdateRolePermisssionMapping(roleId uuid.UUID, permId uuid.UUID) (*RolePermissionMappingDao, error)
+	DisableRolePermissionMapping(roleId uuid.UUID, permId uuid.UUID) (*RolePermissionMappingDao, error)
 	EnableRoleById(id uuid.UUID) error
 	DisableRoleById(id uuid.UUID) error
 	SoftDeleteRoleById(id uuid.UUID) error
@@ -389,6 +390,22 @@ func (us *UserCRUDService) CreateOrUpdateRolePermisssionMapping(roleId uuid.UUID
 	retVal.ParseRolePermissionMappingFromDb(row)
 
 	return retVal, err
+}
+
+func (us *UserCRUDService) DisableRolePermissionMapping(roleId uuid.UUID, permId uuid.UUID) (*RolePermissionMappingDao, error) {
+	retVal := &RolePermissionMappingDao{RoleId: roleId, PermissionId: permId}
+	params := infra_db_pg.DisableRolePermissionMappingParams{RoleID: roleId, PermissionID: permId}
+	queries := infra_db_pg.New(us.DbConn)
+
+	slog.Info("Disabling Role Permission Mapping", slog.String("RoleId", fmt.Sprint(roleId)), slog.String("PermissionId", fmt.Sprint(permId)))
+	row, err := queries.DisableRolePermissionMapping(context.Background(), params)
+	if err != nil {
+		slog.Error("Error disabling role permission mapping", slog.String("error", err.Error()))
+		return retVal, err
+	}
+
+	retVal.ParseRolePermissionMappingFromDb(row)
+	return retVal, nil
 }
 
 func (us *UserCRUDService) SoftDeleteUserById(targetUserId uuid.UUID) (*UserDao, error) {

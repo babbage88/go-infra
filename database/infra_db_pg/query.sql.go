@@ -548,6 +548,34 @@ func (q *Queries) DeleteUserById(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const disableRolePermissionMapping = `-- name: DisableRolePermissionMapping :one
+UPDATE role_permission_mapping
+SET
+  "enabled" = false,
+  last_modified = CURRENT_TIMESTAMP
+WHERE role_id = $1 AND permission_id = $2
+RETURNING id, role_id, permission_id, enabled, created_at, last_modified
+`
+
+type DisableRolePermissionMappingParams struct {
+	RoleID       uuid.UUID
+	PermissionID uuid.UUID
+}
+
+func (q *Queries) DisableRolePermissionMapping(ctx context.Context, arg DisableRolePermissionMappingParams) (RolePermissionMapping, error) {
+	row := q.db.QueryRow(ctx, disableRolePermissionMapping, arg.RoleID, arg.PermissionID)
+	var i RolePermissionMapping
+	err := row.Scan(
+		&i.ID,
+		&i.RoleID,
+		&i.PermissionID,
+		&i.Enabled,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const disableUserById = `-- name: DisableUserById :one
 UPDATE users
   set "enabled" = $2

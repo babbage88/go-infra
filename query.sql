@@ -290,6 +290,14 @@ DO UPDATE SET
   last_modified = CURRENT_TIMESTAMP
 RETURNING *;
 
+-- name: DisableRolePermissionMapping :one
+UPDATE role_permission_mapping
+SET
+  "enabled" = false,
+  last_modified = CURRENT_TIMESTAMP
+WHERE role_id = $1 AND permission_id = $2
+RETURNING *;
+
 -- name: GetAllUserRoles :many
 SELECT "RoleId", "RoleName", "RoleDescription", "CreatedAt", "LastModified", "Enabled", "IsDeleted"
 FROM public.user_roles_active;

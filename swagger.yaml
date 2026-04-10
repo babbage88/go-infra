@@ -365,6 +365,7 @@ paths:
             operationId: GetHostServerTypeById
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
                   description: Host server type ID
                   name: ID
                   in: path
@@ -387,6 +388,7 @@ paths:
             operationId: UpdateHostServerType
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
                   description: Host server type ID
                   name: ID
                   in: path
@@ -414,6 +416,7 @@ paths:
             operationId: DeleteHostServerType
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
                   description: Host server type ID
                   name: ID
                   in: path
@@ -471,6 +474,7 @@ paths:
             operationId: GetHostServer
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
                   description: Host server ID
                   name: ID
                   in: path
@@ -493,6 +497,7 @@ paths:
             operationId: UpdateHostServer
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
                   description: Host server ID
                   name: ID
                   in: path
@@ -520,6 +525,7 @@ paths:
             operationId: DeleteHostServer
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
                   description: Host server ID
                   name: ID
                   in: path
@@ -893,6 +899,7 @@ paths:
             operationId: GetPlatformTypeById
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174001
                   description: Platform type ID
                   name: ID
                   in: path
@@ -915,6 +922,7 @@ paths:
             operationId: UpdatePlatformType
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174001
                   description: Platform type ID
                   name: ID
                   in: path
@@ -942,6 +950,7 @@ paths:
             operationId: DeletePlatformType
             parameters:
                 - type: string
+                  example: 123e4567-e89b-12d3-a456-426614174001
                   description: Platform type ID
                   name: ID
                   in: path
@@ -1050,6 +1059,30 @@ paths:
                     description: Internal Server Error
             security:
                 - bearer: []
+        delete:
+            tags:
+                - PermissionsCRUD
+            summary: Remove App Permission from User Role.
+            operationId: DeleteRolePermissionMapping
+            parameters:
+                - x-go-name: Body
+                  name: body
+                  in: body
+                  schema:
+                    $ref: '#/definitions/DeleteRolePermissionMappingRequest'
+            responses:
+                "200":
+                    $ref: '#/responses/DeleteRolePermissionMappingResponse'
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
+            security:
+                - bearer: []
     /roles/permission-counts:
         get:
             tags:
@@ -1070,20 +1103,22 @@ paths:
             tags:
                 - PermissionsCRUD
                 - ""
-        summary: Returns all App Permission Mappings (which roles have which permissions).
-        operationId: GetAllAppPermissionMappings
-        parameters:
-            - type: string
-              description: Optional role ID filter.
-              name: roleId
-              in: query
-            - type: string
-              description: Optional role name filter.
-              name: roleName
-              in: query
-        responses:
-            "200":
-                $ref: '#/responses/GetRolePermissionMappingsResponse'
+            summary: Returns all App Permission Mappings (which roles have which permissions).
+            operationId: GetAllAppPermissionMappings
+            parameters:
+                - type: string
+                  x-go-name: RoleID
+                  description: Optional role ID filter.
+                  name: roleId
+                  in: query
+                - type: string
+                  x-go-name: RoleName
+                  description: Optional role name filter.
+                  name: roleName
+                  in: query
+            responses:
+                "200":
+                    $ref: '#/responses/GetRolePermissionMappingsResponse'
                 "401":
                     description: Unauthorized
                 "403":
@@ -2232,6 +2267,24 @@ definitions:
             newUserRoleInfo:
                 $ref: '#/definitions/UserRoleDao'
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    DeleteRolePermissionMappingRequest:
+        type: object
+        properties:
+            permId:
+                $ref: '#/definitions/UUID'
+            roleId:
+                $ref: '#/definitions/UUID'
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    DeleteRolePermissionMappingResponse:
+        type: object
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+                x-go-type: error
+            removedMappingInfo:
+                $ref: '#/definitions/RolePermissionMappingDao'
+        x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
     DeleteSshKeyHostMappingResponse:
         type: object
         required:
@@ -3177,6 +3230,10 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/CreateUserRoleResponse'
+    DeleteRolePermissionMappingResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/DeleteRolePermissionMappingResponse'
     DeleteSshKeyHostMappingResponse:
         description: (empty)
         schema:

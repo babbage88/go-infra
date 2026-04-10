@@ -695,6 +695,62 @@ func CreateRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDServic
 	return http.HandlerFunc(CreateRolePermissionMappingHandleFunc(uc_service))
 }
 
+// swagger:route DELETE /roles/permission PermissionsCRUD DeleteRolePermissionMapping
+// Remove App Permission from User Role.
+//
+// security:
+// - bearer:
+// responses:
+//
+//	200: DeleteRolePermissionMappingResponse
+//
+// 401: description:Unauthorized
+// 403: description:Forbidden
+// 404: description:Not Found
+// 500: description:Internal Server Error
+func DeleteRolePermissionMappingHandleFunc(uc_service *user_crud_svc.UserCRUDService) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var request DeleteRolePermissionMappingRequest
+
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			slog.Error("Failed to decode request body", slog.String("Error", err.Error()))
+			http.Error(w, "Bad request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		removedRolePermissionMappingInfo := &user_crud_svc.RolePermissionMappingDao{RoleId: request.RoleId, PermissionId: request.PermissionId}
+		response := DeleteRolePermissionMappingResponseWrapper{
+			Body: DeleteRolePermissionMappingResponse{
+				RemovedMappingInfo: removedRolePermissionMappingInfo,
+				Error:              err,
+			},
+		}
+
+		response.Body.RemovedMappingInfo, response.Body.Error = uc_service.DisableRolePermissionMapping(request.RoleId, request.PermissionId)
+		if response.Body.Error != nil {
+			http.Error(w, "error removing role permission mapping "+response.Body.Error.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			slog.Error("Failed to marshal JSON response", slog.String("Error", err.Error()))
+			http.Error(w, "Failed to marshal JSON response: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	}
+}
+
+func DeleteRolePermissionMappingHandler(uc_service *user_crud_svc.UserCRUDService) http.Handler {
+	return http.HandlerFunc(DeleteRolePermissionMappingHandleFunc(uc_service))
+}
+
 // swagger:route DELETE /user/delete UserCRUD SoftDeleteUserById
 // Soft Delete User by id.
 //
