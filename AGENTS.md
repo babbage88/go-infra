@@ -75,7 +75,7 @@ make local-swagger
 
 ## Integration Notes
 
-- `db-helper-ui` depends on `swagger.json` to regenerate its client.
+- `infractl-ui` depends on `swagger.json` to regenerate its client.
 - If request/response structs or routes change, update Swagger artifacts and expect downstream UI compile fixes.
 - SQL schema, generated queries, handlers, and Swagger must stay in sync.
 
