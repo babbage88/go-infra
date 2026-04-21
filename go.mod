@@ -1,6 +1,6 @@
 module github.com/babbage88/go-infra
 
-go 1.24.4
+go 1.26.2
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
@@ -8,9 +8,9 @@ require (
 )
 
 require (
-	github.com/babbage88/go-acme-cli v1.0.26
 	github.com/babbage88/goph/v2 v2.0.1
-	github.com/goccy/go-yaml v1.18.0
+	github.com/babbage88/infra-core v0.0.0
+	github.com/goccy/go-yaml v1.19.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.7.5
@@ -37,6 +37,7 @@ require (
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.5 // indirect
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/tinylib/msgp v1.3.0 // indirect
@@ -86,5 +87,7 @@ require (
 	github.com/redis/go-redis/v9 v9.0.0
 	github.com/valkey-io/valkey-go v1.0.62
 )
+
+replace github.com/babbage88/infra-core => ../infra-core
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen

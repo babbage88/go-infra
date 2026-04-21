@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -17,16 +18,26 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var secretEncryptionUniquenessCount = flag.Int(
+	"secret-count",
+	10_000,
+	"number of secrets to store and retrieve in TestMillionStoredSecretsHaveUniqueEncryption",
+)
+
 func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 	const (
 		samplePlaintext = "this is a sample user token"
-		totalSecrets    = 1_000_000
 		testDBName      = "gotestdb"
 		testDBUser      = "gotestdb"
 		testDBPassword  = "dothetest"
 		testDBHost      = "10.2.10.248"
 		testDBPort      = 5432
 	)
+
+	totalSecrets := *secretEncryptionUniquenessCount
+	if totalSecrets <= 0 {
+		t.Fatalf("secret-count must be greater than zero, got %d", totalSecrets)
+	}
 
 	// Ensure the encryption key is set and valid
 	key := "12345678901234567890123456789012" // Must be 32 bytes
@@ -65,6 +76,7 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 
 	uniqueCiphertexts := make(map[string]struct{}, totalSecrets)
 	secretIDs := make([]uuid.UUID, 0, totalSecrets)
+	progressEvery := progressInterval(totalSecrets)
 
 	t.Logf("Storing %d secrets...", totalSecrets)
 	for i := 0; i < totalSecrets; i++ {
@@ -74,7 +86,10 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 		}
 
 		secretIDs = append(secretIDs, secretId)
+		logSecretProgress(t, "stored", i+1, totalSecrets, progressEvery)
 	}
+
+	qry := infra_db_pg.New(pool)
 
 	t.Log("Retrieving and checking uniqueness of encrypted secrets...")
 
@@ -83,22 +98,42 @@ func TestMillionStoredSecretsHaveUniqueEncryption(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to retrieve secret ID %s: %v", id.String(), err)
 		}
+		if string(secret.ExternalAuthToken.Token) != samplePlaintext {
+			t.Fatalf("retrieved plaintext mismatch at index %d (id: %s)", i, id.String())
+		}
 
-		// base64 the raw encrypted bytes to compare
-		encoded := base64.StdEncoding.EncodeToString(secret.ExternalAuthToken.Token)
+		record, err := qry.GetExternalAuthTokenById(context.Background(), id)
+		if err != nil {
+			t.Fatalf("failed to retrieve raw encrypted secret ID %s: %v", id.String(), err)
+		}
+
+		encoded := base64.StdEncoding.EncodeToString(record.Token)
 
 		if _, exists := uniqueCiphertexts[encoded]; exists {
 			t.Fatalf("duplicate ciphertext detected at index %d (id: %s)", i, id.String())
 		}
 
 		uniqueCiphertexts[encoded] = struct{}{}
-
-		if i > 0 && i%100_000 == 0 {
-			t.Logf("%d secrets retrieved and validated", i)
-		}
+		logSecretProgress(t, "validated", i+1, totalSecrets, progressEvery)
 	}
 
 	t.Logf("Successfully validated %d unique encrypted secrets.", totalSecrets)
+}
+
+func progressInterval(total int) int {
+	if total < 20 {
+		return 1
+	}
+	return total / 20
+}
+
+func logSecretProgress(t *testing.T, phase string, current, total, interval int) {
+	t.Helper()
+	if current != total && current%interval != 0 {
+		return
+	}
+
+	t.Logf("%s %d/%d secrets (%d%%)", phase, current, total, current*100/total)
 }
 
 func ensureTestDatabase(t *testing.T, dbName, dbUser, dbPassword, dbHost string) error {

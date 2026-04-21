@@ -19,7 +19,7 @@ import (
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
-	"github.com/babbage88/go-infra/webutils/cert_renew"
+	"github.com/babbage88/infra-core/cert_renew"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
