@@ -35,6 +35,54 @@ type ProxmoxVMListResult struct {
 	VMs  []ProxmoxVM `json:"vms"`
 }
 
+// swagger:model ProxmoxContainer
+type ProxmoxContainer struct {
+	VMID     int     `json:"vmid"`
+	Name     string  `json:"name"`
+	Status   string  `json:"status"`
+	CPU      float64 `json:"cpu,omitempty"`
+	MaxMem   int64   `json:"maxmem,omitempty"`
+	Mem      int64   `json:"mem,omitempty"`
+	MaxDisk  int64   `json:"maxdisk,omitempty"`
+	Disk     int64   `json:"disk,omitempty"`
+	Node     string  `json:"node,omitempty"`
+	Tags     string  `json:"tags,omitempty"`
+	Template int     `json:"template,omitempty"`
+	Uptime   int64   `json:"uptime,omitempty"`
+}
+
+// swagger:model ProxmoxContainerListResult
+type ProxmoxContainerListResult struct {
+	Node       string              `json:"node"`
+	Containers []ProxmoxContainer `json:"containers"`
+}
+
+// swagger:model ProxmoxWorkload
+type ProxmoxWorkload struct {
+	Kind     string  `json:"kind"`
+	VMID     int     `json:"vmid"`
+	Name     string  `json:"name"`
+	Status   string  `json:"status"`
+	CPU      float64 `json:"cpu,omitempty"`
+	MaxMem   int64   `json:"maxmem,omitempty"`
+	Mem      int64   `json:"mem,omitempty"`
+	MaxDisk  int64   `json:"maxdisk,omitempty"`
+	Disk     int64   `json:"disk,omitempty"`
+	Node     string  `json:"node,omitempty"`
+	Tags     string  `json:"tags,omitempty"`
+	Template int     `json:"template,omitempty"`
+	Uptime   int64   `json:"uptime,omitempty"`
+}
+
+// swagger:model ProxmoxWorkloadInventoryResult
+type ProxmoxWorkloadInventoryResult struct {
+	Node            string            `json:"node"`
+	VMCount         int               `json:"vmCount"`
+	ContainerCount  int               `json:"containerCount"`
+	WorkloadCount   int               `json:"workloadCount"`
+	Workloads       []ProxmoxWorkload `json:"workloads"`
+}
+
 // swagger:model ProxmoxVMStartRequest
 type ProxmoxVMStartRequest struct {
 	Auth ProxmoxAuthOptions `json:"auth,omitempty"`
@@ -74,6 +122,18 @@ type StartProxmoxVMParams struct {
 type ProxmoxVMListResponse struct {
 	// in: body
 	Body ProxmoxVMListResult
+}
+
+// swagger:response ProxmoxContainerListResponse
+type ProxmoxContainerListResponse struct {
+	// in: body
+	Body ProxmoxContainerListResult
+}
+
+// swagger:response ProxmoxWorkloadInventoryResponse
+type ProxmoxWorkloadInventoryResponse struct {
+	// in: body
+	Body ProxmoxWorkloadInventoryResult
 }
 
 // swagger:response ProxmoxVMStartResponse

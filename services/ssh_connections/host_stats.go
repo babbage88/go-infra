@@ -17,6 +17,9 @@ type HostResourceStats struct {
 	HostServerID          uuid.UUID `json:"hostServerId"`
 	Hostname              string    `json:"hostname"`
 	IPAddress             string    `json:"ipAddress"`
+	CapacityRole          string    `json:"capacityRole"`
+	HostServerTypes       []string  `json:"hostServerTypes,omitempty"`
+	PlatformTypes         []string  `json:"platformTypes,omitempty"`
 	CollectedAt           time.Time `json:"collectedAt"`
 	Status                string    `json:"status"`
 	Error                 string    `json:"error,omitempty"`
@@ -28,18 +31,34 @@ type HostResourceStats struct {
 }
 
 type HostResourceStatsSummary struct {
-	CollectedAt           time.Time           `json:"collectedAt"`
-	HostCount             int                 `json:"hostCount"`
-	ReachableHostCount    int                 `json:"reachableHostCount"`
-	TotalCPUCores         uint64              `json:"totalCpuCores"`
-	MemoryTotalBytes      uint64              `json:"memoryTotalBytes"`
-	MemoryAvailableBytes  uint64              `json:"memoryAvailableBytes"`
-	StorageTotalBytes     uint64              `json:"storageTotalBytes"`
-	StorageAvailableBytes uint64              `json:"storageAvailableBytes"`
-	HasCPUCores           bool                `json:"hasCpuCores"`
-	HasMemory             bool                `json:"hasMemory"`
-	HasStorage            bool                `json:"hasStorage"`
-	Hosts                 []HostResourceStats `json:"hosts"`
+	CollectedAt                     time.Time           `json:"collectedAt"`
+	HostCount                       int                 `json:"hostCount"`
+	ReachableHostCount              int                 `json:"reachableHostCount"`
+	CapacityHostCount               int                 `json:"capacityHostCount"`
+	GuestHostCount                  int                 `json:"guestHostCount"`
+	UnclassifiedHostCount           int                 `json:"unclassifiedHostCount"`
+	TotalCPUCores                   uint64              `json:"totalCpuCores"`
+	MemoryTotalBytes                uint64              `json:"memoryTotalBytes"`
+	MemoryAvailableBytes            uint64              `json:"memoryAvailableBytes"`
+	StorageTotalBytes               uint64              `json:"storageTotalBytes"`
+	StorageAvailableBytes           uint64              `json:"storageAvailableBytes"`
+	GuestTotalCPUCores              uint64              `json:"guestTotalCpuCores"`
+	GuestMemoryTotalBytes           uint64              `json:"guestMemoryTotalBytes"`
+	GuestMemoryAvailableBytes       uint64              `json:"guestMemoryAvailableBytes"`
+	GuestStorageTotalBytes          uint64              `json:"guestStorageTotalBytes"`
+	GuestStorageAvailableBytes      uint64              `json:"guestStorageAvailableBytes"`
+	UnclassifiedTotalCPUCores       uint64              `json:"unclassifiedTotalCpuCores"`
+	UnclassifiedMemoryTotalBytes    uint64              `json:"unclassifiedMemoryTotalBytes"`
+	UnclassifiedStorageTotalBytes   uint64              `json:"unclassifiedStorageTotalBytes"`
+	UnclassifiedStorageAvailableBytes uint64              `json:"unclassifiedStorageAvailableBytes"`
+	HasCPUCores                     bool                `json:"hasCpuCores"`
+	HasMemory                       bool                `json:"hasMemory"`
+	HasStorage                      bool                `json:"hasStorage"`
+	HasGuestCPUCores                bool                `json:"hasGuestCpuCores"`
+	HasGuestMemory                  bool                `json:"hasGuestMemory"`
+	HasGuestStorage                 bool                `json:"hasGuestStorage"`
+	HasUnclassifiedStats            bool                `json:"hasUnclassifiedStats"`
+	Hosts                           []HostResourceStats `json:"hosts"`
 }
 
 func (m *SSHConnectionManager) CollectHostStats(ctx context.Context, userID uuid.UUID, hostServerID uuid.UUID) HostResourceStats {
@@ -48,7 +67,12 @@ func (m *SSHConnectionManager) CollectHostStats(ctx context.Context, userID uuid
 		return failedHostStats(hostServerID, "", "", fmt.Errorf("host server not found: %w", err))
 	}
 
-	return m.collectHostInfoStats(userID, hostInfo)
+	hostServerTypes, platformTypes := m.getHostClassification(ctx, hostServerID)
+	stats := m.collectHostInfoStats(userID, hostInfo)
+	stats.HostServerTypes = hostServerTypes
+	stats.PlatformTypes = platformTypes
+	stats.CapacityRole = classifyCapacityRole(hostServerTypes, platformTypes)
+	return stats
 }
 
 func (m *SSHConnectionManager) CollectAllHostStats(ctx context.Context, userID uuid.UUID) (HostResourceStatsSummary, error) {
@@ -65,32 +89,17 @@ func (m *SSHConnectionManager) CollectAllHostStats(ctx context.Context, userID u
 
 	for _, server := range servers {
 		hostInfo := hostInfoFromDB(server)
+		hostServerTypes, platformTypes := m.getHostClassification(ctx, server.ID)
 		stats := m.collectHostInfoStats(userID, hostInfo)
+		stats.HostServerTypes = hostServerTypes
+		stats.PlatformTypes = platformTypes
+		stats.CapacityRole = classifyCapacityRole(hostServerTypes, platformTypes)
 		summary.Hosts = append(summary.Hosts, stats)
 
 		if stats.Status == "ok" {
 			summary.ReachableHostCount++
 		}
-		if stats.CPUCores != nil {
-			summary.TotalCPUCores += *stats.CPUCores
-			summary.HasCPUCores = true
-		}
-		if stats.MemoryTotalBytes != nil {
-			summary.MemoryTotalBytes += *stats.MemoryTotalBytes
-			summary.HasMemory = true
-		}
-		if stats.MemoryAvailableBytes != nil {
-			summary.MemoryAvailableBytes += *stats.MemoryAvailableBytes
-			summary.HasMemory = true
-		}
-		if stats.StorageTotalBytes != nil {
-			summary.StorageTotalBytes += *stats.StorageTotalBytes
-			summary.HasStorage = true
-		}
-		if stats.StorageAvailableBytes != nil {
-			summary.StorageAvailableBytes += *stats.StorageAvailableBytes
-			summary.HasStorage = true
-		}
+		summary.addStats(stats)
 	}
 
 	return summary, nil
@@ -101,6 +110,7 @@ func (m *SSHConnectionManager) collectHostInfoStats(userID uuid.UUID, hostInfo *
 		HostServerID: hostInfo.ID,
 		Hostname:     hostInfo.Hostname,
 		IPAddress:    hostInfo.IPAddress,
+		CapacityRole: "unclassified",
 		CollectedAt:  time.Now().UTC(),
 		Status:       "ok",
 	}
@@ -183,11 +193,140 @@ func hostInfoFromDB(server infra_db_pg.HostServer) *HostServerInfo {
 	}
 }
 
+func (m *SSHConnectionManager) getHostClassification(ctx context.Context, hostServerID uuid.UUID) ([]string, []string) {
+	hostServerTypes := []string{}
+	if mappings, err := m.db.GetHostServerTypeMappingsByHostId(ctx, hostServerID); err == nil {
+		for _, mapping := range mappings {
+			hostServerTypes = append(hostServerTypes, mapping.HostServerTypeName)
+		}
+	}
+
+	platformTypes := []string{}
+	if mappings, err := m.db.GetPlatformTypeMappingsByHostId(ctx, hostServerID); err == nil {
+		for _, mapping := range mappings {
+			platformTypes = append(platformTypes, mapping.PlatformTypeName)
+		}
+	}
+
+	return hostServerTypes, platformTypes
+}
+
+func classifyCapacityRole(hostServerTypes []string, platformTypes []string) string {
+	names := append([]string{}, hostServerTypes...)
+	names = append(names, platformTypes...)
+
+	for _, name := range names {
+		normalized := normalizeClassificationName(name)
+		if strings.Contains(normalized, "proxmox") || strings.Contains(normalized, "hypervisor") {
+			return "hypervisor"
+		}
+		if strings.Contains(normalized, "bare metal") || strings.Contains(normalized, "physical") {
+			return "physical"
+		}
+	}
+
+	for _, name := range names {
+		normalized := normalizeClassificationName(name)
+		if strings.Contains(normalized, "virtual machine") ||
+			strings.Contains(normalized, " qemu ") ||
+			strings.Contains(normalized, " vm ") ||
+			strings.Contains(normalized, " lxc ") ||
+			strings.Contains(normalized, "container guest") ||
+			(strings.Contains(normalized, "container") && !strings.Contains(normalized, "host")) {
+			return "guest"
+		}
+	}
+
+	for _, name := range names {
+		normalized := normalizeClassificationName(name)
+		if strings.Contains(normalized, "host") || strings.Contains(normalized, "node") {
+			return "physical"
+		}
+	}
+
+	return "unclassified"
+}
+
+func normalizeClassificationName(name string) string {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	normalized = strings.ReplaceAll(normalized, "-", " ")
+	normalized = strings.ReplaceAll(normalized, "_", " ")
+	return " " + strings.Join(strings.Fields(normalized), " ") + " "
+}
+
+func (s *HostResourceStatsSummary) addStats(stats HostResourceStats) {
+	switch stats.CapacityRole {
+	case "physical", "hypervisor":
+		s.CapacityHostCount++
+		if stats.CPUCores != nil {
+			s.TotalCPUCores += *stats.CPUCores
+			s.HasCPUCores = true
+		}
+		if stats.MemoryTotalBytes != nil {
+			s.MemoryTotalBytes += *stats.MemoryTotalBytes
+			s.HasMemory = true
+		}
+		if stats.MemoryAvailableBytes != nil {
+			s.MemoryAvailableBytes += *stats.MemoryAvailableBytes
+			s.HasMemory = true
+		}
+		if stats.StorageTotalBytes != nil {
+			s.StorageTotalBytes += *stats.StorageTotalBytes
+			s.HasStorage = true
+		}
+		if stats.StorageAvailableBytes != nil {
+			s.StorageAvailableBytes += *stats.StorageAvailableBytes
+			s.HasStorage = true
+		}
+	case "guest":
+		s.GuestHostCount++
+		if stats.CPUCores != nil {
+			s.GuestTotalCPUCores += *stats.CPUCores
+			s.HasGuestCPUCores = true
+		}
+		if stats.MemoryTotalBytes != nil {
+			s.GuestMemoryTotalBytes += *stats.MemoryTotalBytes
+			s.HasGuestMemory = true
+		}
+		if stats.MemoryAvailableBytes != nil {
+			s.GuestMemoryAvailableBytes += *stats.MemoryAvailableBytes
+			s.HasGuestMemory = true
+		}
+		if stats.StorageTotalBytes != nil {
+			s.GuestStorageTotalBytes += *stats.StorageTotalBytes
+			s.HasGuestStorage = true
+		}
+		if stats.StorageAvailableBytes != nil {
+			s.GuestStorageAvailableBytes += *stats.StorageAvailableBytes
+			s.HasGuestStorage = true
+		}
+	default:
+		s.UnclassifiedHostCount++
+		if stats.CPUCores != nil {
+			s.UnclassifiedTotalCPUCores += *stats.CPUCores
+			s.HasUnclassifiedStats = true
+		}
+		if stats.MemoryTotalBytes != nil {
+			s.UnclassifiedMemoryTotalBytes += *stats.MemoryTotalBytes
+			s.HasUnclassifiedStats = true
+		}
+		if stats.StorageTotalBytes != nil {
+			s.UnclassifiedStorageTotalBytes += *stats.StorageTotalBytes
+			s.HasUnclassifiedStats = true
+		}
+		if stats.StorageAvailableBytes != nil {
+			s.UnclassifiedStorageAvailableBytes += *stats.StorageAvailableBytes
+			s.HasUnclassifiedStats = true
+		}
+	}
+}
+
 func failedHostStats(hostServerID uuid.UUID, hostname string, ipAddress string, err error) HostResourceStats {
 	return HostResourceStats{
 		HostServerID: hostServerID,
 		Hostname:     hostname,
 		IPAddress:    ipAddress,
+		CapacityRole: "unclassified",
 		CollectedAt:  time.Now().UTC(),
 		Status:       "error",
 		Error:        err.Error(),
