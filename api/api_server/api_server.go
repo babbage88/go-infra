@@ -13,6 +13,7 @@ import (
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	"github.com/babbage88/go-infra/services/node_networking"
+	proxmoxsvc "github.com/babbage88/go-infra/services/proxmox"
 	rolesservice "github.com/babbage88/go-infra/services/roles_service"
 	"github.com/babbage88/go-infra/services/s3_admin"
 	"github.com/babbage88/go-infra/services/ssh_connections"
@@ -136,6 +137,8 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 
 	// SSH connection routes
 	if sshConnectionManager != nil {
+		mux.Handle("GET /host-servers/stats", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", http.HandlerFunc(sshConnectionManager.HostStatsHandler))))
+		mux.Handle("GET /host-servers/{ID}/stats", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", http.HandlerFunc(sshConnectionManager.HostStatsByIDHandler))))
 		mux.Handle("POST /ssh/connect", cors.CORSWithPOST(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CreateSSHConnectionHandler))))
 		mux.Handle("DELETE /ssh/connect/{CONNID}", cors.CORSWithDELETE(authapi.AuthMiddlewareRequirePermission(authService, "SshConnect", http.HandlerFunc(sshConnectionManager.CloseSSHConnectionHandler))))
 		mux.Handle("GET /ssh/websocket/{CONNID}", http.HandlerFunc(sshConnectionManager.SSHWebSocketHandler))
@@ -178,6 +181,14 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("/storage/s3/endpoints/{endpoint}/buckets/{bucket}/download", cors.CORSWithGET(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.DownloadObjectHandler(s3AdminService)),
+	))
+
+	proxmoxService := proxmoxsvc.NewServiceFromEnv()
+	mux.Handle("GET /api/v1/proxmox/vm", cors.CORSWithGET(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.ListVMsHandler(proxmoxService)),
+	))
+	mux.Handle("POST /api/v1/proxmox/vm/{vmid}/start", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.StartVMHandler(proxmoxService)),
 	))
 
 	// Add Swagger UI handler
