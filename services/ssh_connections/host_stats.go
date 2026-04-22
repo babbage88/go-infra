@@ -188,7 +188,7 @@ func hostInfoFromDB(server infra_db_pg.HostServer) *HostServerInfo {
 	return &HostServerInfo{
 		ID:        server.ID,
 		Hostname:  server.Hostname,
-		IPAddress: server.IpAddress.String(),
+		IPAddress: addrString(server.IpAddress),
 		Port:      22,
 	}
 }

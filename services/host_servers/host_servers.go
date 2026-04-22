@@ -223,7 +223,7 @@ func (p *HostServerProviderImpl) GetHostServerByHostname(ctx context.Context, ho
 
 // GetHostServerByIP retrieves a host server by IP address
 func (p *HostServerProviderImpl) GetHostServerByIP(ctx context.Context, ip netip.Addr) (*HostServer, error) {
-	server, err := p.db.GetHostServerByIP(ctx, ip)
+	server, err := p.db.GetHostServerByIP(ctx, &ip)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host server by IP: %w", err)
 	}
@@ -335,7 +335,7 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 		params.Hostname = *req.Hostname
 	}
 	if req.IPAddress != nil {
-		params.IpAddress = *req.IPAddress
+		params.IpAddress = req.IPAddress
 	}
 
 	// Update host server

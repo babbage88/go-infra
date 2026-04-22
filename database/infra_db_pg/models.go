@@ -62,7 +62,7 @@ type HealthCheck struct {
 type HostServer struct {
 	ID           uuid.UUID
 	Hostname     string
-	IpAddress    netip.Addr
+	IpAddress    *netip.Addr
 	CreatedAt    pgtype.Timestamptz
 	LastModified pgtype.Timestamptz
 }

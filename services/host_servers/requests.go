@@ -22,9 +22,9 @@ type CreateHostServerRequest struct {
 	Hostname string `json:"hostname" validate:"required"`
 
 	// IP address of the server
-	// required: true
+	// required: false
 	// example: 192.168.1.100
-	IPAddress netip.Addr `json:"ip_address" validate:"required"`
+	IPAddress *netip.Addr `json:"ip_address,omitempty"`
 
 	// Username for SSH connection
 	// required: false
@@ -107,7 +107,7 @@ type UpdateHostServerRequest struct {
 type HostServerResponse struct {
 	ID                  uuid.UUID        `json:"id"`
 	Hostname            string           `json:"hostname"`
-	IPAddress           netip.Addr       `json:"ip_address"`
+	IPAddress           *netip.Addr      `json:"ip_address,omitempty"`
 	Username            *string          `json:"username,omitempty"`
 	SSHKeyID            *uuid.UUID       `json:"ssh_key_id,omitempty"`
 	SudoPasswordTokenID *uuid.UUID       `json:"sudo_password_token_id,omitempty"`

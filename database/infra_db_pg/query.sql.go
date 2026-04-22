@@ -59,7 +59,7 @@ RETURNING id, hostname, ip_address, created_at, last_modified
 
 type CreateHostServerParams struct {
 	Hostname  string
-	IpAddress netip.Addr
+	IpAddress *netip.Addr
 }
 
 // Host Servers CRUD Operations
@@ -1219,7 +1219,7 @@ FROM public.host_servers
 WHERE ip_address = $1
 `
 
-func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress netip.Addr) (HostServer, error) {
+func (q *Queries) GetHostServerByIP(ctx context.Context, ipAddress *netip.Addr) (HostServer, error) {
 	row := q.db.QueryRow(ctx, getHostServerByIP, ipAddress)
 	var i HostServer
 	err := row.Scan(
@@ -1351,7 +1351,7 @@ type GetHostServerTypeMappingsByTypeIdRow struct {
 	HostServerID     uuid.UUID
 	HostServerTypeID uuid.UUID
 	Hostname         string
-	IpAddress        netip.Addr
+	IpAddress        *netip.Addr
 	CreatedAt        pgtype.Timestamptz
 	LastModified     pgtype.Timestamptz
 }
@@ -1583,7 +1583,7 @@ type GetPlatformTypeMappingsByHostServerTypeIdRow struct {
 	HostServerTypeID uuid.UUID
 	PlatformTypeName string
 	Hostname         string
-	IpAddress        netip.Addr
+	IpAddress        *netip.Addr
 	CreatedAt        pgtype.Timestamptz
 	LastModified     pgtype.Timestamptz
 }
@@ -1641,7 +1641,7 @@ type GetPlatformTypeMappingsByPlatformIdRow struct {
 	HostServerID       uuid.UUID
 	HostServerTypeID   uuid.UUID
 	Hostname           string
-	IpAddress          netip.Addr
+	IpAddress          *netip.Addr
 	HostServerTypeName string
 	CreatedAt          pgtype.Timestamptz
 	LastModified       pgtype.Timestamptz
@@ -2914,7 +2914,7 @@ RETURNING id, hostname, ip_address, created_at, last_modified
 type UpdateHostServerParams struct {
 	ID        uuid.UUID
 	Hostname  string
-	IpAddress netip.Addr
+	IpAddress *netip.Addr
 }
 
 func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (HostServer, error) {

@@ -70,10 +70,18 @@ func initializeSshClient(host string, user string, port uint, privateKey string,
 }
 
 func newGophClient(hostInfo *HostServerInfo, sshKey *SSHKeyInfo, config *SSHConfig) (*goph.Client, error) {
+	host := hostInfo.Hostname
+	if host == "" {
+		host = hostInfo.IPAddress
+	}
+	if host == "" {
+		return nil, fmt.Errorf("host server has no hostname or IP address")
+	}
+
 	if sshKey.Passphrase != "" {
-		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, sshKey.Passphrase, config.SSHTimeout)
+		return initializeSshClient(host, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, sshKey.Passphrase, config.SSHTimeout)
 	} else {
-		return initializeSshClient(hostInfo.IPAddress, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, "", config.SSHTimeout)
+		return initializeSshClient(host, sshKey.Username, uint(hostInfo.Port), sshKey.PrivateKey, "", config.SSHTimeout)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -245,10 +246,17 @@ func (m *SSHConnectionManager) getHostServerInfo(hostServerID uuid.UUID) (*HostS
 	return &HostServerInfo{
 		ID:        server.ID,
 		Hostname:  server.Hostname,
-		IPAddress: server.IpAddress.String(),
+		IPAddress: addrString(server.IpAddress),
 		Username:  "", // Will be set from SSH key mapping
 		Port:      22, // Default SSH port
 	}, nil
+}
+
+func addrString(addr *netip.Addr) string {
+	if addr == nil {
+		return ""
+	}
+	return addr.String()
 }
 
 // Track SSH session in database

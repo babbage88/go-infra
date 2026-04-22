@@ -26,7 +26,7 @@ func CreateHostServerHandler(provider HostServerProvider) http.HandlerFunc {
 		}
 
 		// Validate required fields
-		if req.Hostname == "" || !req.IPAddress.IsValid() {
+		if req.Hostname == "" {
 			http.Error(w, "Missing required fields", http.StatusBadRequest)
 			return
 		}

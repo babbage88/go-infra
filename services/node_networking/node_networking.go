@@ -84,7 +84,7 @@ func (n *GoInfraRESTApiPinger) PingHostServerNode(hostServerNodeID uuid.UUID) Pi
 
 	// Use the hostname for ping (fallback to IP if hostname is empty)
 	target := hostServer.Hostname
-	if target == "" {
+	if target == "" && hostServer.IPAddress != nil {
 		target = hostServer.IPAddress.String()
 	}
 
@@ -111,7 +111,7 @@ func (n *GoInfraRESTApiPinger) ProbeTCPPortByHostId(targetHostId uuid.UUID, port
 
 	// Use the hostname for probe (fallback to IP if hostname is empty)
 	target := hostServer.Hostname
-	if target == "" {
+	if target == "" && hostServer.IPAddress != nil {
 		target = hostServer.IPAddress.String()
 	}
 
@@ -138,7 +138,7 @@ func (n *GoInfraRESTApiPinger) ProbeUDPPortByHostId(targetHostId uuid.UUID, port
 
 	// Use the hostname for probe (fallback to IP if hostname is empty)
 	target := hostServer.Hostname
-	if target == "" {
+	if target == "" && hostServer.IPAddress != nil {
 		target = hostServer.IPAddress.String()
 	}
 

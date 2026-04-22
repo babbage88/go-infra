@@ -12,7 +12,7 @@ import (
 type HostServer struct {
 	ID                   uuid.UUID        `json:"id"`
 	Hostname             string           `json:"hostname"`
-	IPAddress            netip.Addr       `json:"ip_address"`
+	IPAddress            *netip.Addr      `json:"ip_address,omitempty"`
 	Username             *string          `json:"username,omitempty"`
 	SSHKeyID             *uuid.UUID       `json:"ssh_key_id,omitempty"`
 	SudoPasswordSecretID *uuid.UUID       `json:"sudo_password_secret_id,omitempty"`
