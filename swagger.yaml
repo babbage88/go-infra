@@ -16,6 +16,90 @@ info:
     version: v1.1.0
 host: localhost:8993
 paths:
+    /api/v1/proxmox/container:
+        get:
+            tags:
+                - Proxmox
+            summary: List Proxmox LXC containers.
+            operationId: ListProxmoxContainers
+            responses:
+                "200":
+                    $ref: '#/responses/ProxmoxContainerListResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+    /api/v1/proxmox/vm:
+        get:
+            tags:
+                - Proxmox
+            summary: List Proxmox QEMU VMs.
+            operationId: ListProxmoxVMs
+            parameters:
+                - type: string
+                  x-go-name: Node
+                  description: Proxmox node name.
+                  name: node
+                  in: query
+                - type: boolean
+                  x-go-name: Full
+                  description: Whether to include full VM info.
+                  name: full
+                  in: query
+            responses:
+                "200":
+                    $ref: '#/responses/ProxmoxVMListResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+    /api/v1/proxmox/vm/{vmid}/start:
+        post:
+            tags:
+                - Proxmox
+            summary: Start a Proxmox QEMU VM.
+            operationId: StartProxmoxVM
+            parameters:
+                - type: integer
+                  format: int64
+                  x-go-name: VMID
+                  description: VMID to start.
+                  name: vmid
+                  in: path
+                  required: true
+                - description: Request body.
+                  name: Body
+                  in: body
+                  schema:
+                    $ref: '#/definitions/ProxmoxVMStartRequest'
+            responses:
+                "200":
+                    $ref: '#/responses/ProxmoxVMStartResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
+    /api/v1/proxmox/workload:
+        get:
+            tags:
+                - Proxmox
+            summary: List all Proxmox QEMU VMs and LXC containers for a node.
+            operationId: ListProxmoxWorkloads
+            responses:
+                "200":
+                    $ref: '#/responses/ProxmoxWorkloadInventoryResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal Server Error
     /create/permission:
         post:
             tags:
@@ -966,30 +1050,6 @@ paths:
                     description: Not Found
                 "500":
                     description: Internal Server Error
-    /renew:
-        post:
-            description: Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge
-            produces:
-                - application/json
-                - application/zip
-            tags:
-                - Certificates
-            operationId: Renew
-            parameters:
-                - x-go-name: Body
-                  name: body
-                  in: body
-                  schema:
-                    $ref: '#/definitions/CertDnsRenewReq'
-            responses:
-                "200":
-                    $ref: '#/responses/CertificateDataRenewResponse'
-                "400":
-                    description: Bad Request
-                "401":
-                    description: Unauthorized
-                "500":
-                    description: Insernal Server Error
     /role/delete:
         delete:
             tags:
@@ -1891,64 +1951,6 @@ definitions:
             user_id:
                 $ref: '#/definitions/UUID'
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
-    CertDnsRenewReq:
-        type: object
-        properties:
-            acmeEmail:
-                type: string
-                x-go-name: AcmeEmail
-            acmeUrl:
-                type: string
-                x-go-name: AcmeUrl
-            domainName:
-                type: array
-                items:
-                    type: string
-                x-go-name: DomainNames
-            pushS3:
-                type: boolean
-                x-go-name: PushS3
-            recurseServers:
-                type: array
-                items:
-                    type: string
-                x-go-name: RecursiveNameServers
-            timeout:
-                $ref: '#/definitions/Duration'
-            token:
-                type: string
-                x-go-name: Token
-            zipDir:
-                type: string
-                x-go-name: ZipDir
-        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
-    CertificateData:
-        type: object
-        properties:
-            cert_pem:
-                type: string
-                x-go-name: CertPEM
-            chain_pem:
-                type: string
-                x-go-name: ChainPEM
-            domainName:
-                type: array
-                items:
-                    type: string
-                x-go-name: DomainNames
-            fullchain_pem:
-                type: string
-                x-go-name: Fullchain
-            priv_key:
-                type: string
-                x-go-name: PrivKey
-            s3DownloadUrl:
-                type: string
-                x-go-name: S3DownloadUrl
-            zipDir:
-                type: string
-                x-go-name: ZipDir
-        x-go-package: github.com/babbage88/go-infra/webutils/cert_renew
     CreateAppPermissionRequest:
         type: object
         properties:
@@ -1986,7 +1988,6 @@ definitions:
         type: object
         required:
             - hostname
-            - ip_address
         properties:
             host_server_type_ids:
                 description: Host server type IDs that this server supports
@@ -2301,14 +2302,6 @@ definitions:
             targetUserId:
                 $ref: '#/definitions/UUID'
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
-    Duration:
-        description: |-
-            A Duration represents the elapsed time between two instants
-            as an int64 nanosecond count. The representation limits the
-            largest representable duration to approximately 290 years.
-        type: integer
-        format: int64
-        x-go-package: time
     EnableDisableUserResponse:
         type: object
         properties:
@@ -2709,6 +2702,258 @@ definitions:
                 type: string
                 x-go-name: TargetHostName
         x-go-package: github.com/babbage88/go-infra/services/node_networking
+    ProxmoxAuthOptions:
+        type: object
+        properties:
+            api_secret:
+                type: string
+                x-go-name: APISecret
+            api_token:
+                type: string
+                x-go-name: APIToken
+            api_token_id:
+                type: string
+                x-go-name: APITokenID
+            host_url:
+                type: string
+                x-go-name: HostURL
+            password:
+                type: string
+                x-go-name: Password
+            skip_tls:
+                type: boolean
+                x-go-name: SkipTLS
+            use_token:
+                type: boolean
+                x-go-name: UseToken
+            username:
+                type: string
+                x-go-name: Username
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxContainer:
+        type: object
+        properties:
+            cpu:
+                type: number
+                format: double
+                x-go-name: CPU
+            disk:
+                type: integer
+                format: int64
+                x-go-name: Disk
+            maxdisk:
+                type: integer
+                format: int64
+                x-go-name: MaxDisk
+            maxmem:
+                type: integer
+                format: int64
+                x-go-name: MaxMem
+            mem:
+                type: integer
+                format: int64
+                x-go-name: Mem
+            name:
+                type: string
+                x-go-name: Name
+            node:
+                type: string
+                x-go-name: Node
+            status:
+                type: string
+                x-go-name: Status
+            tags:
+                type: string
+                x-go-name: Tags
+            template:
+                type: integer
+                format: int64
+                x-go-name: Template
+            uptime:
+                type: integer
+                format: int64
+                x-go-name: Uptime
+            vmid:
+                type: integer
+                format: int64
+                x-go-name: VMID
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxContainerListResult:
+        type: object
+        properties:
+            containers:
+                type: array
+                items:
+                    $ref: '#/definitions/ProxmoxContainer'
+                x-go-name: Containers
+            node:
+                type: string
+                x-go-name: Node
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxVM:
+        type: object
+        properties:
+            cpu:
+                type: number
+                format: double
+                x-go-name: CPU
+            maxdisk:
+                type: integer
+                format: int64
+                x-go-name: MaxDisk
+            maxmem:
+                type: integer
+                format: int64
+                x-go-name: MaxMem
+            mem:
+                type: integer
+                format: int64
+                x-go-name: Mem
+            name:
+                type: string
+                x-go-name: Name
+            node:
+                type: string
+                x-go-name: Node
+            running-machine:
+                type: string
+                x-go-name: RunningMachine
+            running-qemu:
+                type: string
+                x-go-name: RunningQemu
+            status:
+                type: string
+                x-go-name: Status
+            tags:
+                type: string
+                x-go-name: Tags
+            template:
+                type: integer
+                format: int64
+                x-go-name: Template
+            uptime:
+                type: integer
+                format: int64
+                x-go-name: Uptime
+            vmid:
+                type: integer
+                format: int64
+                x-go-name: VMID
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxVMListResult:
+        type: object
+        properties:
+            node:
+                type: string
+                x-go-name: Node
+            vms:
+                type: array
+                items:
+                    $ref: '#/definitions/ProxmoxVM'
+                x-go-name: VMs
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxVMStartRequest:
+        type: object
+        properties:
+            auth:
+                $ref: '#/definitions/ProxmoxAuthOptions'
+            node:
+                type: string
+                x-go-name: Node
+            vmid:
+                type: integer
+                format: int64
+                x-go-name: VMID
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxVMStartResult:
+        type: object
+        properties:
+            node:
+                type: string
+                x-go-name: Node
+            upid:
+                type: string
+                x-go-name: UPID
+            vmid:
+                type: integer
+                format: int64
+                x-go-name: VMID
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxWorkload:
+        type: object
+        properties:
+            cpu:
+                type: number
+                format: double
+                x-go-name: CPU
+            disk:
+                type: integer
+                format: int64
+                x-go-name: Disk
+            kind:
+                type: string
+                x-go-name: Kind
+            maxdisk:
+                type: integer
+                format: int64
+                x-go-name: MaxDisk
+            maxmem:
+                type: integer
+                format: int64
+                x-go-name: MaxMem
+            mem:
+                type: integer
+                format: int64
+                x-go-name: Mem
+            name:
+                type: string
+                x-go-name: Name
+            node:
+                type: string
+                x-go-name: Node
+            status:
+                type: string
+                x-go-name: Status
+            tags:
+                type: string
+                x-go-name: Tags
+            template:
+                type: integer
+                format: int64
+                x-go-name: Template
+            uptime:
+                type: integer
+                format: int64
+                x-go-name: Uptime
+            vmid:
+                type: integer
+                format: int64
+                x-go-name: VMID
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
+    ProxmoxWorkloadInventoryResult:
+        type: object
+        properties:
+            containerCount:
+                type: integer
+                format: int64
+                x-go-name: ContainerCount
+            node:
+                type: string
+                x-go-name: Node
+            vmCount:
+                type: integer
+                format: int64
+                x-go-name: VMCount
+            workloadCount:
+                type: integer
+                format: int64
+                x-go-name: WorkloadCount
+            workloads:
+                type: array
+                items:
+                    $ref: '#/definitions/ProxmoxWorkload'
+                x-go-name: Workloads
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
     RolePermissionCount:
         type: object
         properties:
@@ -3153,12 +3398,6 @@ definitions:
                 $ref: '#/definitions/ExternalAppSecretMetadata'
         x-go-package: github.com/babbage88/go-infra/services/user_secrets
 responses:
-    CertificateDataRenewResponse:
-        description: (empty)
-        schema:
-            $ref: '#/definitions/CertificateData'
-        headers:
-            Body: {}
     CreateAppPermissionResponse:
         description: (empty)
         schema:
@@ -3391,6 +3630,22 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/PlatformType'
+    ProxmoxContainerListResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ProxmoxContainerListResult'
+    ProxmoxVMListResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ProxmoxVMListResult'
+    ProxmoxVMStartResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ProxmoxVMStartResult'
+    ProxmoxWorkloadInventoryResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/ProxmoxWorkloadInventoryResult'
     RefreshAccessTokenResponse:
         description: (empty)
         schema:
