@@ -4661,6 +4661,12 @@
     "UpdateHostServerRequest": {
       "type": "object",
       "properties": {
+        "clear_ip_address": {
+          "description": "Clear IP address from the server",
+          "type": "boolean",
+          "x-go-name": "ClearIPAddress",
+          "example": true
+        },
         "host_server_type_ids": {
           "description": "Host server type IDs that this server supports",
           "type": "array",

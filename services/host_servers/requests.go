@@ -76,6 +76,11 @@ type UpdateHostServerRequest struct {
 	// example: 192.168.1.100
 	IPAddress *netip.Addr `json:"ip_address,omitempty"`
 
+	// Clear IP address from the server
+	// required: false
+	// example: true
+	ClearIPAddress *bool `json:"clear_ip_address,omitempty"`
+
 	// Username for SSH connection
 	// required: false
 	// example: admin

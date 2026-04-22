@@ -2905,20 +2905,29 @@ const updateHostServer = `-- name: UpdateHostServer :one
 UPDATE public.host_servers
 SET 
     hostname = COALESCE($2, hostname),
-    ip_address = COALESCE($3, ip_address),
+    ip_address = CASE
+      WHEN $3::boolean THEN NULL
+      ELSE COALESCE($4, ip_address)
+    END,
     last_modified = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id, hostname, ip_address, created_at, last_modified
 `
 
 type UpdateHostServerParams struct {
-	ID        uuid.UUID
-	Hostname  string
-	IpAddress *netip.Addr
+	ID             uuid.UUID
+	Hostname       string
+	ClearIpAddress bool
+	IpAddress      *netip.Addr
 }
 
 func (q *Queries) UpdateHostServer(ctx context.Context, arg UpdateHostServerParams) (HostServer, error) {
-	row := q.db.QueryRow(ctx, updateHostServer, arg.ID, arg.Hostname, arg.IpAddress)
+	row := q.db.QueryRow(ctx, updateHostServer,
+		arg.ID,
+		arg.Hostname,
+		arg.ClearIpAddress,
+		arg.IpAddress,
+	)
 	var i HostServer
 	err := row.Scan(
 		&i.ID,

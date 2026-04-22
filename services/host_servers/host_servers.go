@@ -326,9 +326,10 @@ func (p *HostServerProviderImpl) UpdateHostServer(ctx context.Context, id uuid.U
 	}
 
 	params := infra_db_pg.UpdateHostServerParams{
-		ID:        id,
-		Hostname:  current.Hostname,
-		IpAddress: current.IPAddress,
+		ID:             id,
+		Hostname:       current.Hostname,
+		IpAddress:      current.IPAddress,
+		ClearIpAddress: req.ClearIPAddress != nil && *req.ClearIPAddress,
 	}
 
 	if req.Hostname != nil {

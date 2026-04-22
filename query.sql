@@ -668,7 +668,10 @@ FROM public.host_servers;
 UPDATE public.host_servers
 SET 
     hostname = COALESCE($2, hostname),
-    ip_address = COALESCE($3, ip_address),
+    ip_address = CASE
+      WHEN sqlc.arg(clear_ip_address)::boolean THEN NULL
+      ELSE COALESCE(sqlc.narg(ip_address), ip_address)
+    END,
     last_modified = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id, hostname, ip_address, created_at, last_modified;
