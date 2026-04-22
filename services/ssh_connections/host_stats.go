@@ -31,34 +31,34 @@ type HostResourceStats struct {
 }
 
 type HostResourceStatsSummary struct {
-	CollectedAt                     time.Time           `json:"collectedAt"`
-	HostCount                       int                 `json:"hostCount"`
-	ReachableHostCount              int                 `json:"reachableHostCount"`
-	CapacityHostCount               int                 `json:"capacityHostCount"`
-	GuestHostCount                  int                 `json:"guestHostCount"`
-	UnclassifiedHostCount           int                 `json:"unclassifiedHostCount"`
-	TotalCPUCores                   uint64              `json:"totalCpuCores"`
-	MemoryTotalBytes                uint64              `json:"memoryTotalBytes"`
-	MemoryAvailableBytes            uint64              `json:"memoryAvailableBytes"`
-	StorageTotalBytes               uint64              `json:"storageTotalBytes"`
-	StorageAvailableBytes           uint64              `json:"storageAvailableBytes"`
-	GuestTotalCPUCores              uint64              `json:"guestTotalCpuCores"`
-	GuestMemoryTotalBytes           uint64              `json:"guestMemoryTotalBytes"`
-	GuestMemoryAvailableBytes       uint64              `json:"guestMemoryAvailableBytes"`
-	GuestStorageTotalBytes          uint64              `json:"guestStorageTotalBytes"`
-	GuestStorageAvailableBytes      uint64              `json:"guestStorageAvailableBytes"`
-	UnclassifiedTotalCPUCores       uint64              `json:"unclassifiedTotalCpuCores"`
-	UnclassifiedMemoryTotalBytes    uint64              `json:"unclassifiedMemoryTotalBytes"`
-	UnclassifiedStorageTotalBytes   uint64              `json:"unclassifiedStorageTotalBytes"`
+	CollectedAt                       time.Time           `json:"collectedAt"`
+	HostCount                         int                 `json:"hostCount"`
+	ReachableHostCount                int                 `json:"reachableHostCount"`
+	CapacityHostCount                 int                 `json:"capacityHostCount"`
+	GuestHostCount                    int                 `json:"guestHostCount"`
+	UnclassifiedHostCount             int                 `json:"unclassifiedHostCount"`
+	TotalCPUCores                     uint64              `json:"totalCpuCores"`
+	MemoryTotalBytes                  uint64              `json:"memoryTotalBytes"`
+	MemoryAvailableBytes              uint64              `json:"memoryAvailableBytes"`
+	StorageTotalBytes                 uint64              `json:"storageTotalBytes"`
+	StorageAvailableBytes             uint64              `json:"storageAvailableBytes"`
+	GuestTotalCPUCores                uint64              `json:"guestTotalCpuCores"`
+	GuestMemoryTotalBytes             uint64              `json:"guestMemoryTotalBytes"`
+	GuestMemoryAvailableBytes         uint64              `json:"guestMemoryAvailableBytes"`
+	GuestStorageTotalBytes            uint64              `json:"guestStorageTotalBytes"`
+	GuestStorageAvailableBytes        uint64              `json:"guestStorageAvailableBytes"`
+	UnclassifiedTotalCPUCores         uint64              `json:"unclassifiedTotalCpuCores"`
+	UnclassifiedMemoryTotalBytes      uint64              `json:"unclassifiedMemoryTotalBytes"`
+	UnclassifiedStorageTotalBytes     uint64              `json:"unclassifiedStorageTotalBytes"`
 	UnclassifiedStorageAvailableBytes uint64              `json:"unclassifiedStorageAvailableBytes"`
-	HasCPUCores                     bool                `json:"hasCpuCores"`
-	HasMemory                       bool                `json:"hasMemory"`
-	HasStorage                      bool                `json:"hasStorage"`
-	HasGuestCPUCores                bool                `json:"hasGuestCpuCores"`
-	HasGuestMemory                  bool                `json:"hasGuestMemory"`
-	HasGuestStorage                 bool                `json:"hasGuestStorage"`
-	HasUnclassifiedStats            bool                `json:"hasUnclassifiedStats"`
-	Hosts                           []HostResourceStats `json:"hosts"`
+	HasCPUCores                       bool                `json:"hasCpuCores"`
+	HasMemory                         bool                `json:"hasMemory"`
+	HasStorage                        bool                `json:"hasStorage"`
+	HasGuestCPUCores                  bool                `json:"hasGuestCpuCores"`
+	HasGuestMemory                    bool                `json:"hasGuestMemory"`
+	HasGuestStorage                   bool                `json:"hasGuestStorage"`
+	HasUnclassifiedStats              bool                `json:"hasUnclassifiedStats"`
+	Hosts                             []HostResourceStats `json:"hosts"`
 }
 
 func (m *SSHConnectionManager) CollectHostStats(ctx context.Context, userID uuid.UUID, hostServerID uuid.UUID) HostResourceStats {

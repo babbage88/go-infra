@@ -187,6 +187,12 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("GET /api/v1/proxmox/vm", cors.CORSWithGET(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.ListVMsHandler(proxmoxService)),
 	))
+	mux.Handle("GET /api/v1/proxmox/container", cors.CORSWithGET(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.ListContainersHandler(proxmoxService)),
+	))
+	mux.Handle("GET /api/v1/proxmox/workload", cors.CORSWithGET(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.ListWorkloadsHandler(proxmoxService)),
+	))
 	mux.Handle("POST /api/v1/proxmox/vm/{vmid}/start", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.StartVMHandler(proxmoxService)),
 	))

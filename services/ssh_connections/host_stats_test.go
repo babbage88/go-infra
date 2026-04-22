@@ -61,6 +61,49 @@ func TestApplyHostStatsOutputRequiresSupportedStats(t *testing.T) {
 	}
 }
 
+func TestClassifyCapacityRole(t *testing.T) {
+	tests := []struct {
+		name            string
+		hostServerTypes []string
+		platformTypes   []string
+		want            string
+	}{
+		{
+			name:          "proxmox node is hypervisor capacity",
+			platformTypes: []string{"Proxmox VE"},
+			want:          "hypervisor",
+		},
+		{
+			name:            "container host is physical capacity",
+			hostServerTypes: []string{"Container Host"},
+			want:            "physical",
+		},
+		{
+			name:            "virtual machine is guest",
+			hostServerTypes: []string{"Virtual Machine"},
+			want:            "guest",
+		},
+		{
+			name:          "lxc is guest",
+			platformTypes: []string{"LXC Container"},
+			want:          "guest",
+		},
+		{
+			name: "missing types are unclassified",
+			want: "unclassified",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := classifyCapacityRole(tt.hostServerTypes, tt.platformTypes)
+			if got != tt.want {
+				t.Fatalf("unexpected capacity role: got %q want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func assertUintValue(t *testing.T, values map[string]uint64, key string, want uint64) {
 	t.Helper()
 

@@ -53,7 +53,7 @@ type ProxmoxContainer struct {
 
 // swagger:model ProxmoxContainerListResult
 type ProxmoxContainerListResult struct {
-	Node       string              `json:"node"`
+	Node       string             `json:"node"`
 	Containers []ProxmoxContainer `json:"containers"`
 }
 
@@ -76,11 +76,11 @@ type ProxmoxWorkload struct {
 
 // swagger:model ProxmoxWorkloadInventoryResult
 type ProxmoxWorkloadInventoryResult struct {
-	Node            string            `json:"node"`
-	VMCount         int               `json:"vmCount"`
-	ContainerCount  int               `json:"containerCount"`
-	WorkloadCount   int               `json:"workloadCount"`
-	Workloads       []ProxmoxWorkload `json:"workloads"`
+	Node           string            `json:"node"`
+	VMCount        int               `json:"vmCount"`
+	ContainerCount int               `json:"containerCount"`
+	WorkloadCount  int               `json:"workloadCount"`
+	Workloads      []ProxmoxWorkload `json:"workloads"`
 }
 
 // swagger:model ProxmoxVMStartRequest

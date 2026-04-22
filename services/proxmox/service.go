@@ -65,6 +65,93 @@ func (s *Service) ListVMs(ctx context.Context, req coredeploy.ProxmoxVMListReque
 	return coredeploy.ProxmoxVMListResult{Node: req.Node, VMs: vms}, nil
 }
 
+func (s *Service) ListContainers(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (ProxmoxContainerListResult, error) {
+	req = s.mergeListDefaults(req)
+	if strings.TrimSpace(req.Node) == "" {
+		return ProxmoxContainerListResult{}, fmt.Errorf("node is required")
+	}
+
+	client, err := newClient(req.Auth)
+	if err != nil {
+		return ProxmoxContainerListResult{}, err
+	}
+
+	full := true
+	if req.Full != nil {
+		full = *req.Full
+	}
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	var containers []ProxmoxContainer
+	path := fmt.Sprintf("%s/%s/lxc?full=%d", apiNodesPath, url.PathEscape(req.Node), boolInt(full))
+	if err := client.do(ctx, http.MethodGet, path, nil, &containers); err != nil {
+		return ProxmoxContainerListResult{}, fmt.Errorf("list proxmox containers: %w", err)
+	}
+
+	for i := range containers {
+		containers[i].Node = req.Node
+	}
+
+	return ProxmoxContainerListResult{Node: req.Node, Containers: containers}, nil
+}
+
+func (s *Service) ListWorkloads(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (ProxmoxWorkloadInventoryResult, error) {
+	vmResult, err := s.ListVMs(ctx, req)
+	if err != nil {
+		return ProxmoxWorkloadInventoryResult{}, err
+	}
+
+	containerResult, err := s.ListContainers(ctx, req)
+	if err != nil {
+		return ProxmoxWorkloadInventoryResult{}, err
+	}
+
+	workloads := make([]ProxmoxWorkload, 0, len(vmResult.VMs)+len(containerResult.Containers))
+	for _, vm := range vmResult.VMs {
+		workloads = append(workloads, ProxmoxWorkload{
+			Kind:     "qemu",
+			VMID:     vm.VMID,
+			Name:     vm.Name,
+			Status:   vm.Status,
+			CPU:      vm.CPU,
+			MaxMem:   vm.MaxMem,
+			Mem:      vm.Mem,
+			MaxDisk:  vm.MaxDisk,
+			Disk:     vm.Disk,
+			Node:     firstNonEmpty(vm.Node, vmResult.Node),
+			Tags:     vm.Tags,
+			Template: vm.Template,
+			Uptime:   vm.Uptime,
+		})
+	}
+	for _, container := range containerResult.Containers {
+		workloads = append(workloads, ProxmoxWorkload{
+			Kind:     "lxc",
+			VMID:     container.VMID,
+			Name:     container.Name,
+			Status:   container.Status,
+			CPU:      container.CPU,
+			MaxMem:   container.MaxMem,
+			Mem:      container.Mem,
+			MaxDisk:  container.MaxDisk,
+			Disk:     container.Disk,
+			Node:     firstNonEmpty(container.Node, containerResult.Node),
+			Tags:     container.Tags,
+			Template: container.Template,
+			Uptime:   container.Uptime,
+		})
+	}
+
+	return ProxmoxWorkloadInventoryResult{
+		Node:           vmResult.Node,
+		VMCount:        len(vmResult.VMs),
+		ContainerCount: len(containerResult.Containers),
+		WorkloadCount:  len(workloads),
+		Workloads:      workloads,
+	}, nil
+}
+
 func (s *Service) StartVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMStartResult, error) {
 	req = s.mergeStartDefaults(req)
 	if strings.TrimSpace(req.Node) == "" {
@@ -164,4 +251,13 @@ func boolInt(value bool) int {
 		return 1
 	}
 	return 0
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
