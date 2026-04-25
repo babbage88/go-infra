@@ -1625,6 +1625,43 @@
         }
       }
     },
+    "/renew": {
+      "post": {
+        "description": "Request/Renew ssl certificate via cloudflare letsencrypt. Uses DNS Challenge",
+        "produces": [
+          "application/json",
+          "application/zip"
+        ],
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "Renew",
+        "parameters": [
+          {
+            "x-go-name": "Body",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CertDnsRenewReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CertificateDataRenewResponse"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Insernal Server Error"
+          }
+        }
+      }
+    },
     "/role/delete": {
       "delete": {
         "tags": [
@@ -3011,6 +3048,86 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/user_crud_svc"
     },
+    "CertDnsRenewReq": {
+      "type": "object",
+      "properties": {
+        "acmeEmail": {
+          "type": "string",
+          "x-go-name": "AcmeEmail"
+        },
+        "acmeUrl": {
+          "type": "string",
+          "x-go-name": "AcmeUrl"
+        },
+        "domainName": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DomainNames"
+        },
+        "pushS3": {
+          "type": "boolean",
+          "x-go-name": "PushS3"
+        },
+        "recurseServers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "RecursiveNameServers"
+        },
+        "timeout": {
+          "$ref": "#/definitions/Duration"
+        },
+        "token": {
+          "type": "string",
+          "x-go-name": "Token"
+        },
+        "zipDir": {
+          "type": "string",
+          "x-go-name": "ZipDir"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
+    },
+    "CertificateData": {
+      "type": "object",
+      "properties": {
+        "cert_pem": {
+          "type": "string",
+          "x-go-name": "CertPEM"
+        },
+        "chain_pem": {
+          "type": "string",
+          "x-go-name": "ChainPEM"
+        },
+        "domainName": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DomainNames"
+        },
+        "fullchain_pem": {
+          "type": "string",
+          "x-go-name": "Fullchain"
+        },
+        "priv_key": {
+          "type": "string",
+          "x-go-name": "PrivKey"
+        },
+        "s3DownloadUrl": {
+          "type": "string",
+          "x-go-name": "S3DownloadUrl"
+        },
+        "zipDir": {
+          "type": "string",
+          "x-go-name": "ZipDir"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/webutils/cert_renew"
+    },
     "CreateAppPermissionRequest": {
       "type": "object",
       "properties": {
@@ -3492,6 +3609,12 @@
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/api/user_api_handlers"
+    },
+    "Duration": {
+      "description": "A Duration represents the elapsed time between two instants\nas an int64 nanosecond count. The representation limits the\nlargest representable duration to approximately 290 years.",
+      "type": "integer",
+      "format": "int64",
+      "x-go-package": "time"
     },
     "EnableDisableUserResponse": {
       "type": "object",
@@ -4982,6 +5105,15 @@
     }
   },
   "responses": {
+    "CertificateDataRenewResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/CertificateData"
+      },
+      "headers": {
+        "Body": {}
+      }
+    },
     "CreateAppPermissionResponse": {
       "description": "(empty)",
       "schema": {
