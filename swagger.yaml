@@ -123,12 +123,12 @@ paths:
             summary: List Proxmox LXC containers.
             operationId: ListProxmoxContainers
             parameters:
-                - $ref: '#/definitions/UUID'
+                - type: string
                   x-go-name: HostServerID
                   description: Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
                   name: host_server_id
                   in: query
-                - $ref: '#/definitions/UUID'
+                - type: string
                   x-go-name: ProxmoxSecretID
                   description: Optional stored Proxmox secret ID to use for this host.
                   name: proxmox_secret_id
@@ -199,12 +199,12 @@ paths:
             summary: List Proxmox QEMU VMs.
             operationId: ListProxmoxVMs
             parameters:
-                - $ref: '#/definitions/UUID'
+                - type: string
                   x-go-name: HostServerID
                   description: Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
                   name: host_server_id
                   in: query
-                - $ref: '#/definitions/UUID'
+                - type: string
                   x-go-name: ProxmoxSecretID
                   description: Optional stored Proxmox secret ID to use for this host.
                   name: proxmox_secret_id
@@ -302,12 +302,12 @@ paths:
             summary: List all Proxmox QEMU VMs and LXC containers for a node.
             operationId: ListProxmoxWorkloads
             parameters:
-                - $ref: '#/definitions/UUID'
+                - type: string
                   x-go-name: HostServerID
                   description: Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
                   name: host_server_id
                   in: query
-                - $ref: '#/definitions/UUID'
+                - type: string
                   x-go-name: ProxmoxSecretID
                   description: Optional stored Proxmox secret ID to use for this host.
                   name: proxmox_secret_id
@@ -4226,7 +4226,7 @@ definitions:
             user:
                 type: string
                 x-go-name: User
-        x-go-package: github.com/babbage88/go-infra/services/proxmox
+        x-go-package: github.com/babbage88/go-infra/webutils/deployment
     SoftDeleteRoleByIdRequest:
         type: object
         properties:

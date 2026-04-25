@@ -19,11 +19,13 @@ check-swagger:
 
 swagger:
 	swagger generate spec -o ./swagger.yaml --scan-models && swagger generate spec -o swagger.json --scan-models
+	./scripts/normalize-swagger-uuid.sh swagger.json swagger.yaml
 
 dev-swagger: check-swagger
 	swagger generate spec -o ./dev-swagger.yaml --scan-models && swagger generate spec -o dev-swagger.json --scan-models
 	swagger mixin spec/swagger.dev.json dev-swagger.json --output swagger.json --format=json
 	swagger mixin spec/swagger.dev.yaml dev-swagger.yaml --output swagger.yaml --format=yaml
+	./scripts/normalize-swagger-uuid.sh swagger.json swagger.yaml
 	rm dev-swagger.json && rm dev-swagger.yaml
 
 local-swagger: check-swagger
@@ -35,6 +37,7 @@ local-swagger: check-swagger
 	@swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.json --output swagger.json --format=json
 	@printf "#### [INFO - Local Dev] #### [%s] Merging YAML spec into swagger.yaml...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
 	@swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.yaml --output swagger.yaml --format=yaml
+	@./scripts/normalize-swagger-uuid.sh swagger.json swagger.yaml
 	@printf "#### [INFO - Local Dev] #### [%s] Cleaning up temporary swagger files...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
 	@rm local-swagger.json local-swagger.yaml
 
@@ -47,6 +50,7 @@ local-swagger-https: check-swagger
 	@swagger mixin $(SPEC_JSON_SRC_FILE) local-swagger.json --output swagger.json --format=json
 	@printf "#### [INFO - Local Dev] #### [%s] Merging YAML spec into swagger.yaml...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
 	@swagger mixin $(SPEC_YAML_SRC_FILE) local-swagger.yaml --output swagger.yaml --format=yaml
+	@./scripts/normalize-swagger-uuid.sh swagger.json swagger.yaml
 	@printf "#### [INFO - Local Dev] #### [%s] Cleaning up temporary swagger files...\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
 	@rm local-swagger.json local-swagger.yaml
 
@@ -69,6 +73,7 @@ run-local-with-https: ensure-valkey local-swagger-https
 
 embed-swagger:
 	swagger generate spec -o ./embed/swagger.yaml --scan-models && swagger generate spec > ./embed/swagger.json
+	./scripts/normalize-swagger-uuid.sh ./embed/swagger.json ./embed/swagger.yaml
 
 serve-swagger: check-swagger
 	swagger serve -F=swagger swagger.yaml --no-open --port 4443

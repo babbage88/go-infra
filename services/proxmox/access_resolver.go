@@ -24,6 +24,7 @@ type AccessResolution struct {
 
 type UserAccessResolver interface {
 	ResolveAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error)
+	ResolveSSHAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error)
 	EnsureExternalAppID(ctx context.Context, name string) (uuid.UUID, error)
 }
 
@@ -48,6 +49,14 @@ func NewUserAccessResolver(db *infra_db_pg.Queries, hostServerProvider host_serv
 }
 
 func (r *UserAccessResolverImpl) ResolveAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error) {
+	return r.resolveHostAccess(ctx, hostServerID, proxmoxSecretID, auth, ssh, node, true)
+}
+
+func (r *UserAccessResolverImpl) ResolveSSHAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error) {
+	return r.resolveHostAccess(ctx, hostServerID, nil, auth, ssh, node, false)
+}
+
+func (r *UserAccessResolverImpl) resolveHostAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string, requireProxmoxAuth bool) (AccessResolution, error) {
 	auth = mergeAuthDefaults(auth, r.defaultAuth)
 	auth = ensureAuthBooleans(auth)
 	if strings.TrimSpace(node) == "" {
@@ -93,7 +102,7 @@ func (r *UserAccessResolverImpl) ResolveAccess(ctx context.Context, hostServerID
 		return AccessResolution{}, err
 	}
 
-	if hasUsableProxmoxAuth(auth) {
+	if !requireProxmoxAuth || hasUsableProxmoxAuth(auth) {
 		return AccessResolution{Auth: auth, SSH: ssh, Node: node}, nil
 	}
 

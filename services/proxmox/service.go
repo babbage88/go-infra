@@ -259,7 +259,7 @@ func (s *Service) CreateVMTemplate(ctx context.Context, req coredeploy.ProxmoxVM
 
 func (s *Service) CreatePVEUser(ctx context.Context, req coreproxmox.CreatePVEUserRequest) (coreproxmox.CreatePVEUserResult, error) {
 	var err error
-	_, req.SSH, req.Node, err = s.resolveAccess(ctx, req.HostServerID, nil, coredeploy.ProxmoxAuthOptions{}, req.SSH, req.Node)
+	_, req.SSH, req.Node, err = s.resolveSSHAccess(ctx, req.HostServerID, coredeploy.ProxmoxAuthOptions{}, req.SSH, req.Node)
 	if err != nil {
 		return coreproxmox.CreatePVEUserResult{}, err
 	}
@@ -271,7 +271,7 @@ func (s *Service) CreatePVEUser(ctx context.Context, req coreproxmox.CreatePVEUs
 
 func (s *Service) CreateAPIToken(ctx context.Context, req coreproxmox.CreateAPITokenRequest) (coreproxmox.CreateAPITokenResult, error) {
 	var err error
-	auth, ssh, node, err := s.resolveAccess(ctx, req.HostServerID, nil, coredeploy.ProxmoxAuthOptions{HostURL: req.HostURL}, req.SSH, req.Node)
+	auth, ssh, node, err := s.resolveSSHAccess(ctx, req.HostServerID, coredeploy.ProxmoxAuthOptions{HostURL: req.HostURL}, req.SSH, req.Node)
 	if err != nil {
 		return coreproxmox.CreateAPITokenResult{}, err
 	}
@@ -332,6 +332,24 @@ func (s *Service) resolveAccess(ctx context.Context, hostServerID, proxmoxSecret
 	}
 
 	resolution, err := s.accessResolver.ResolveAccess(ctx, hostServerID, proxmoxSecretID, auth, ssh, node)
+	if err != nil {
+		return auth, ssh, node, err
+	}
+
+	return resolution.Auth, resolution.SSH, resolution.Node, nil
+}
+
+func (s *Service) resolveSSHAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (coredeploy.ProxmoxAuthOptions, coredeploy.SSHOptions, string, error) {
+	if s.accessResolver == nil {
+		auth = mergeAuthDefaults(auth, s.defaultAuth)
+		auth = ensureAuthBooleans(auth)
+		if strings.TrimSpace(node) == "" {
+			node = s.defaultNode
+		}
+		return auth, ssh, node, nil
+	}
+
+	resolution, err := s.accessResolver.ResolveSSHAccess(ctx, hostServerID, auth, ssh, node)
 	if err != nil {
 		return auth, ssh, node, err
 	}

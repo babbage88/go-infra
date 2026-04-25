@@ -286,10 +286,10 @@ type ProxmoxAPITokenCreateResult struct {
 type ListProxmoxVMsParams struct {
 	// Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
 	// in: query
-	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
+	HostServerID string `json:"host_server_id,omitempty"`
 	// Optional stored Proxmox secret ID to use for this host.
 	// in: query
-	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	ProxmoxSecretID string `json:"proxmox_secret_id,omitempty"`
 	// Proxmox node name. Optional when host_server_id resolves the node automatically.
 	// in: query
 	Node string `json:"node,omitempty"`
@@ -302,10 +302,10 @@ type ListProxmoxVMsParams struct {
 type ListProxmoxContainersParams struct {
 	// Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
 	// in: query
-	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
+	HostServerID string `json:"host_server_id,omitempty"`
 	// Optional stored Proxmox secret ID to use for this host.
 	// in: query
-	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	ProxmoxSecretID string `json:"proxmox_secret_id,omitempty"`
 	// Proxmox node name. Optional when host_server_id resolves the node automatically.
 	// in: query
 	Node string `json:"node,omitempty"`
@@ -318,10 +318,10 @@ type ListProxmoxContainersParams struct {
 type ListProxmoxWorkloadsParams struct {
 	// Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
 	// in: query
-	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
+	HostServerID string `json:"host_server_id,omitempty"`
 	// Optional stored Proxmox secret ID to use for this host.
 	// in: query
-	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	ProxmoxSecretID string `json:"proxmox_secret_id,omitempty"`
 	// Proxmox node name. Optional when host_server_id resolves the node automatically.
 	// in: query
 	Node string `json:"node,omitempty"`
