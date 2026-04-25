@@ -20,6 +20,7 @@ import (
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
+	deployweb "github.com/babbage88/go-infra/webutils/deployment"
 	"github.com/babbage88/infra-core/cert_renew"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -197,6 +198,21 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("POST /api/v1/proxmox/vm/{vmid}/start", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.StartVMHandler(proxmoxService)),
+	))
+	mux.Handle("POST /api/v1/database/mariadb/install", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.InstallMariaDBHandler()),
+	))
+	mux.Handle("POST /api/v1/database/valkey/install", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.InstallValkeyHandler()),
+	))
+	mux.Handle("POST /api/v1/proxy/{name}/install", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.InstallProxyHandler()),
+	))
+	mux.Handle("POST /api/v1/storage/s3/garage/node", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.DeployGarageNodeHandler()),
+	))
+	mux.Handle("POST /api/v1/storage/s3/garage/token", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.CreateGarageTokenHandler()),
 	))
 
 	// Add Swagger UI handler
