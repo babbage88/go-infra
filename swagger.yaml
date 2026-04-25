@@ -4187,7 +4187,7 @@ definitions:
             user:
                 type: string
                 x-go-name: User
-        x-go-package: github.com/babbage88/go-infra/services/proxmox
+        x-go-package: github.com/babbage88/go-infra/webutils/deployment
     SoftDeleteRoleByIdRequest:
         type: object
         properties:
