@@ -215,6 +215,33 @@ func (p *PgSshKeySecretStore) GetSshKeysByUserId(userId uuid.UUID) ([]SshKeyList
 	return result, nil
 }
 
+func (p *PgSshKeySecretStore) GetSshKeyById(sshKeyId uuid.UUID) (*SshKeyRecord, error) {
+	qry := infra_db_pg.New(p.DbConn)
+
+	key, err := qry.GetSSHKeyById(context.Background(), sshKeyId)
+	if err != nil {
+		slog.Error("Failed to get SSH key by ID", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	record := &SshKeyRecord{
+		ID:                 key.ID,
+		Name:               key.Name,
+		PublicKey:          key.PublicKey,
+		PrivateKeyId:       key.PrivSecretID,
+		PassphraseSecretId: key.PassphraseID,
+		KeyType:            key.KeyType,
+		OwnerUserID:        key.OwnerUserID,
+		CreatedAt:          key.CreatedAt.Time,
+		LastModified:       key.LastModified.Time,
+	}
+	if key.Description.Valid {
+		record.Description = key.Description.String
+	}
+
+	return record, nil
+}
+
 // SSH Key Host Mapping CRUD operations
 
 func (p *PgSshKeySecretStore) CreateSshKeyHostMapping(mapping *CreateSshKeyHostMappingRequest) CreateSshKeyHostMappingResult {

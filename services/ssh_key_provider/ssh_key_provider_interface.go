@@ -41,6 +41,19 @@ type SshKeyListItem struct {
 	LastModified       time.Time  `json:"lastModified"`
 }
 
+type SshKeyRecord struct {
+	ID                 uuid.UUID  `json:"id"`
+	Name               string     `json:"name"`
+	Description        string     `json:"description"`
+	PublicKey          string     `json:"publicKey"`
+	PrivateKeyId       uuid.UUID  `json:"privateKeyId"`
+	PassphraseSecretId *uuid.UUID `json:"passphraseId"`
+	KeyType            string     `json:"keyType"`
+	OwnerUserID        uuid.UUID  `json:"ownerUserId"`
+	CreatedAt          time.Time  `json:"createdAt"`
+	LastModified       time.Time  `json:"lastModified"`
+}
+
 type CreateSshKeyHostMappingResult struct {
 	ID                 uuid.UUID `json:"id"`
 	SshKeyID           uuid.UUID `json:"sshKeyId"`
@@ -66,6 +79,7 @@ type UpdateSshKeyHostMappingResult struct {
 type SshKeySecretProvider interface {
 	CreateSshKey(sshKey *NewSshKeyRequest) NewSshKeyResult
 	DeleteSShKeyAndSecret(sshKeyId uuid.UUID) error
+	GetSshKeyById(sshKeyId uuid.UUID) (*SshKeyRecord, error)
 	GetSshKeysByUserId(userId uuid.UUID) ([]SshKeyListItem, error)
 
 	// SSH Key Host Mapping CRUD operations
