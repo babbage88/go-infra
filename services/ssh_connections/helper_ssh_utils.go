@@ -8,14 +8,14 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 func askPass(msg string) string {
 
 	fmt.Print(msg)
 
-	pass, err := terminal.ReadPassword(0)
+	pass, err := term.ReadPassword(int(os.Stdin.Fd()))
 
 	if err != nil {
 		panic(err)
