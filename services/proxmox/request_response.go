@@ -293,10 +293,15 @@ type ProxmoxAPITokenCreateResult struct {
 
 // swagger:parameters ListProxmoxVMs
 type ListProxmoxVMsParams struct {
-	// Proxmox node name.
+	// Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
 	// in: query
-	// required: true
-	Node string `json:"node"`
+	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
+	// Optional stored Proxmox secret ID to use for this host.
+	// in: query
+	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	// Proxmox node name. Optional when host_server_id resolves the node automatically.
+	// in: query
+	Node string `json:"node,omitempty"`
 	// Whether to include full VM info.
 	// in: query
 	Full bool `json:"full"`
@@ -304,10 +309,15 @@ type ListProxmoxVMsParams struct {
 
 // swagger:parameters ListProxmoxContainers
 type ListProxmoxContainersParams struct {
-	// Proxmox node name.
+	// Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
 	// in: query
-	// required: true
-	Node string `json:"node"`
+	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
+	// Optional stored Proxmox secret ID to use for this host.
+	// in: query
+	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	// Proxmox node name. Optional when host_server_id resolves the node automatically.
+	// in: query
+	Node string `json:"node,omitempty"`
 	// Whether to include full container info.
 	// in: query
 	Full bool `json:"full"`
@@ -315,10 +325,15 @@ type ListProxmoxContainersParams struct {
 
 // swagger:parameters ListProxmoxWorkloads
 type ListProxmoxWorkloadsParams struct {
-	// Proxmox node name.
+	// Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
 	// in: query
-	// required: true
-	Node string `json:"node"`
+	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
+	// Optional stored Proxmox secret ID to use for this host.
+	// in: query
+	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	// Proxmox node name. Optional when host_server_id resolves the node automatically.
+	// in: query
+	Node string `json:"node,omitempty"`
 	// Whether to include full workload info.
 	// in: query
 	Full bool `json:"full"`

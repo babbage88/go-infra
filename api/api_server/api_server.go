@@ -188,7 +188,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.DownloadObjectHandler(s3AdminService)),
 	))
 
-	proxmoxService := proxmoxsvc.NewService(dbQueries, hostServerProvider, userSecretStore)
+	proxmoxService := proxmoxsvc.NewService(dbQueries, hostServerProvider, sshKeyProvider, userSecretStore)
 	mux.Handle("GET /api/v1/proxmox/vm", cors.CORSWithGET(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.ListVMsHandler(proxmoxService)),
 	))

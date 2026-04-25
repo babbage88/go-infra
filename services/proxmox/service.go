@@ -322,177 +322,28 @@ func (s *Service) CreateAPIToken(ctx context.Context, req coreproxmox.CreateAPIT
 }
 
 func (s *Service) resolveAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (coredeploy.ProxmoxAuthOptions, coredeploy.SSHOptions, string, error) {
-	auth = mergeAuthDefaults(auth, s.defaultAuth)
-	auth = ensureAuthBooleans(auth)
-	if strings.TrimSpace(node) == "" {
-		node = s.defaultNode
-	}
-	if hostServerID == nil {
-		return auth, ssh, node, nil
-	}
-	if s.db == nil || s.hostServerProvider == nil || s.secretProvider == nil {
-		return auth, ssh, node, fmt.Errorf("host-scoped proxmox resolution is unavailable")
-	}
-
-	userID, err := authapi.GetUserIDFromContext(ctx)
-	if err != nil {
-		return auth, ssh, node, err
-	}
-
-	hostServer, err := s.hostServerProvider.GetHostServer(ctx, *hostServerID)
-	if err != nil {
-		return auth, ssh, node, fmt.Errorf("resolve host server %s: %w", hostServerID.String(), err)
-	}
-	if !isProxmoxPlatformHost(hostServer) {
-		return auth, ssh, node, fmt.Errorf("host server %s is not marked as a Proxmox platform", hostServer.ID)
-	}
-
-	hostAddr := hostAddress(hostServer)
-	if hostAddr == "" {
-		return auth, ssh, node, fmt.Errorf("host server %s is missing a hostname or IP address", hostServer.ID)
-	}
-	if strings.TrimSpace(auth.HostURL) == "" {
-		auth.HostURL = buildProxmoxHostURL(hostAddr)
-	}
-	if strings.TrimSpace(node) == "" {
-		node = strings.TrimSpace(hostServer.Hostname)
-	}
-
-	mapping, err := s.getUserSSHMappingForHost(ctx, *hostServerID, userID)
-	if err != nil {
-		return auth, ssh, node, err
-	}
-	ssh, err = s.populateSSHFromMapping(ctx, ssh, hostAddr, mapping)
-	if err != nil {
-		return auth, ssh, node, err
-	}
-
-	if hasUsableProxmoxAuth(auth) {
+	if s.accessResolver == nil {
+		auth = mergeAuthDefaults(auth, s.defaultAuth)
+		auth = ensureAuthBooleans(auth)
+		if strings.TrimSpace(node) == "" {
+			node = s.defaultNode
+		}
 		return auth, ssh, node, nil
 	}
 
-	secret, err := s.resolveProxmoxTokenSecret(ctx, userID, *hostServerID, proxmoxSecretID)
+	resolution, err := s.accessResolver.ResolveAccess(ctx, hostServerID, proxmoxSecretID, auth, ssh, node)
 	if err != nil {
 		return auth, ssh, node, err
 	}
-	auth.APIToken = string(secret.ExternalAuthToken.Token)
-	return auth, ssh, node, nil
-}
 
-func (s *Service) getUserSSHMappingForHost(ctx context.Context, hostServerID, userID uuid.UUID) (*infra_db_pg.UserSshKeyMapping, error) {
-	mappings, err := s.db.GetSSHKeyHostMappingsByHostId(ctx, hostServerID)
-	if err != nil {
-		return nil, fmt.Errorf("get SSH key mappings for host %s: %w", hostServerID, err)
-	}
-	for _, mapping := range mappings {
-		if mapping.UserID == userID {
-			return &mapping, nil
-		}
-	}
-	return nil, fmt.Errorf("no SSH key mapping found for user %s on host %s", userID, hostServerID)
-}
-
-func (s *Service) populateSSHFromMapping(ctx context.Context, ssh coredeploy.SSHOptions, hostAddr string, mapping *infra_db_pg.UserSshKeyMapping) (coredeploy.SSHOptions, error) {
-	if strings.TrimSpace(ssh.Host) == "" {
-		ssh.Host = hostAddr
-	}
-	if strings.TrimSpace(ssh.User) == "" {
-		ssh.User = strings.TrimSpace(mapping.HostserverUsername)
-	}
-	if ssh.Port == 0 {
-		ssh.Port = 22
-	}
-	if hasExplicitSSHKeySource(ssh) {
-		return ssh, nil
-	}
-
-	key, err := s.db.GetSSHKeyById(ctx, mapping.SshKeyID)
-	if err != nil {
-		return ssh, fmt.Errorf("get SSH key %s for proxmox host access: %w", mapping.SshKeyID, err)
-	}
-
-	privateKey, err := s.secretProvider.RetrieveSecret(key.PrivSecretID)
-	if err != nil {
-		return ssh, fmt.Errorf("retrieve SSH private key secret %s: %w", key.PrivSecretID, err)
-	}
-	ssh.PrivateKeyPEM = string(privateKey.ExternalAuthToken.Token)
-
-	if key.PassphraseID != nil && strings.TrimSpace(ssh.Passphrase) == "" {
-		passphrase, err := s.secretProvider.RetrieveSecret(*key.PassphraseID)
-		if err != nil {
-			return ssh, fmt.Errorf("retrieve SSH passphrase secret %s: %w", key.PassphraseID.String(), err)
-		}
-		ssh.Passphrase = string(passphrase.ExternalAuthToken.Token)
-	}
-
-	return ssh, nil
-}
-
-func (s *Service) resolveProxmoxTokenSecret(ctx context.Context, userID, hostServerID uuid.UUID, secretID *uuid.UUID) (*user_secrets.RetrievedUserSecret, error) {
-	if secretID != nil {
-		secret, err := s.secretProvider.RetrieveSecret(*secretID)
-		if err != nil {
-			return nil, fmt.Errorf("retrieve proxmox secret %s: %w", secretID.String(), err)
-		}
-		if secret.ExternalAuthToken.UserID != userID {
-			return nil, fmt.Errorf("proxmox secret %s does not belong to the current user", secretID.String())
-		}
-		if secret.Metadata.HostServerID != nil && *secret.Metadata.HostServerID != hostServerID {
-			return nil, fmt.Errorf("proxmox secret %s is not mapped to host %s", secretID.String(), hostServerID)
-		}
-		return secret, nil
-	}
-
-	appID, err := s.ensureExternalAppID(ctx, proxmoxAppName)
-	if err != nil {
-		return nil, err
-	}
-	secrets, err := s.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
-		UserID:        userID,
-		ExternalAppID: appID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("list proxmox secrets for user %s: %w", userID, err)
-	}
-	sort.SliceStable(secrets, func(i, j int) bool {
-		return secrets[i].CreatedAt.Time.After(secrets[j].CreatedAt.Time)
-	})
-
-	for _, token := range secrets {
-		secret, err := s.secretProvider.RetrieveSecret(token.ID)
-		if err != nil {
-			continue
-		}
-		if secret.Metadata.HostServerID != nil && *secret.Metadata.HostServerID == hostServerID {
-			return secret, nil
-		}
-	}
-
-	return nil, fmt.Errorf("no proxmox API token stored for host %s; create one with infractl proxmox new api-token and map it to this host", hostServerID)
+	return resolution.Auth, resolution.SSH, resolution.Node, nil
 }
 
 func (s *Service) ensureExternalAppID(ctx context.Context, name string) (uuid.UUID, error) {
-	appID, err := s.db.GetExternalAppIdByName(ctx, name)
-	if err == nil {
-		return appID, nil
+	if s.accessResolver != nil {
+		return s.accessResolver.EnsureExternalAppID(ctx, name)
 	}
-	if err != pgx.ErrNoRows {
-		return uuid.Nil, err
-	}
-
-	created, createErr := s.db.InsertExternalAppIntegrationByName(ctx, infra_db_pg.InsertExternalAppIntegrationByNameParams{
-		ID:   uuid.New(),
-		Name: name,
-	})
-	if createErr == nil {
-		return created.ID, nil
-	}
-
-	appID, err = s.db.GetExternalAppIdByName(ctx, name)
-	if err != nil {
-		return uuid.Nil, err
-	}
-	return appID, nil
+	return s.db.GetExternalAppIdByName(ctx, name)
 }
 
 func mergeAuthDefaults(req coredeploy.ProxmoxAuthOptions, defaults coredeploy.ProxmoxAuthOptions) coredeploy.ProxmoxAuthOptions {
