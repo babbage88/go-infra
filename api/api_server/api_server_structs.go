@@ -2,6 +2,7 @@ package api_server
 
 import (
 	authapi "github.com/babbage88/go-infra/api/authapi"
+	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/external_applications"
 	"github.com/babbage88/go-infra/services/host_servers"
 	rolesservice "github.com/babbage88/go-infra/services/roles_service"
@@ -18,6 +19,7 @@ type APIServer struct {
 	RoleService             *rolesservice.RoleCRUDService
 	UserCRUDService         *user_crud_svc.UserCRUDService
 	UserSecretsStoreService user_secrets.UserSecretProvider
+	DBQueries               *infra_db_pg.Queries
 	HostServerProvider      host_servers.HostServerProvider
 	SshKeyProvider          ssh_key_provider.SshKeySecretProvider
 	ExternalAppsService     external_applications.ExternalApplications

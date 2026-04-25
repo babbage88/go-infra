@@ -81,6 +81,7 @@ func main() {
 		RoleService:             rolesService,
 		UserCRUDService:         userService,
 		UserSecretsStoreService: secretProvider,
+		DBQueries:               infra_db_pg.New(connPool),
 		HostServerProvider:      hostServerProvider,
 		SshKeyProvider:          sshKeyProvider,
 		ExternalAppsService:     externalAppsService,

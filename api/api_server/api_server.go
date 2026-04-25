@@ -7,6 +7,7 @@ import (
 
 	authapi "github.com/babbage88/go-infra/api/authapi"
 	userapi "github.com/babbage88/go-infra/api/user_api_handlers"
+	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/internal/cors"
 	"github.com/babbage88/go-infra/internal/middleware"
 	"github.com/babbage88/go-infra/internal/swaggerui"
@@ -45,7 +46,7 @@ func hostServerByIDHandler(provider host_servers.HostServerProvider, authService
 }
 
 func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, roleService *rolesservice.RoleCRUDService, userCRUDService *user_crud_svc.UserCRUDService,
-	userSecretStore user_secrets.UserSecretProvider, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
+	userSecretStore user_secrets.UserSecretProvider, dbQueries *infra_db_pg.Queries, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(authapi.LoginHandler(authService)))
 	mux.Handle("/logout", cors.CORSWithPOST(authapi.LogoutHandler()))
@@ -186,7 +187,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "AlterUsers", s3_admin.DownloadObjectHandler(s3AdminService)),
 	))
 
-	proxmoxService := proxmoxsvc.NewServiceFromEnv()
+	proxmoxService := proxmoxsvc.NewService(dbQueries, hostServerProvider, userSecretStore)
 	mux.Handle("GET /api/v1/proxmox/vm", cors.CORSWithGET(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.ListVMsHandler(proxmoxService)),
 	))
@@ -207,6 +208,12 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("POST /api/v1/proxmox/vm/template", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.CreateVMTemplateHandler(proxmoxService)),
+	))
+	mux.Handle("POST /api/v1/proxmox/pve-user", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.CreatePVEUserHandler(proxmoxService)),
+	))
+	mux.Handle("POST /api/v1/proxmox/api-token", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.CreateAPITokenHandler(proxmoxService)),
 	))
 	mux.Handle("POST /api/v1/database/mariadb/install", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.InstallMariaDBHandler()),
@@ -280,7 +287,7 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		slog.Info("WS_LISTEN_ADDR env variable is not set, using default :8090")
 		wsListenAddr = ":8090"
 	}
-	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.RoleService, api.UserCRUDService, api.UserSecretsStoreService, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
+	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.RoleService, api.UserCRUDService, api.UserSecretsStoreService, api.DBQueries, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
 
 	// Start a dedicated WebSocket server on :8090 with no middleware for /ssh/websocket/{connectionId}
 	go func() {

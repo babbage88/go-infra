@@ -3,41 +3,65 @@ package proxmox
 import (
 	"context"
 	"fmt"
-	"os"
-	"strconv"
+	"sort"
 	"strings"
+	"time"
 
+	"github.com/babbage88/go-infra/api/authapi"
+	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/babbage88/go-infra/services/host_servers"
+	"github.com/babbage88/go-infra/services/user_secrets"
 	coredeploy "github.com/babbage88/infra-core/deployment"
 	coreproxmox "github.com/babbage88/infra-core/proxmox"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+)
+
+const (
+	defaultProxmoxPort = "8006"
+	proxmoxAppName     = "proxmox"
 )
 
 type Service struct {
-	defaultAuth coredeploy.ProxmoxAuthOptions
-	defaultNode string
+	db                 *infra_db_pg.Queries
+	hostServerProvider host_servers.HostServerProvider
+	secretProvider     user_secrets.UserSecretProvider
+	defaultAuth        coredeploy.ProxmoxAuthOptions
+	defaultNode        string
 }
 
-func NewServiceFromEnv() *Service {
-	useToken := envBool("PROXMOX_USE_TOKEN", true)
-	skipTLS := envBool("PROXMOX_SKIP_TLS", true)
-	auth := coredeploy.ProxmoxAuthOptions{
-		HostURL:    firstNonEmptyEnv("PROXMOX_API_URL", "PROXMOX_HOST", "PROXMOX_HOST_URL"),
-		APIToken:   os.Getenv("PROXMOX_API_TOKEN"),
-		APITokenID: os.Getenv("PROXMOX_API_TOKEN_ID"),
-		APISecret:  os.Getenv("PROXMOX_API_SECRET"),
-		Username:   os.Getenv("PROXMOX_USERNAME"),
-		Password:   os.Getenv("PROXMOX_PASSWORD"),
-		UseToken:   &useToken,
-		SkipTLS:    &skipTLS,
-	}
-
+func NewService(db *infra_db_pg.Queries, hostServerProvider host_servers.HostServerProvider, secretProvider user_secrets.UserSecretProvider) *Service {
+	useToken := true
+	skipTLS := true
 	return &Service{
-		defaultAuth: auth,
-		defaultNode: firstNonEmptyEnv("PROXMOX_NODE", "PVE_NODE"),
+		db:                 db,
+		hostServerProvider: hostServerProvider,
+		secretProvider:     secretProvider,
+		defaultAuth: coredeploy.ProxmoxAuthOptions{
+			UseToken: &useToken,
+			SkipTLS:  &skipTLS,
+		},
+	}
+}
+
+// NewServiceFromEnv is retained for compatibility, but host-scoped resolution should use NewService.
+func NewServiceFromEnv() *Service {
+	useToken := true
+	skipTLS := true
+	return &Service{
+		defaultAuth: coredeploy.ProxmoxAuthOptions{
+			UseToken: &useToken,
+			SkipTLS:  &skipTLS,
+		},
 	}
 }
 
 func (s *Service) ListVMs(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (coredeploy.ProxmoxVMListResult, error) {
-	req = s.mergeListDefaults(req)
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMListResult{}, err
+	}
 	if strings.TrimSpace(req.Node) == "" {
 		return coredeploy.ProxmoxVMListResult{}, fmt.Errorf("node is required")
 	}
@@ -78,7 +102,11 @@ func (s *Service) ListVMs(ctx context.Context, req coredeploy.ProxmoxVMListReque
 }
 
 func (s *Service) ListContainers(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (ProxmoxContainerListResult, error) {
-	req = s.mergeListDefaults(req)
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return ProxmoxContainerListResult{}, err
+	}
 	if strings.TrimSpace(req.Node) == "" {
 		return ProxmoxContainerListResult{}, fmt.Errorf("node is required")
 	}
@@ -169,7 +197,11 @@ func (s *Service) ListWorkloads(ctx context.Context, req coredeploy.ProxmoxVMLis
 }
 
 func (s *Service) StartVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMStartResult, error) {
-	req = s.mergeStartDefaults(req)
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
 	if strings.TrimSpace(req.Node) == "" {
 		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("node is required")
 	}
@@ -195,62 +227,268 @@ func (s *Service) StartVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequ
 }
 
 func (s *Service) CreateLXC(ctx context.Context, req coredeploy.ProxmoxLXCRequest) (coredeploy.ProxmoxLXCResult, error) {
-	req = s.mergeLXCDefaults(req)
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResult{}, err
+	}
 	return coredeploy.CreateProxmoxLXC(req)
 }
 
 func (s *Service) CreateVM(ctx context.Context, req coredeploy.ProxmoxVMCreateRequest) (coredeploy.ProxmoxVMCreateResult, error) {
-	req = s.mergeVMCreateDefaults(req)
+	var err error
+	req.Auth, req.SSH, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, req.SSH, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMCreateResult{}, err
+	}
 	return coredeploy.CreateProxmoxVM(req)
 }
 
 func (s *Service) CreateVMTemplate(ctx context.Context, req coredeploy.ProxmoxVMTemplateRequest) (coredeploy.ProxmoxVMTemplateResult, error) {
-	req = s.mergeVMTemplateDefaults(req)
+	var err error
+	req.Auth, req.SSH, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, req.SSH, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMTemplateResult{}, err
+	}
 	return coredeploy.CreateProxmoxVMTemplate(req)
 }
 
-func (s *Service) mergeListDefaults(req coredeploy.ProxmoxVMListRequest) coredeploy.ProxmoxVMListRequest {
-	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
+func (s *Service) CreatePVEUser(ctx context.Context, req coreproxmox.CreatePVEUserRequest) (coreproxmox.CreatePVEUserResult, error) {
+	var err error
+	_, req.SSH, req.Node, err = s.resolveAccess(ctx, req.HostServerID, nil, coredeploy.ProxmoxAuthOptions{}, req.SSH, req.Node)
+	if err != nil {
+		return coreproxmox.CreatePVEUserResult{}, err
+	}
 	if strings.TrimSpace(req.Node) == "" {
-		req.Node = s.defaultNode
+		req.Node = req.SSH.Host
 	}
-	if req.Full == nil {
-		value := true
-		req.Full = &value
-	}
-	return req
+	return coreproxmox.CreatePVEUser(req)
 }
 
-func (s *Service) mergeStartDefaults(req coredeploy.ProxmoxVMStartRequest) coredeploy.ProxmoxVMStartRequest {
-	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
-	if strings.TrimSpace(req.Node) == "" {
-		req.Node = s.defaultNode
+func (s *Service) CreateAPIToken(ctx context.Context, req coreproxmox.CreateAPITokenRequest) (coreproxmox.CreateAPITokenResult, error) {
+	var err error
+	auth, ssh, node, err := s.resolveAccess(ctx, req.HostServerID, nil, coredeploy.ProxmoxAuthOptions{HostURL: req.HostURL}, req.SSH, req.Node)
+	if err != nil {
+		return coreproxmox.CreateAPITokenResult{}, err
 	}
-	return req
+	req.SSH = ssh
+	req.Node = node
+	req.HostURL = auth.HostURL
+
+	result, err := coreproxmox.CreateAPIToken(req)
+	if err != nil {
+		return coreproxmox.CreateAPITokenResult{}, err
+	}
+
+	shouldStore := req.HostServerID != nil
+	if req.StoreAsUserSecret != nil {
+		shouldStore = *req.StoreAsUserSecret
+	}
+	if !shouldStore {
+		return result, nil
+	}
+
+	userID, err := authapi.GetUserIDFromContext(ctx)
+	if err != nil {
+		return coreproxmox.CreateAPITokenResult{}, err
+	}
+
+	appID, err := s.ensureExternalAppID(ctx, proxmoxAppName)
+	if err != nil {
+		return coreproxmox.CreateAPITokenResult{}, fmt.Errorf("ensure proxmox external application: %w", err)
+	}
+
+	var expiry time.Time
+	if result.ExpiresAtUnix > 0 {
+		expiry = time.Unix(result.ExpiresAtUnix, 0).UTC()
+	}
+
+	secretID, err := s.secretProvider.StoreSecretWithMetadata(
+		result.APIToken,
+		userID,
+		appID,
+		expiry,
+		user_secrets.SecretMetadata{HostServerID: req.HostServerID},
+	)
+	if err != nil {
+		return coreproxmox.CreateAPITokenResult{}, fmt.Errorf("store proxmox API token for host: %w", err)
+	}
+	result.StoredSecretID = &secretID
+	return result, nil
 }
 
-func (s *Service) mergeLXCDefaults(req coredeploy.ProxmoxLXCRequest) coredeploy.ProxmoxLXCRequest {
-	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
-	if strings.TrimSpace(req.Node) == "" {
-		req.Node = s.defaultNode
+func (s *Service) resolveAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (coredeploy.ProxmoxAuthOptions, coredeploy.SSHOptions, string, error) {
+	auth = mergeAuthDefaults(auth, s.defaultAuth)
+	auth = ensureAuthBooleans(auth)
+	if strings.TrimSpace(node) == "" {
+		node = s.defaultNode
 	}
-	return req
+	if hostServerID == nil {
+		return auth, ssh, node, nil
+	}
+	if s.db == nil || s.hostServerProvider == nil || s.secretProvider == nil {
+		return auth, ssh, node, fmt.Errorf("host-scoped proxmox resolution is unavailable")
+	}
+
+	userID, err := authapi.GetUserIDFromContext(ctx)
+	if err != nil {
+		return auth, ssh, node, err
+	}
+
+	hostServer, err := s.hostServerProvider.GetHostServer(ctx, *hostServerID)
+	if err != nil {
+		return auth, ssh, node, fmt.Errorf("resolve host server %s: %w", hostServerID.String(), err)
+	}
+	if !isProxmoxPlatformHost(hostServer) {
+		return auth, ssh, node, fmt.Errorf("host server %s is not marked as a Proxmox platform", hostServer.ID)
+	}
+
+	hostAddr := hostAddress(hostServer)
+	if hostAddr == "" {
+		return auth, ssh, node, fmt.Errorf("host server %s is missing a hostname or IP address", hostServer.ID)
+	}
+	if strings.TrimSpace(auth.HostURL) == "" {
+		auth.HostURL = buildProxmoxHostURL(hostAddr)
+	}
+	if strings.TrimSpace(node) == "" {
+		node = strings.TrimSpace(hostServer.Hostname)
+	}
+
+	mapping, err := s.getUserSSHMappingForHost(ctx, *hostServerID, userID)
+	if err != nil {
+		return auth, ssh, node, err
+	}
+	ssh, err = s.populateSSHFromMapping(ctx, ssh, hostAddr, mapping)
+	if err != nil {
+		return auth, ssh, node, err
+	}
+
+	if hasUsableProxmoxAuth(auth) {
+		return auth, ssh, node, nil
+	}
+
+	secret, err := s.resolveProxmoxTokenSecret(ctx, userID, *hostServerID, proxmoxSecretID)
+	if err != nil {
+		return auth, ssh, node, err
+	}
+	auth.APIToken = string(secret.ExternalAuthToken.Token)
+	return auth, ssh, node, nil
 }
 
-func (s *Service) mergeVMCreateDefaults(req coredeploy.ProxmoxVMCreateRequest) coredeploy.ProxmoxVMCreateRequest {
-	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
-	if strings.TrimSpace(req.Node) == "" {
-		req.Node = s.defaultNode
+func (s *Service) getUserSSHMappingForHost(ctx context.Context, hostServerID, userID uuid.UUID) (*infra_db_pg.UserSshKeyMapping, error) {
+	mappings, err := s.db.GetSSHKeyHostMappingsByHostId(ctx, hostServerID)
+	if err != nil {
+		return nil, fmt.Errorf("get SSH key mappings for host %s: %w", hostServerID, err)
 	}
-	return req
+	for _, mapping := range mappings {
+		if mapping.UserID == userID {
+			return &mapping, nil
+		}
+	}
+	return nil, fmt.Errorf("no SSH key mapping found for user %s on host %s", userID, hostServerID)
 }
 
-func (s *Service) mergeVMTemplateDefaults(req coredeploy.ProxmoxVMTemplateRequest) coredeploy.ProxmoxVMTemplateRequest {
-	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
-	if strings.TrimSpace(req.Node) == "" {
-		req.Node = s.defaultNode
+func (s *Service) populateSSHFromMapping(ctx context.Context, ssh coredeploy.SSHOptions, hostAddr string, mapping *infra_db_pg.UserSshKeyMapping) (coredeploy.SSHOptions, error) {
+	if strings.TrimSpace(ssh.Host) == "" {
+		ssh.Host = hostAddr
 	}
-	return req
+	if strings.TrimSpace(ssh.User) == "" {
+		ssh.User = strings.TrimSpace(mapping.HostserverUsername)
+	}
+	if ssh.Port == 0 {
+		ssh.Port = 22
+	}
+	if hasExplicitSSHKeySource(ssh) {
+		return ssh, nil
+	}
+
+	key, err := s.db.GetSSHKeyById(ctx, mapping.SshKeyID)
+	if err != nil {
+		return ssh, fmt.Errorf("get SSH key %s for proxmox host access: %w", mapping.SshKeyID, err)
+	}
+
+	privateKey, err := s.secretProvider.RetrieveSecret(key.PrivSecretID)
+	if err != nil {
+		return ssh, fmt.Errorf("retrieve SSH private key secret %s: %w", key.PrivSecretID, err)
+	}
+	ssh.PrivateKeyPEM = string(privateKey.ExternalAuthToken.Token)
+
+	if key.PassphraseID != nil && strings.TrimSpace(ssh.Passphrase) == "" {
+		passphrase, err := s.secretProvider.RetrieveSecret(*key.PassphraseID)
+		if err != nil {
+			return ssh, fmt.Errorf("retrieve SSH passphrase secret %s: %w", key.PassphraseID.String(), err)
+		}
+		ssh.Passphrase = string(passphrase.ExternalAuthToken.Token)
+	}
+
+	return ssh, nil
+}
+
+func (s *Service) resolveProxmoxTokenSecret(ctx context.Context, userID, hostServerID uuid.UUID, secretID *uuid.UUID) (*user_secrets.RetrievedUserSecret, error) {
+	if secretID != nil {
+		secret, err := s.secretProvider.RetrieveSecret(*secretID)
+		if err != nil {
+			return nil, fmt.Errorf("retrieve proxmox secret %s: %w", secretID.String(), err)
+		}
+		if secret.ExternalAuthToken.UserID != userID {
+			return nil, fmt.Errorf("proxmox secret %s does not belong to the current user", secretID.String())
+		}
+		if secret.Metadata.HostServerID != nil && *secret.Metadata.HostServerID != hostServerID {
+			return nil, fmt.Errorf("proxmox secret %s is not mapped to host %s", secretID.String(), hostServerID)
+		}
+		return secret, nil
+	}
+
+	appID, err := s.ensureExternalAppID(ctx, proxmoxAppName)
+	if err != nil {
+		return nil, err
+	}
+	secrets, err := s.db.GetExternalAuthTokensByUserIdAndAppId(ctx, infra_db_pg.GetExternalAuthTokensByUserIdAndAppIdParams{
+		UserID:        userID,
+		ExternalAppID: appID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list proxmox secrets for user %s: %w", userID, err)
+	}
+	sort.SliceStable(secrets, func(i, j int) bool {
+		return secrets[i].CreatedAt.Time.After(secrets[j].CreatedAt.Time)
+	})
+
+	for _, token := range secrets {
+		secret, err := s.secretProvider.RetrieveSecret(token.ID)
+		if err != nil {
+			continue
+		}
+		if secret.Metadata.HostServerID != nil && *secret.Metadata.HostServerID == hostServerID {
+			return secret, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no proxmox API token stored for host %s; create one with infractl proxmox new api-token and map it to this host", hostServerID)
+}
+
+func (s *Service) ensureExternalAppID(ctx context.Context, name string) (uuid.UUID, error) {
+	appID, err := s.db.GetExternalAppIdByName(ctx, name)
+	if err == nil {
+		return appID, nil
+	}
+	if err != pgx.ErrNoRows {
+		return uuid.Nil, err
+	}
+
+	created, createErr := s.db.InsertExternalAppIntegrationByName(ctx, infra_db_pg.InsertExternalAppIntegrationByNameParams{
+		ID:   uuid.New(),
+		Name: name,
+	})
+	if createErr == nil {
+		return created.ID, nil
+	}
+
+	appID, err = s.db.GetExternalAppIdByName(ctx, name)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return appID, nil
 }
 
 func mergeAuthDefaults(req coredeploy.ProxmoxAuthOptions, defaults coredeploy.ProxmoxAuthOptions) coredeploy.ProxmoxAuthOptions {
@@ -281,25 +519,60 @@ func mergeAuthDefaults(req coredeploy.ProxmoxAuthOptions, defaults coredeploy.Pr
 	return req
 }
 
-func envBool(key string, defaultValue bool) bool {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return defaultValue
+func ensureAuthBooleans(auth coredeploy.ProxmoxAuthOptions) coredeploy.ProxmoxAuthOptions {
+	if auth.UseToken == nil {
+		useToken := true
+		auth.UseToken = &useToken
 	}
-	parsed, err := strconv.ParseBool(value)
-	if err != nil {
-		return defaultValue
+	if auth.SkipTLS == nil {
+		skipTLS := true
+		auth.SkipTLS = &skipTLS
 	}
-	return parsed
+	return auth
 }
 
-func firstNonEmptyEnv(keys ...string) string {
-	for _, key := range keys {
-		if value := strings.TrimSpace(os.Getenv(key)); value != "" {
-			return value
+func hasUsableProxmoxAuth(auth coredeploy.ProxmoxAuthOptions) bool {
+	if strings.TrimSpace(auth.APIToken) != "" {
+		return true
+	}
+	if strings.TrimSpace(auth.APITokenID) != "" && strings.TrimSpace(auth.APISecret) != "" {
+		return true
+	}
+	return strings.TrimSpace(auth.Username) != "" && strings.TrimSpace(auth.Password) != ""
+}
+
+func hasExplicitSSHKeySource(ssh coredeploy.SSHOptions) bool {
+	return strings.TrimSpace(ssh.KeyPath) != "" || strings.TrimSpace(ssh.PrivateKeyPEM) != "" || strings.TrimSpace(ssh.PrivateKeyBase64) != ""
+}
+
+func isProxmoxPlatformHost(host *host_servers.HostServer) bool {
+	for _, platform := range host.PlatformTypes {
+		if strings.Contains(strings.ToLower(platform.Name), "proxmox") {
+			return true
 		}
 	}
+	return false
+}
+
+func hostAddress(host *host_servers.HostServer) string {
+	if strings.TrimSpace(host.Hostname) != "" {
+		return strings.TrimSpace(host.Hostname)
+	}
+	if host.IPAddress != nil {
+		return host.IPAddress.String()
+	}
 	return ""
+}
+
+func buildProxmoxHostURL(host string) string {
+	host = strings.TrimSpace(host)
+	if host == "" {
+		return ""
+	}
+	if strings.HasPrefix(host, "http://") || strings.HasPrefix(host, "https://") {
+		return host
+	}
+	return "https://" + host + ":" + defaultProxmoxPort
 }
 
 func firstNonEmpty(values ...string) string {

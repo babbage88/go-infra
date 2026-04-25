@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	coredeploy "github.com/babbage88/infra-core/deployment"
+	coreproxmox "github.com/babbage88/infra-core/proxmox"
+	"github.com/google/uuid"
 )
 
 // swagger:route GET /api/v1/proxmox/vm Proxmox ListProxmoxVMs
@@ -213,6 +215,64 @@ func CreateVMTemplateHandler(service *Service) http.HandlerFunc {
 	}
 }
 
+// swagger:route POST /api/v1/proxmox/pve-user Proxmox CreateProxmoxPVEUser
+// Create a Proxmox user over SSH on a Proxmox node.
+// responses:
+//
+//	200: ProxmoxPVEUserCreateResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreatePVEUserHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coreproxmox.CreatePVEUserRequest{}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.CreatePVEUser(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to create proxmox user", slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route POST /api/v1/proxmox/api-token Proxmox CreateProxmoxAPIToken
+// Create a Proxmox API token over SSH on a Proxmox node.
+// responses:
+//
+//	200: ProxmoxAPITokenCreateResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreateAPITokenHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coreproxmox.CreateAPITokenRequest{}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.CreateAPIToken(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to create proxmox API token", slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
 func writeJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -237,6 +297,22 @@ func parseListRequest(w http.ResponseWriter, r *http.Request) (coredeploy.Proxmo
 	}
 	if node := r.URL.Query().Get("node"); node != "" {
 		req.Node = node
+	}
+	if hostServerID := r.URL.Query().Get("host_server_id"); hostServerID != "" {
+		id, err := uuid.Parse(hostServerID)
+		if err != nil {
+			http.Error(w, "host_server_id must be a UUID", http.StatusBadRequest)
+			return req, false
+		}
+		req.HostServerID = &id
+	}
+	if proxmoxSecretID := r.URL.Query().Get("proxmox_secret_id"); proxmoxSecretID != "" {
+		id, err := uuid.Parse(proxmoxSecretID)
+		if err != nil {
+			http.Error(w, "proxmox_secret_id must be a UUID", http.StatusBadRequest)
+			return req, false
+		}
+		req.ProxmoxSecretID = &id
 	}
 	if full := r.URL.Query().Get("full"); full != "" {
 		value, err := strconv.ParseBool(full)

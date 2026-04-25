@@ -16,6 +16,7 @@ import (
 type RetrievedUserSecret struct {
 	Reader            io.Reader
 	ExternalAuthToken *ExternalApplicationAuthToken
+	Metadata          SecretMetadata
 }
 
 // swagger:model UserSecretEntry
@@ -41,6 +42,7 @@ type ExternalAppSecretMetadata struct {
 
 type UserSecretProvider interface {
 	StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error)
+	StoreSecretWithMetadata(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time, metadata SecretMetadata) (uuid.UUID, error)
 	RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSecret, error)
 	GetUserSecretEntries(userId uuid.UUID) ([]UserSecretEntry, error)
 	GetUserSecretEntriesByAppId(userId uuid.UUID, appId uuid.UUID) ([]UserSecretEntry, error)
@@ -62,9 +64,14 @@ type PgEncrytpedSecret struct {
 	UserId        uuid.UUID                      `json:"userId"`
 	ApplicationId uuid.UUID                      `json:"applicationId"`
 	UserSecret    *EncryptedUserSecretsAES256GCM `json:"userSecret"`
+	Metadata      SecretMetadata                 `json:"metadata,omitempty"`
 }
 
 func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time) (uuid.UUID, error) {
+	return p.StoreSecretWithMetadata(plaintextSecret, userId, appId, expiry, SecretMetadata{})
+}
+
+func (p *PgUserSecretStore) StoreSecretWithMetadata(plaintextSecret string, userId, appId uuid.UUID, expiry time.Time, metadata SecretMetadata) (uuid.UUID, error) {
 	userCipherText, err := Encrypt(plaintextSecret)
 	if err != nil {
 		slog.Error("Error encrypting user secret", slog.String("Error", err.Error()))
@@ -75,6 +82,7 @@ func (p *PgUserSecretStore) StoreSecret(plaintextSecret string, userId, appId uu
 		UserId:        userId,
 		ApplicationId: appId,
 		UserSecret:    &userCipherText,
+		Metadata:      metadata,
 	}
 
 	jsonData, err := json.Marshal(userSecret)
@@ -129,11 +137,13 @@ func (p *PgUserSecretStore) RetrieveSecret(secretId uuid.UUID) (*RetrievedUserSe
 		ExternalApplicationId: record.ExternalAppID,
 		Expiration:            record.Expiration.Time,
 		Token:                 plaintext,
+		Metadata:              stored.Metadata,
 	}
 
 	return &RetrievedUserSecret{
 		Reader:            bytes.NewReader(plaintext),
 		ExternalAuthToken: &daoExtSecret,
+		Metadata:          stored.Metadata,
 	}, nil
 }
 
