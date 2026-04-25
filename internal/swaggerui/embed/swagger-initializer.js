@@ -6,6 +6,7 @@ window.onload = function() {
     url: "./swagger_spec",
     dom_id: '#swagger-ui',
     deepLinking: true,
+    withCredentials: true,
     presets: [
       SwaggerUIBundle.presets.apis,
       SwaggerUIStandalonePreset
@@ -16,10 +17,7 @@ window.onload = function() {
     layout: "StandaloneLayout",
     oauth2RedirectUrl: '/docs/oauth2-callback',
     requestInterceptor: (req) => {
-      const token = localStorage.getItem('accessToken');
-      if (token && req.headers) {
-          req.headers.Authorization = 'Bearer ' + token;
-      }
+      req.credentials = 'include';
       return req;
     },
   });
@@ -29,62 +27,145 @@ window.onload = function() {
   const loginModal = document.getElementById('login-modal');
   const closeButton = document.querySelector('.close-button');
   const loginForm = document.getElementById('login-form');
+  const loginStatus = document.getElementById('login-status');
+
+  const sessionUrl = window.location.origin + '/auth/session';
+  const loginUrl = window.location.origin + '/login';
+  const logoutUrl = window.location.origin + '/logout';
+
+  let loginBtn = null;
+  let currentSession = null;
+
+  const setLoginStatus = (message, isError) => {
+    if (!loginStatus) {
+      return;
+    }
+
+    loginStatus.textContent = message || '';
+    loginStatus.style.color = isError ? '#b42318' : '#475467';
+  };
+
+  const closeLoginModal = () => {
+    loginModal.style.display = 'none';
+    setLoginStatus('', false);
+  };
+
+  const openLoginModal = () => {
+    loginModal.style.display = 'block';
+    setLoginStatus('Sign in to create secure auth cookies for this browser session.', false);
+  };
+
+  const clearSwaggerHeaderAuth = () => {
+    if (window.ui && window.ui.authActions) {
+      window.ui.authActions.logout(['bearer']);
+    }
+  };
+
+  const fetchSession = async () => {
+    const response = await fetch(sessionUrl, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  };
+
+  const updateLoginButtonState = () => {
+    if (!loginBtn) {
+      return;
+    }
+
+    if (currentSession) {
+      const username = currentSession.userName || currentSession.username || 'Current User';
+      loginBtn.textContent = 'Logout ' + username;
+      loginBtn.onclick = async () => {
+        try {
+          const response = await fetch(logoutUrl, {
+            method: 'POST',
+            credentials: 'include',
+          });
+
+          if (!response.ok && response.status !== 204) {
+            throw new Error('Logout failed.');
+          }
+
+          currentSession = null;
+          clearSwaggerHeaderAuth();
+          updateLoginButtonState();
+          alert('Logged out successfully.');
+        } catch (error) {
+          console.error('Logout error:', error);
+          alert(error.message || 'Logout failed.');
+        }
+      };
+      return;
+    }
+
+    loginBtn.textContent = 'Login';
+    loginBtn.onclick = openLoginModal;
+  };
+
+  const syncAuthState = async () => {
+    try {
+      currentSession = await fetchSession();
+    } catch (error) {
+      console.error('Session check error:', error);
+      currentSession = null;
+    }
+
+    clearSwaggerHeaderAuth();
+    updateLoginButtonState();
+  };
 
   closeButton.onclick = function() {
-    loginModal.style.display = 'none';
+    closeLoginModal();
   }
 
   window.onclick = function(event) {
     if (event.target == loginModal) {
-      loginModal.style.display = 'none';
+      closeLoginModal();
     }
   }
 
-  loginForm.onsubmit = function(e) {
+  loginForm.onsubmit = async function(e) {
     e.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    setLoginStatus('Signing in...', false);
 
-    const loginUrl = window.location.origin + '/login';
+    try {
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ username: username, password: password }),
+      });
 
-    fetch(loginUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => { throw new Error('Login failed: ' + text) });
-        }
-        return response.json();
-    })
-    .then(data => {
-      if (data.accessToken) {
-        localStorage.setItem('accessToken', data.accessToken);
-        const schema = { "type": "apiKey", "in": "header", "name": "Authorization" };
-        window.ui.authActions.authorize({ bearer: { name: "bearer", schema: schema, value: "Bearer " + data.accessToken } });
-        loginModal.style.display = 'none';
-        
-        window.dispatchEvent(new Event('login-success'));
-
-        alert('Login successful!');
-      } else {
-        alert('Login failed: accessToken not found in response.');
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error('Login failed: ' + text);
       }
-    })
-    .catch(error => {
-      console.error('Login error:', error);
-      alert(error.message);
-    });
-  }
 
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-      const schema = { "type": "apiKey", "in": "header", "name": "Authorization" };
-      window.ui.authActions.authorize({ bearer: { name: "bearer", schema: schema, value: "Bearer " + token } });
-  }
+      currentSession = await fetchSession();
+      updateLoginButtonState();
+      closeLoginModal();
+      window.dispatchEvent(new Event('login-success'));
+      alert('Login successful.');
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginStatus(error.message || 'Login failed.', true);
+    }
+  };
 
   // --- DOM manipulation logic to add Login/Logout button ---
   const domCheck = setInterval(() => {
@@ -92,39 +173,11 @@ window.onload = function() {
     if (authWrapper) {
       clearInterval(domCheck);
 
-      const loginBtn = document.createElement('button');
+      loginBtn = document.createElement('button');
       loginBtn.className = 'btn authorize';
       loginBtn.style.marginRight = '10px';
-
-      const updateLoginButtonState = () => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-          loginBtn.textContent = 'Logout';
-          loginBtn.onclick = () => {
-            localStorage.removeItem('accessToken');
-            window.ui.authActions.logout(['bearer']);
-            updateLoginButtonState(); // Rerender the button
-            alert('Logged out successfully!');
-          };
-        } else {
-          loginBtn.textContent = 'Login';
-          loginBtn.onclick = () => {
-            document.getElementById('login-modal').style.display = 'block';
-          };
-        }
-      };
-
-      window.addEventListener('login-success', updateLoginButtonState);
-      
-      // Also listen to storage events to sync across tabs
-      window.addEventListener('storage', (event) => {
-          if (event.key === 'accessToken') {
-              updateLoginButtonState();
-          }
-      });
-
-      updateLoginButtonState(); // Set initial state
       authWrapper.prepend(loginBtn);
+      syncAuthState();
     }
   }, 200);
 };

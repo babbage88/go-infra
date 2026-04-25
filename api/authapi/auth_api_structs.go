@@ -77,8 +77,6 @@ type LocalLoginResponse struct {
 	UserID       uuid.UUID `json:"user_id"`
 	Username     string    `json:"userName"`
 	Email        string    `json:"email"`
-	Token        string    `json:"accessToken"`
-	RefreshToken string    `json:"refreshToken"`
 	Expiration   time.Time `json:"expiration"`
 }
 

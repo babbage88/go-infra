@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	coredeploy "github.com/babbage88/infra-core/deployment"
 )
@@ -29,7 +30,7 @@ func ListVMsHandler(service *Service) http.HandlerFunc {
 		result, err := service.ListVMs(r.Context(), req)
 		if err != nil {
 			slog.Error("failed to list proxmox VMs", slog.String("error", err.Error()))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeServiceError(w, err)
 			return
 		}
 
@@ -55,7 +56,7 @@ func ListContainersHandler(service *Service) http.HandlerFunc {
 		result, err := service.ListContainers(r.Context(), req)
 		if err != nil {
 			slog.Error("failed to list proxmox containers", slog.String("error", err.Error()))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeServiceError(w, err)
 			return
 		}
 
@@ -81,7 +82,7 @@ func ListWorkloadsHandler(service *Service) http.HandlerFunc {
 		result, err := service.ListWorkloads(r.Context(), req)
 		if err != nil {
 			slog.Error("failed to list proxmox workloads", slog.String("error", err.Error()))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeServiceError(w, err)
 			return
 		}
 
@@ -117,7 +118,7 @@ func StartVMHandler(service *Service) http.HandlerFunc {
 		result, err := service.StartVM(r.Context(), req)
 		if err != nil {
 			slog.Error("failed to start proxmox VM", slog.Int("vmid", vmid), slog.String("error", err.Error()))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeServiceError(w, err)
 			return
 		}
 
@@ -216,6 +217,14 @@ func writeJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
+}
+
+func writeServiceError(w http.ResponseWriter, err error) {
+	status := http.StatusInternalServerError
+	if strings.Contains(err.Error(), "is required") || strings.Contains(err.Error(), "must be greater than zero") {
+		status = http.StatusBadRequest
+	}
+	http.Error(w, err.Error(), status)
 }
 
 func parseListRequest(w http.ResponseWriter, r *http.Request) (coredeploy.ProxmoxVMListRequest, bool) {

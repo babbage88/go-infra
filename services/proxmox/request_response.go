@@ -218,8 +218,31 @@ type ProxmoxVMTemplateResult struct {
 type ListProxmoxVMsParams struct {
 	// Proxmox node name.
 	// in: query
+	// required: true
 	Node string `json:"node"`
 	// Whether to include full VM info.
+	// in: query
+	Full bool `json:"full"`
+}
+
+// swagger:parameters ListProxmoxContainers
+type ListProxmoxContainersParams struct {
+	// Proxmox node name.
+	// in: query
+	// required: true
+	Node string `json:"node"`
+	// Whether to include full container info.
+	// in: query
+	Full bool `json:"full"`
+}
+
+// swagger:parameters ListProxmoxWorkloads
+type ListProxmoxWorkloadsParams struct {
+	// Proxmox node name.
+	// in: query
+	// required: true
+	Node string `json:"node"`
+	// Whether to include full workload info.
 	// in: query
 	Full bool `json:"full"`
 }

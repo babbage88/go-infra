@@ -5,6 +5,9 @@
   "produces": [
     "application/json"
   ],
+  "schemes": [
+    "https"
+  ],
   "swagger": "2.0",
   "info": {
     "title": "go-infra API.",
@@ -18,6 +21,7 @@
     },
     "version": "v1.1.0"
   },
+  "host": "localhost:8993",
   "paths": {
     "/api/v1/database/mariadb/install": {
       "post": {
@@ -154,6 +158,23 @@
         ],
         "summary": "List Proxmox LXC containers.",
         "operationId": "ListProxmoxContainers",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "x-go-name": "Full",
+            "description": "Whether to include full container info.",
+            "name": "full",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/ProxmoxContainerListResponse"
@@ -215,7 +236,8 @@
             "x-go-name": "Node",
             "description": "Proxmox node name.",
             "name": "node",
-            "in": "query"
+            "in": "query",
+            "required": true
           },
           {
             "type": "boolean",
@@ -352,6 +374,23 @@
         ],
         "summary": "List all Proxmox QEMU VMs and LXC containers for a node.",
         "operationId": "ListProxmoxWorkloads",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "x-go-name": "Full",
+            "description": "Whether to include full workload info.",
+            "name": "full",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/responses/ProxmoxWorkloadInventoryResponse"
@@ -1332,10 +1371,11 @@
     },
     "/login": {
       "post": {
-        "description": "Local Auth login with username and password",
+        "description": "Successful login sets secure HTTP-only auth cookies for subsequent requests.",
         "tags": [
           "Authentication"
         ],
+        "summary": "Local Auth login with username and password.",
         "operationId": "LocalLogin",
         "parameters": [
           {
@@ -2778,6 +2818,7 @@
     },
     "/token/refresh": {
       "post": {
+        "description": "When a refresh cookie is present, the request body token is optional.",
         "tags": [
           "Authentication"
         ],
@@ -2811,10 +2852,11 @@
     },
     "/token/verify": {
       "post": {
+        "description": "The token may be supplied by the secure auth cookie or the Authorization header.",
         "tags": [
           "Authentication"
         ],
-        "summary": "Verify a JWT access token's validity.",
+        "summary": "Verify the current access token's validity.",
         "operationId": "VerifyToken",
         "responses": {
           "200": {
@@ -4289,10 +4331,6 @@
     "LoginResponseInfo": {
       "type": "object",
       "properties": {
-        "accessToken": {
-          "type": "string",
-          "x-go-name": "Token"
-        },
         "email": {
           "type": "string",
           "x-go-name": "Email"
@@ -4301,10 +4339,6 @@
           "type": "string",
           "format": "date-time",
           "x-go-name": "Expiration"
-        },
-        "refreshToken": {
-          "type": "string",
-          "x-go-name": "RefreshToken"
         },
         "userName": {
           "type": "string",
@@ -5287,7 +5321,42 @@
     },
     "SSHOptions": {
       "type": "object",
-      "x-go-package": "github.com/babbage88/go-infra/webutils/deployment"
+      "properties": {
+        "host": {
+          "type": "string",
+          "x-go-name": "Host"
+        },
+        "key_path": {
+          "type": "string",
+          "x-go-name": "KeyPath"
+        },
+        "passphrase": {
+          "type": "string",
+          "x-go-name": "Passphrase"
+        },
+        "port": {
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Port"
+        },
+        "private_key_base64": {
+          "type": "string",
+          "x-go-name": "PrivateKeyBase64"
+        },
+        "private_key_pem": {
+          "type": "string",
+          "x-go-name": "PrivateKeyPEM"
+        },
+        "use_agent": {
+          "type": "boolean",
+          "x-go-name": "UseAgent"
+        },
+        "user": {
+          "type": "string",
+          "x-go-name": "User"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
     "SoftDeleteRoleByIdRequest": {
       "type": "object",
@@ -5868,7 +5937,7 @@
   },
   "responses": {
     "CertificateDataRenewResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CertificateData"
       },
@@ -5877,19 +5946,19 @@
       }
     },
     "CreateAppPermissionResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateAppPermissionResult"
       }
     },
     "CreateExternalApplicationResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "CreateHostServerTypeMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -5901,7 +5970,7 @@
       }
     },
     "CreateHostServerTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -5916,7 +5985,7 @@
       }
     },
     "CreatePlatformTypeMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -5928,7 +5997,7 @@
       }
     },
     "CreatePlatformTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -5943,13 +6012,13 @@
       }
     },
     "CreateRolePermissionMapptingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateRolePermissionMappingResponse"
       }
     },
     "CreateSecretResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -5960,43 +6029,43 @@
       }
     },
     "CreateSshKeyHostMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "CreateSshKeyResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyResponse"
       }
     },
     "CreateUserResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserDao"
       }
     },
     "CreateUserRoleResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateUserRoleResponse"
       }
     },
     "DeleteRolePermissionMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/DeleteRolePermissionMappingResponse"
       }
     },
     "DeleteSshKeyHostMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/DeleteSshKeyHostMappingResponse"
       }
     },
     "DeleteSshKeyResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -6009,25 +6078,25 @@
       }
     },
     "EnableDisableUserResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/EnableDisableUserResponse"
       }
     },
     "GarageNodeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GarageNodeResult"
       }
     },
     "GarageTokenResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GarageTokenResult"
       }
     },
     "GetAllAppPermissionsResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetAllAppPermissionsResponse"
       },
@@ -6036,7 +6105,7 @@
       }
     },
     "GetAllExternalApplicationsResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6045,7 +6114,7 @@
       }
     },
     "GetAllHostServerTypesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6054,7 +6123,7 @@
       }
     },
     "GetAllPlatformTypesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6063,7 +6132,7 @@
       }
     },
     "GetAllRolesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetAllRolesResponse"
       },
@@ -6072,7 +6141,7 @@
       }
     },
     "GetAllUsersResponse": {
-      "description": "",
+      "description": "(empty)",
       "headers": {
         "users": {
           "type": "array",
@@ -6083,19 +6152,19 @@
       }
     },
     "GetExternalApplicationByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "GetExternalApplicationByNameResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "GetExternalApplicationIdByNameResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -6106,7 +6175,7 @@
       }
     },
     "GetExternalApplicationNameByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -6118,7 +6187,7 @@
       }
     },
     "GetRolePermissionMappingsResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6127,19 +6196,19 @@
       }
     },
     "GetRolesPermissionCountResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetRolesPermissionCountResponse"
       }
     },
     "GetSshKeyHostMappingByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "GetSshKeyHostMappingsByHostIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6148,7 +6217,7 @@
       }
     },
     "GetSshKeyHostMappingsByKeyIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6157,7 +6226,7 @@
       }
     },
     "GetSshKeyHostMappingsByUserIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6166,7 +6235,7 @@
       }
     },
     "GetSshKeysByUserIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6175,13 +6244,13 @@
       }
     },
     "GetUserByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/GetUserByIdResponse"
       }
     },
     "GetUserSecretEntriesResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6190,19 +6259,19 @@
       }
     },
     "HostServerResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/HostServerResponse"
       }
     },
     "HostServerTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/HostServerType"
       }
     },
     "HostServersResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "array",
         "items": {
@@ -6211,7 +6280,7 @@
       }
     },
     "LocalLoginResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/LoginResponseInfo"
       },
@@ -6220,91 +6289,91 @@
       }
     },
     "MariaDBInstallResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/MariaDBInstallResult"
       }
     },
     "NetworkProbeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/NetworkProbeResponse"
       }
     },
     "PingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/PingResponse"
       }
     },
     "PlatformTypeResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/PlatformType"
       }
     },
     "PostgresAppSetupResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/PostgresAppSetupResult"
       }
     },
     "ProxmoxContainerListResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxContainerListResult"
       }
     },
     "ProxmoxLXCResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxLXCResult"
       }
     },
     "ProxmoxVMCreateResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxVMCreateResult"
       }
     },
     "ProxmoxVMListResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxVMListResult"
       }
     },
     "ProxmoxVMStartResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxVMStartResult"
       }
     },
     "ProxmoxVMTemplateResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxVMTemplateResult"
       }
     },
     "ProxmoxWorkloadInventoryResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxWorkloadInventoryResult"
       }
     },
     "ProxyInstallResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxyInstallResult"
       }
     },
     "RefreshAccessTokenResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/AccessTokens"
       }
     },
     "RetrievedSecretResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "type": "object",
         "properties": {
@@ -6330,49 +6399,49 @@
       }
     },
     "SoftDeleteRoleByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/SoftDeleteRoleByIdResponse"
       }
     },
     "SoftDeleteUserByIdResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/SoftDeleteUserByIdResponse"
       }
     },
     "SystemdAppDeployResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/SystemdAppDeployResult"
       }
     },
     "UpdateExternalApplicationResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ExternalApplicationDao"
       }
     },
     "UpdateSshKeyHostMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/CreateSshKeyHostMappingResponse"
       }
     },
     "UpdateUserRoleMappingResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UpdateUserRoleMappingResponse"
       }
     },
     "UserPasswordUpdateResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/UserPasswordUpdateResponse"
       }
     },
     "ValkeyInstallResponse": {
-      "description": "",
+      "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ValkeyInstallResult"
       }
@@ -6381,7 +6450,7 @@
   "securityDefinitions": {
     "bearer": {
       "type": "apiKey",
-      "name": "Authorization",
+      "name": "Cookie",
       "in": "header"
     }
   },

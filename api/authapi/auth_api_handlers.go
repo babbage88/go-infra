@@ -14,7 +14,8 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // swagger:route POST /login Authentication LocalLogin
-// Local Auth login with username and password
+// Local Auth login with username and password.
+// Successful login sets secure HTTP-only auth cookies for subsequent requests.
 // responses:
 //
 //	200: LocalLoginResponse
@@ -59,6 +60,7 @@ func LoginHandler(auth_svc AuthService) http.Handler {
 
 // swagger:route POST /token/refresh Authentication RefreshAccessToken
 // Refresh accessTokens and return to client.
+// When a refresh cookie is present, the request body token is optional.
 // responses:
 //
 //	200: RefreshAccessTokenResponse
@@ -115,7 +117,8 @@ func RefreshAccessTokensHandler(ua AuthService) http.Handler {
 }
 
 // swagger:route POST /token/verify Authentication VerifyToken
-// Verify a JWT access token's validity.
+// Verify the current access token's validity.
+// The token may be supplied by the secure auth cookie or the Authorization header.
 // responses:
 //
 //	200: description:Valid Token

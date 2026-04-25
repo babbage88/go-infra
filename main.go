@@ -20,7 +20,7 @@
 //	    SecurityDefinitions:
 //	      bearer:
 //	         type: apiKey
-//	         name: Authorization
+//	         name: Cookie
 //	         in: header
 //
 // swagger:meta
