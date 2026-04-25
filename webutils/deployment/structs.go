@@ -14,6 +14,10 @@ type ValkeyInstallRequest = coredeploy.ValkeyInstallRequest
 type ValkeyInstallResult = coredeploy.ValkeyInstallResult
 type MariaDBInstallRequest = coredeploy.MariaDBInstallRequest
 type MariaDBInstallResult = coredeploy.MariaDBInstallResult
+type SystemdAppDeployRequest = coredeploy.SystemdAppDeployRequest
+type SystemdAppDeployResult = coredeploy.SystemdAppDeployResult
+type PostgresAppSetupRequest = coredeploy.PostgresAppSetupRequest
+type PostgresAppSetupResult = coredeploy.PostgresAppSetupResult
 
 // swagger:parameters InstallProxy
 type InstallProxyParams struct {
@@ -49,6 +53,18 @@ type CreateGarageTokenParams struct {
 	Body GarageTokenRequest
 }
 
+// swagger:parameters DeploySystemdApp
+type DeploySystemdAppParams struct {
+	// in: body
+	Body SystemdAppDeployRequest
+}
+
+// swagger:parameters SetupPostgresApp
+type SetupPostgresAppParams struct {
+	// in: body
+	Body PostgresAppSetupRequest
+}
+
 // swagger:response ProxyInstallResponse
 type ProxyInstallResponse struct {
 	// in: body
@@ -77,4 +93,16 @@ type GarageNodeResponse struct {
 type GarageTokenResponse struct {
 	// in: body
 	Body GarageTokenResult
+}
+
+// swagger:response SystemdAppDeployResponse
+type SystemdAppDeployResponse struct {
+	// in: body
+	Body SystemdAppDeployResult
+}
+
+// swagger:response PostgresAppSetupResponse
+type PostgresAppSetupResponse struct {
+	// in: body
+	Body PostgresAppSetupResult
 }

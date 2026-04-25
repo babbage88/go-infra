@@ -152,6 +152,60 @@ func CreateGarageTokenHandler() http.HandlerFunc {
 	}
 }
 
+// swagger:route POST /api/v1/deploy/systemd-app Deployment DeploySystemdApp
+// Build or upload and deploy an application as a remote systemd service.
+// responses:
+//
+//	200: SystemdAppDeployResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func DeploySystemdAppHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coredeploy.SystemdAppDeployRequest{}
+		if !decodeJSONBody(w, r, &req) {
+			return
+		}
+		req = coredeploy.MergeSystemdAppDeployDefaults(req, coredeploy.DefaultSystemdAppDeployRequest())
+
+		result, err := coredeploy.DeploySystemdApp(req)
+		if err != nil {
+			slog.Error("failed to deploy systemd app", slog.String("error", err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route POST /api/v1/database/postgres/app Deployment SetupPostgresApp
+// Create or update a PostgreSQL application database and role over SSH.
+// responses:
+//
+//	200: PostgresAppSetupResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func SetupPostgresAppHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coredeploy.PostgresAppSetupRequest{}
+		if !decodeJSONBody(w, r, &req) {
+			return
+		}
+		req = coredeploy.MergePostgresAppSetupDefaults(req, coredeploy.DefaultPostgresAppSetupRequest())
+
+		result, err := coredeploy.SetupPostgresApp(req)
+		if err != nil {
+			slog.Error("failed to setup postgres app database", slog.String("error", err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
 func decodeJSONBody(w http.ResponseWriter, r *http.Request, dest interface{}) bool {
 	if r.Body == nil {
 		return true
