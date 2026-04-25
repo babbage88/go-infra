@@ -139,27 +139,27 @@ type ProxmoxLXCResult struct {
 
 // swagger:model ProxmoxVMCreateRequest
 type ProxmoxVMCreateRequest struct {
-	Auth              ProxmoxAuthOptions `json:"auth,omitempty"`
+	Auth              ProxmoxAuthOptions    `json:"auth,omitempty"`
 	SSH               coredeploy.SSHOptions `json:"ssh,omitempty"`
-	Node              string             `json:"node,omitempty"`
-	VMID              int                `json:"vmid,omitempty"`
-	TemplateVMID      int                `json:"template_vmid,omitempty"`
-	Name              string             `json:"name,omitempty"`
-	MemoryMB          int                `json:"memory_mb,omitempty"`
-	Sockets           int                `json:"sockets,omitempty"`
-	Cores             int                `json:"cores,omitempty"`
-	Description       string             `json:"description,omitempty"`
-	Storage           string             `json:"storage,omitempty"`
-	FullClone         *bool              `json:"full_clone,omitempty"`
-	Start             *bool              `json:"start,omitempty"`
-	CIUser            string             `json:"ci_user,omitempty"`
-	CIPassword        string             `json:"ci_password,omitempty"`
-	SshPublicKeys     []string           `json:"ssh_public_keys,omitempty"`
-	IPConfig0         string             `json:"ipconfig0,omitempty"`
-	Nameserver        string             `json:"nameserver,omitempty"`
-	SearchDomain      string             `json:"search_domain,omitempty"`
-	CISnippetsStorage string             `json:"ci_snippets_storage,omitempty"`
-	CICustomScript    string             `json:"ci_custom_script,omitempty"`
+	Node              string                `json:"node,omitempty"`
+	VMID              int                   `json:"vmid,omitempty"`
+	TemplateVMID      int                   `json:"template_vmid,omitempty"`
+	Name              string                `json:"name,omitempty"`
+	MemoryMB          int                   `json:"memory_mb,omitempty"`
+	Sockets           int                   `json:"sockets,omitempty"`
+	Cores             int                   `json:"cores,omitempty"`
+	Description       string                `json:"description,omitempty"`
+	Storage           string                `json:"storage,omitempty"`
+	FullClone         *bool                 `json:"full_clone,omitempty"`
+	Start             *bool                 `json:"start,omitempty"`
+	CIUser            string                `json:"ci_user,omitempty"`
+	CIPassword        string                `json:"ci_password,omitempty"`
+	SshPublicKeys     []string              `json:"ssh_public_keys,omitempty"`
+	IPConfig0         string                `json:"ipconfig0,omitempty"`
+	Nameserver        string                `json:"nameserver,omitempty"`
+	SearchDomain      string                `json:"search_domain,omitempty"`
+	CISnippetsStorage string                `json:"ci_snippets_storage,omitempty"`
+	CICustomScript    string                `json:"ci_custom_script,omitempty"`
 }
 
 // swagger:model ProxmoxVMCreateResult
@@ -174,25 +174,25 @@ type ProxmoxVMCreateResult struct {
 
 // swagger:model ProxmoxVMTemplateRequest
 type ProxmoxVMTemplateRequest struct {
-	Auth             ProxmoxAuthOptions `json:"auth,omitempty"`
+	Auth             ProxmoxAuthOptions    `json:"auth,omitempty"`
 	SSH              coredeploy.SSHOptions `json:"ssh,omitempty"`
-	Node             string             `json:"node,omitempty"`
-	VMID             int                `json:"vmid,omitempty"`
-	Name             string             `json:"name,omitempty"`
-	ImageURL         string             `json:"image_url,omitempty"`
-	Storage          string             `json:"storage,omitempty"`
-	CloudInitStorage string             `json:"cloudinit_storage,omitempty"`
-	MemoryMB         int                `json:"memory_mb,omitempty"`
-	Sockets          int                `json:"sockets,omitempty"`
-	Cores            int                `json:"cores,omitempty"`
-	Description      string             `json:"description,omitempty"`
-	Net0             string             `json:"net0,omitempty"`
-	SCSIHW           string             `json:"scsihw,omitempty"`
-	DiskBus          string             `json:"disk_bus,omitempty"`
-	BootOrder        string             `json:"boot_order,omitempty"`
-	Agent            *bool              `json:"agent,omitempty"`
-	SerialConsole    *bool              `json:"serial_console,omitempty"`
-	CleanupImage     *bool              `json:"cleanup_image,omitempty"`
+	Node             string                `json:"node,omitempty"`
+	VMID             int                   `json:"vmid,omitempty"`
+	Name             string                `json:"name,omitempty"`
+	ImageURL         string                `json:"image_url,omitempty"`
+	Storage          string                `json:"storage,omitempty"`
+	CloudInitStorage string                `json:"cloudinit_storage,omitempty"`
+	MemoryMB         int                   `json:"memory_mb,omitempty"`
+	Sockets          int                   `json:"sockets,omitempty"`
+	Cores            int                   `json:"cores,omitempty"`
+	Description      string                `json:"description,omitempty"`
+	Net0             string                `json:"net0,omitempty"`
+	SCSIHW           string                `json:"scsihw,omitempty"`
+	DiskBus          string                `json:"disk_bus,omitempty"`
+	BootOrder        string                `json:"boot_order,omitempty"`
+	Agent            *bool                 `json:"agent,omitempty"`
+	SerialConsole    *bool                 `json:"serial_console,omitempty"`
+	CleanupImage     *bool                 `json:"cleanup_image,omitempty"`
 }
 
 // swagger:model ProxmoxVMTemplateResult

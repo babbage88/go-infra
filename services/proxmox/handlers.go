@@ -125,6 +125,93 @@ func StartVMHandler(service *Service) http.HandlerFunc {
 	}
 }
 
+// swagger:route POST /api/v1/proxmox/lxc Proxmox CreateProxmoxLXC
+// Create a Proxmox LXC container.
+// responses:
+//
+//	200: ProxmoxLXCResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreateLXCHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coredeploy.ProxmoxLXCRequest{}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.CreateLXC(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to create proxmox LXC", slog.String("error", err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route POST /api/v1/proxmox/vm Proxmox CreateProxmoxVM
+// Create a Proxmox VM from a template.
+// responses:
+//
+//	200: ProxmoxVMCreateResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreateVMHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coredeploy.ProxmoxVMCreateRequest{}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.CreateVM(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to create proxmox VM", slog.String("error", err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route POST /api/v1/proxmox/vm/template Proxmox CreateProxmoxVMTemplate
+// Create a Proxmox VM template from a cloud image.
+// responses:
+//
+//	200: ProxmoxVMTemplateResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func CreateVMTemplateHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := coredeploy.ProxmoxVMTemplateRequest{}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.CreateVMTemplate(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to create proxmox VM template", slog.String("error", err.Error()))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
 func writeJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

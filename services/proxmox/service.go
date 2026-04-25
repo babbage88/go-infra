@@ -177,6 +177,21 @@ func (s *Service) StartVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequ
 	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
 }
 
+func (s *Service) CreateLXC(ctx context.Context, req coredeploy.ProxmoxLXCRequest) (coredeploy.ProxmoxLXCResult, error) {
+	req = s.mergeLXCDefaults(req)
+	return coredeploy.CreateProxmoxLXC(req)
+}
+
+func (s *Service) CreateVM(ctx context.Context, req coredeploy.ProxmoxVMCreateRequest) (coredeploy.ProxmoxVMCreateResult, error) {
+	req = s.mergeVMCreateDefaults(req)
+	return coredeploy.CreateProxmoxVM(req)
+}
+
+func (s *Service) CreateVMTemplate(ctx context.Context, req coredeploy.ProxmoxVMTemplateRequest) (coredeploy.ProxmoxVMTemplateResult, error) {
+	req = s.mergeVMTemplateDefaults(req)
+	return coredeploy.CreateProxmoxVMTemplate(req)
+}
+
 func (s *Service) mergeListDefaults(req coredeploy.ProxmoxVMListRequest) coredeploy.ProxmoxVMListRequest {
 	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
 	if strings.TrimSpace(req.Node) == "" {
@@ -190,6 +205,30 @@ func (s *Service) mergeListDefaults(req coredeploy.ProxmoxVMListRequest) coredep
 }
 
 func (s *Service) mergeStartDefaults(req coredeploy.ProxmoxVMStartRequest) coredeploy.ProxmoxVMStartRequest {
+	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
+	if strings.TrimSpace(req.Node) == "" {
+		req.Node = s.defaultNode
+	}
+	return req
+}
+
+func (s *Service) mergeLXCDefaults(req coredeploy.ProxmoxLXCRequest) coredeploy.ProxmoxLXCRequest {
+	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
+	if strings.TrimSpace(req.Node) == "" {
+		req.Node = s.defaultNode
+	}
+	return req
+}
+
+func (s *Service) mergeVMCreateDefaults(req coredeploy.ProxmoxVMCreateRequest) coredeploy.ProxmoxVMCreateRequest {
+	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
+	if strings.TrimSpace(req.Node) == "" {
+		req.Node = s.defaultNode
+	}
+	return req
+}
+
+func (s *Service) mergeVMTemplateDefaults(req coredeploy.ProxmoxVMTemplateRequest) coredeploy.ProxmoxVMTemplateRequest {
 	req.Auth = mergeAuthDefaults(req.Auth, s.defaultAuth)
 	if strings.TrimSpace(req.Node) == "" {
 		req.Node = s.defaultNode

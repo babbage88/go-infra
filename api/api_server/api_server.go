@@ -199,6 +199,15 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("POST /api/v1/proxmox/vm/{vmid}/start", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.StartVMHandler(proxmoxService)),
 	))
+	mux.Handle("POST /api/v1/proxmox/lxc", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.CreateLXCHandler(proxmoxService)),
+	))
+	mux.Handle("POST /api/v1/proxmox/vm", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.CreateVMHandler(proxmoxService)),
+	))
+	mux.Handle("POST /api/v1/proxmox/vm/template", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.CreateVMTemplateHandler(proxmoxService)),
+	))
 	mux.Handle("POST /api/v1/database/mariadb/install", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.InstallMariaDBHandler()),
 	))
@@ -213,6 +222,12 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("POST /api/v1/storage/s3/garage/token", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.CreateGarageTokenHandler()),
+	))
+	mux.Handle("POST /api/v1/deploy/systemd-app", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.DeploySystemdAppHandler()),
+	))
+	mux.Handle("POST /api/v1/database/postgres/app", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", deployweb.SetupPostgresAppHandler()),
 	))
 
 	// Add Swagger UI handler
