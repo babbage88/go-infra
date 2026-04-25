@@ -2,21 +2,36 @@ package deployment
 
 import coredeploy "github.com/babbage88/infra-core/deployment"
 
+// swagger:model SSHOptions
 type SSHOptions = coredeploy.SSHOptions
 
+// swagger:model ProxyInstallRequest
 type ProxyInstallRequest = coredeploy.ProxyInstallRequest
+// swagger:model ProxyInstallResult
 type ProxyInstallResult = coredeploy.ProxyInstallResult
+// swagger:model GarageTokenRequest
 type GarageTokenRequest = coredeploy.GarageTokenRequest
+// swagger:model GarageTokenResult
 type GarageTokenResult = coredeploy.GarageTokenResult
+// swagger:model GarageNodeRequest
 type GarageNodeRequest = coredeploy.GarageNodeRequest
+// swagger:model GarageNodeResult
 type GarageNodeResult = coredeploy.GarageNodeResult
+// swagger:model ValkeyInstallRequest
 type ValkeyInstallRequest = coredeploy.ValkeyInstallRequest
+// swagger:model ValkeyInstallResult
 type ValkeyInstallResult = coredeploy.ValkeyInstallResult
+// swagger:model MariaDBInstallRequest
 type MariaDBInstallRequest = coredeploy.MariaDBInstallRequest
+// swagger:model MariaDBInstallResult
 type MariaDBInstallResult = coredeploy.MariaDBInstallResult
+// swagger:model SystemdAppDeployRequest
 type SystemdAppDeployRequest = coredeploy.SystemdAppDeployRequest
+// swagger:model SystemdAppDeployResult
 type SystemdAppDeployResult = coredeploy.SystemdAppDeployResult
+// swagger:model PostgresAppSetupRequest
 type PostgresAppSetupRequest = coredeploy.PostgresAppSetupRequest
+// swagger:model PostgresAppSetupResult
 type PostgresAppSetupResult = coredeploy.PostgresAppSetupResult
 
 // swagger:parameters InstallProxy
