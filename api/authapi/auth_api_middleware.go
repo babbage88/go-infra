@@ -166,11 +166,10 @@ func AuthMiddlewareRequireRoleOrPermission(ua AuthService, roleName string, perm
 
 // parseAndValidateToken extracts the token from the request and returns the claims if valid
 func parseAndValidateToken(r *http.Request) (jwt.MapClaims, error) {
-	authHeader := r.Header.Get("Authorization")
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return nil, fmt.Errorf("missing or malformed Authorization header")
+	jwtToken := GetAccessTokenFromRequest(r)
+	if jwtToken == "" {
+		return nil, fmt.Errorf("missing authentication token")
 	}
-	jwtToken := strings.TrimPrefix(authHeader, "Bearer ")
 
 	secret := os.Getenv("JWT_KEY")
 	if secret == "" {

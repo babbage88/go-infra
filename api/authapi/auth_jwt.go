@@ -177,10 +177,17 @@ func (a *LocalAuthService) RefreshAccessToken(refreshToken string) (AuthToken, e
 		usrInfo, err := a.GetUserById(uid)
 		if err == nil && usrInfo.Enabled {
 			signingMethod := getJwtSigningMenthodFromEnv()
-			tokenPair.Token, err = NewAccessToken(usrInfo.Id, usrInfo.RoleIds, usrInfo.Email, signingMethod)
+			expireMinutes, parseErr := parseEnvInt64("EXPIRATION_MINUTES", defaultAuthTokenExpirationMinutes)
+			if parseErr != nil || expireMinutes <= 0 {
+				expireMinutes = defaultAuthTokenExpirationMinutes
+			}
+
+			expTime := time.Now().Add(time.Minute * time.Duration(expireMinutes))
+			tokenPair.Token, err = NewAccessTokenWithExp(usrInfo.Id, usrInfo.RoleIds, usrInfo.Email, signingMethod, expTime)
 			if err != nil {
 				return tokenPair, fmt.Errorf("error creating NewAccessToken %w", err)
 			}
+			tokenPair.Expiration = expTime
 			tokenPair.Email = usrInfo.Email
 			tokenPair.Username = usrInfo.UserName
 			return tokenPair, nil

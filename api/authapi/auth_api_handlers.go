@@ -3,9 +3,9 @@ package authapi
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
-	"strings"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,10 +36,12 @@ func LoginHandleFunc(auth_svc AuthService) func(w http.ResponseWriter, r *http.R
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error("Error verifying password", slog.String("Error", err.Error()))
+				return
 			}
+			setAuthCookies(w, token.Token, token.RefreshToken, token.Expiration)
 			response := LocalLoginResponse{UserID: LoginResult.UserInfo.Id,
 				Username: LoginResult.UserInfo.UserName, Email: LoginResult.UserInfo.Email,
-				Token: token.Token, RefreshToken: token.RefreshToken, Expiration: token.Expiration}
+				Expiration: token.Expiration}
 			jsonResponse, _ := json.Marshal(response)
 			w.WriteHeader(http.StatusOK)
 			w.Write(jsonResponse)
@@ -66,10 +68,21 @@ func LoginHandler(auth_svc AuthService) http.Handler {
 func RefreshAccessTokensHandleFunc(ua AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var refreshReq TokenRefreshReq
-		err := json.NewDecoder(r.Body).Decode(&refreshReq)
-		if err != nil {
-			slog.Error("Error parsing refresh token from request body", slog.String("Error", err.Error()))
-			http.Error(w, "error parsing refresh token from request body", http.StatusBadRequest)
+		if r.Body != nil {
+			err := json.NewDecoder(r.Body).Decode(&refreshReq)
+			if err != nil && err != io.EOF {
+				slog.Error("Error parsing refresh token from request body", slog.String("Error", err.Error()))
+				http.Error(w, "error parsing refresh token from request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		if refreshReq.RefreshToken == "" {
+			refreshReq.RefreshToken = GetRefreshTokenFromRequest(r)
+		}
+		if refreshReq.RefreshToken == "" {
+			http.Error(w, "missing refresh token", http.StatusUnauthorized)
+			return
 		}
 
 		newtokens, err := ua.RefreshAccessToken(refreshReq.RefreshToken)
@@ -77,17 +90,19 @@ func RefreshAccessTokensHandleFunc(ua AuthService) http.HandlerFunc {
 			slog.Error("Error refreshing auth tokens", slog.String("Error", err.Error()))
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized, please login."))
+			return
 		}
+		setAuthCookies(w, newtokens.Token, refreshReq.RefreshToken, newtokens.Expiration)
 		resp := AccessTokenRefreshResponse{AccessToken: newtokens.Token,
-			RefreshToken: refreshReq.RefreshToken,
-			UserID:       newtokens.UserID,
-			Username:     newtokens.Username,
-			Email:        newtokens.Email,
+			UserID:   newtokens.UserID,
+			Username: newtokens.Username,
+			Email:    newtokens.Email,
 		}
 		w.Header().Set("Content-Type", "application/json")
 		jsonResponse, err := json.Marshal(resp)
 		if err != nil {
 			http.Error(w, "error marshaling response", http.StatusInternalServerError)
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -110,20 +125,11 @@ func RefreshAccessTokensHandler(ua AuthService) http.Handler {
 func VerifyTokenHandler(auth_svc AuthService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			http.Error(w, `{"error":"Authorization header missing"}`, http.StatusBadRequest)
+		tokenString := GetAccessTokenFromRequest(r)
+		if tokenString == "" {
+			http.Error(w, `{"error":"Authentication token missing"}`, http.StatusUnauthorized)
 			return
 		}
-
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			http.Error(w, `{"error":"Authorization header must be in 'Bearer <token>' format"}`, http.StatusBadRequest)
-			return
-		}
-
-		tokenString := parts[1]
 
 		err := auth_svc.VerifyToken(tokenString)
 		if err != nil {
@@ -134,4 +140,35 @@ func VerifyTokenHandler(auth_svc AuthService) http.Handler {
 
 		json.NewEncoder(w).Encode(map[string]string{"status": "token valid"})
 	})
+}
+
+func LogoutHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clearAuthCookies(w)
+		w.WriteHeader(http.StatusNoContent)
+	})
+}
+
+func SessionHandler(authSvc AuthService) http.Handler {
+	return AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, err := GetUserIDFromContext(r.Context())
+		if err != nil {
+			http.Error(w, `{"error":"Unable to determine user from token"}`, http.StatusUnauthorized)
+			return
+		}
+
+		user, err := authSvc.GetUserById(userID)
+		if err != nil {
+			http.Error(w, `{"error":"Unable to load current user"}`, http.StatusUnauthorized)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(SessionInfoResponse{
+			UserID:   user.Id,
+			Username: user.UserName,
+			Email:    user.Email,
+			Roles:    user.Roles,
+		})
+	}))
 }

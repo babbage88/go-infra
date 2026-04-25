@@ -48,6 +48,13 @@ type AccessTokenRefreshResponse struct {
 	Email        string    `json:"email"`
 }
 
+type SessionInfoResponse struct {
+	UserID   uuid.UUID `json:"user_id"`
+	Username string    `json:"userName"`
+	Email    string    `json:"email"`
+	Roles    []string  `json:"roles"`
+}
+
 // Login Request takes  in Username and Password.
 // swagger:parameters LocalLogin
 type UserLoginReqWrapper struct {

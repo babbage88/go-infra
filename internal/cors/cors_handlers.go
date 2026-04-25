@@ -14,26 +14,21 @@ func VerifyRequestPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func EnableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Authorization, origin, content-type, accept, x-requested-with")
-	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	applyCORSHeaders(*w, &http.Request{Header: http.Header{}}, "GET, POST, PUT, DELETE, OPTIONS")
 }
 
 func HandlerCorsAndOptions(w http.ResponseWriter, r *http.Request) {
-	EnableCors(&w)
+	applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 	if r.Method == "OPTIONS" {
 		slog.Info("Received OPTIONS request")
-		EnableCors(&w)
+		applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 	}
 }
 
 // CORSMiddleware adds CORS headers and handles OPTIONS requests.
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Add CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 
 		// Handle OPTIONS requests
 		if r.Method == http.MethodOptions {
@@ -48,9 +43,7 @@ func CORSMiddleware(next http.Handler) http.Handler {
 
 // handleOPTIONS handles CORS preflight OPTIONS requests.
 func handleOPTIONS(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -75,10 +68,7 @@ func CORSWithPOST(next http.Handler) http.Handler {
 			return
 		}
 
-		// Add CORS headers for non-OPTIONS requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)
@@ -106,10 +96,7 @@ func CORSWithGET(next http.Handler) http.Handler {
 			return
 		}
 
-		// Add CORS headers for non-OPTIONS requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
+		applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)
@@ -131,10 +118,7 @@ func CORSWithDELETE(next http.Handler) http.Handler {
 			return
 		}
 
-		// Add CORS headers for non-OPTIONS requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)
@@ -156,10 +140,7 @@ func CORSWithPUT(next http.Handler) http.Handler {
 			return
 		}
 
-		// Add CORS headers for non-OPTIONS requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Origin, Content-Type, Accept, X-Requested-With")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		applyCORSHeaders(w, r, "GET, POST, PUT, DELETE, OPTIONS")
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)

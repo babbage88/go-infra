@@ -454,15 +454,8 @@ func fetchGitHubPrimaryEmail(ctx context.Context, accessToken string) (string, e
 }
 
 func redirectWithGitHubAuthSuccess(w http.ResponseWriter, r *http.Request, redirectURI string, authToken AuthToken) {
-	fragment := url.Values{}
-	fragment.Set("accessToken", authToken.Token)
-	fragment.Set("refreshToken", authToken.RefreshToken)
-	fragment.Set("user_id", authToken.UserID.String())
-	fragment.Set("userName", authToken.Username)
-	fragment.Set("email", authToken.Email)
-
-	redirectTo := redirectURI + "#" + fragment.Encode()
-	http.Redirect(w, r, redirectTo, http.StatusTemporaryRedirect)
+	setAuthCookies(w, authToken.Token, authToken.RefreshToken, authToken.Expiration)
+	http.Redirect(w, r, redirectURI, http.StatusTemporaryRedirect)
 }
 
 func redirectWithGitHubAuthError(w http.ResponseWriter, r *http.Request, redirectURI string, message string) {

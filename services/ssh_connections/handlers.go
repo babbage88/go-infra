@@ -187,6 +187,11 @@ func (m *SSHConnectionManager) SSHWebSocketHandler(w http.ResponseWriter, r *htt
 	// Extract JWT from header or query param
 	token := r.Header.Get("Authorization")
 	if token == "" {
+		if accessToken := authapi.GetAccessTokenFromRequest(r); accessToken != "" {
+			token = "Bearer " + accessToken
+		}
+	}
+	if token == "" {
 		token = r.URL.Query().Get("token")
 		if token != "" {
 			token = "Bearer " + token
