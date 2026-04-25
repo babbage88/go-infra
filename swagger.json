@@ -192,12 +192,25 @@
         "operationId": "ListProxmoxContainers",
         "parameters": [
           {
+            "$ref": "#/definitions/UUID",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "$ref": "#/definitions/UUID",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
             "type": "string",
             "x-go-name": "Node",
-            "description": "Proxmox node name.",
+            "description": "Proxmox node name. Optional when host_server_id resolves the node automatically.",
             "name": "node",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "boolean",
@@ -296,12 +309,25 @@
         "operationId": "ListProxmoxVMs",
         "parameters": [
           {
+            "$ref": "#/definitions/UUID",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "$ref": "#/definitions/UUID",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
             "type": "string",
             "x-go-name": "Node",
-            "description": "Proxmox node name.",
+            "description": "Proxmox node name. Optional when host_server_id resolves the node automatically.",
             "name": "node",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "boolean",
@@ -440,12 +466,25 @@
         "operationId": "ListProxmoxWorkloads",
         "parameters": [
           {
+            "$ref": "#/definitions/UUID",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "$ref": "#/definitions/UUID",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
             "type": "string",
             "x-go-name": "Node",
-            "description": "Proxmox node name.",
+            "description": "Proxmox node name. Optional when host_server_id resolves the node automatically.",
             "name": "node",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "boolean",
@@ -5044,10 +5083,6 @@
         "host_server_id": {
           "$ref": "#/definitions/UUID"
         },
-        "host_url": {
-          "type": "string",
-          "x-go-name": "HostURL"
-        },
         "node": {
           "type": "string",
           "x-go-name": "Node"
@@ -5063,9 +5098,6 @@
         "role": {
           "type": "string",
           "x-go-name": "Role"
-        },
-        "ssh": {
-          "$ref": "#/definitions/SSHOptions"
         },
         "store_as_user_secret": {
           "type": "boolean",
@@ -5315,9 +5347,6 @@
           "type": "string",
           "x-go-name": "Arch"
         },
-        "auth": {
-          "$ref": "#/definitions/ProxmoxAuthOptions"
-        },
         "cmode": {
           "type": "string",
           "x-go-name": "Cmode"
@@ -5481,9 +5510,6 @@
           "type": "string",
           "x-go-name": "Realm"
         },
-        "ssh": {
-          "$ref": "#/definitions/SSHOptions"
-        },
         "username": {
           "type": "string",
           "x-go-name": "Username"
@@ -5589,9 +5615,6 @@
     "ProxmoxVMCreateRequest": {
       "type": "object",
       "properties": {
-        "auth": {
-          "$ref": "#/definitions/ProxmoxAuthOptions"
-        },
         "ci_custom_script": {
           "type": "string",
           "x-go-name": "CICustomScript"
@@ -5656,9 +5679,6 @@
           "type": "integer",
           "format": "int64",
           "x-go-name": "Sockets"
-        },
-        "ssh": {
-          "$ref": "#/definitions/SSHOptions"
         },
         "ssh_public_keys": {
           "type": "array",
@@ -5740,9 +5760,6 @@
     "ProxmoxVMStartRequest": {
       "type": "object",
       "properties": {
-        "auth": {
-          "$ref": "#/definitions/ProxmoxAuthOptions"
-        },
         "host_server_id": {
           "$ref": "#/definitions/UUID"
         },
@@ -5786,9 +5803,6 @@
         "agent": {
           "type": "boolean",
           "x-go-name": "Agent"
-        },
-        "auth": {
-          "$ref": "#/definitions/ProxmoxAuthOptions"
         },
         "boot_order": {
           "type": "string",
@@ -5854,9 +5868,6 @@
           "type": "integer",
           "format": "int64",
           "x-go-name": "Sockets"
-        },
-        "ssh": {
-          "$ref": "#/definitions/SSHOptions"
         },
         "storage": {
           "type": "string",
@@ -6146,7 +6157,7 @@
           "x-go-name": "User"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/webutils/deployment"
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
     "SoftDeleteRoleByIdRequest": {
       "type": "object",

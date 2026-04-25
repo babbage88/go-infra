@@ -108,14 +108,19 @@ func StartVMHandler(service *Service) http.HandlerFunc {
 			return
 		}
 
-		req := coredeploy.ProxmoxVMStartRequest{VMID: vmid}
+		body := ProxmoxVMStartRequest{VMID: vmid}
 		if r.Body != nil {
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
 		}
-		req.VMID = vmid
+		req := coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    body.HostServerID,
+			ProxmoxSecretID: body.ProxmoxSecretID,
+			Node:            body.Node,
+			VMID:            vmid,
+		}
 
 		result, err := service.StartVM(r.Context(), req)
 		if err != nil {
@@ -138,12 +143,39 @@ func StartVMHandler(service *Service) http.HandlerFunc {
 //	500: description:Internal Server Error
 func CreateLXCHandler(service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := coredeploy.ProxmoxLXCRequest{}
+		body := ProxmoxLXCRequest{}
 		if r.Body != nil {
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
+		}
+		req := coredeploy.ProxmoxLXCRequest{
+			HostServerID:    body.HostServerID,
+			ProxmoxSecretID: body.ProxmoxSecretID,
+			Node:            body.Node,
+			VMID:            body.VMID,
+			Hostname:        body.Hostname,
+			Password:        body.Password,
+			OSTemplate:      body.OSTemplate,
+			SshPublicKeys:   body.SshPublicKeys,
+			Storage:         body.Storage,
+			RootFSSize:      body.RootFSSize,
+			Memory:          body.Memory,
+			Swap:            body.Swap,
+			Cores:           body.Cores,
+			CPULimit:        body.CPULimit,
+			CPUUnits:        body.CPUUnits,
+			Net0:            body.Net0,
+			Arch:            body.Arch,
+			Cmode:           body.Cmode,
+			Features:        body.Features,
+			Nameserver:      body.Nameserver,
+			SearchDomain:    body.SearchDomain,
+			Description:     body.Description,
+			Unprivileged:    body.Unprivileged,
+			Start:           body.Start,
+			Console:         body.Console,
 		}
 
 		result, err := service.CreateLXC(r.Context(), req)
@@ -167,12 +199,35 @@ func CreateLXCHandler(service *Service) http.HandlerFunc {
 //	500: description:Internal Server Error
 func CreateVMHandler(service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := coredeploy.ProxmoxVMCreateRequest{}
+		body := ProxmoxVMCreateRequest{}
 		if r.Body != nil {
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
+		}
+		req := coredeploy.ProxmoxVMCreateRequest{
+			HostServerID:      body.HostServerID,
+			ProxmoxSecretID:   body.ProxmoxSecretID,
+			Node:              body.Node,
+			VMID:              body.VMID,
+			TemplateVMID:      body.TemplateVMID,
+			Name:              body.Name,
+			MemoryMB:          body.MemoryMB,
+			Sockets:           body.Sockets,
+			Cores:             body.Cores,
+			Description:       body.Description,
+			Storage:           body.Storage,
+			FullClone:         body.FullClone,
+			Start:             body.Start,
+			CIUser:            body.CIUser,
+			CIPassword:        body.CIPassword,
+			SshPublicKeys:     body.SshPublicKeys,
+			IPConfig0:         body.IPConfig0,
+			Nameserver:        body.Nameserver,
+			SearchDomain:      body.SearchDomain,
+			CISnippetsStorage: body.CISnippetsStorage,
+			CICustomScript:    body.CICustomScript,
 		}
 
 		result, err := service.CreateVM(r.Context(), req)
@@ -196,12 +251,33 @@ func CreateVMHandler(service *Service) http.HandlerFunc {
 //	500: description:Internal Server Error
 func CreateVMTemplateHandler(service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := coredeploy.ProxmoxVMTemplateRequest{}
+		body := ProxmoxVMTemplateRequest{}
 		if r.Body != nil {
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
+		}
+		req := coredeploy.ProxmoxVMTemplateRequest{
+			HostServerID:     body.HostServerID,
+			ProxmoxSecretID:  body.ProxmoxSecretID,
+			Node:             body.Node,
+			VMID:             body.VMID,
+			Name:             body.Name,
+			ImageURL:         body.ImageURL,
+			Storage:          body.Storage,
+			CloudInitStorage: body.CloudInitStorage,
+			MemoryMB:         body.MemoryMB,
+			Sockets:          body.Sockets,
+			Cores:            body.Cores,
+			Description:      body.Description,
+			Net0:             body.Net0,
+			SCSIHW:           body.SCSIHW,
+			DiskBus:          body.DiskBus,
+			BootOrder:        body.BootOrder,
+			Agent:            body.Agent,
+			SerialConsole:    body.SerialConsole,
+			CleanupImage:     body.CleanupImage,
 		}
 
 		result, err := service.CreateVMTemplate(r.Context(), req)
@@ -225,12 +301,21 @@ func CreateVMTemplateHandler(service *Service) http.HandlerFunc {
 //	500: description:Internal Server Error
 func CreatePVEUserHandler(service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := coreproxmox.CreatePVEUserRequest{}
+		body := ProxmoxPVEUserCreateRequest{}
 		if r.Body != nil {
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
+		}
+		req := coreproxmox.CreatePVEUserRequest{
+			HostServerID: body.HostServerID,
+			Node:         body.Node,
+			Username:     body.Username,
+			Realm:        body.Realm,
+			Comment:      body.Comment,
+			Password:     body.Password,
+			Force:        body.Force,
 		}
 
 		result, err := service.CreatePVEUser(r.Context(), req)
@@ -254,12 +339,30 @@ func CreatePVEUserHandler(service *Service) http.HandlerFunc {
 //	500: description:Internal Server Error
 func CreateAPITokenHandler(service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req := coreproxmox.CreateAPITokenRequest{}
+		body := ProxmoxAPITokenCreateRequest{}
 		if r.Body != nil {
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 				http.Error(w, "invalid request body", http.StatusBadRequest)
 				return
 			}
+		}
+		req := coreproxmox.CreateAPITokenRequest{
+			HostServerID:      body.HostServerID,
+			Node:              body.Node,
+			UserID:            body.UserID,
+			Username:          body.Username,
+			Realm:             body.Realm,
+			TokenID:           body.TokenID,
+			Comment:           body.Comment,
+			Role:              body.Role,
+			ACLPath:           body.ACLPath,
+			ExpirationDate:    body.ExpirationDate,
+			DaysValid:         body.DaysValid,
+			Privsep:           body.Privsep,
+			Force:             body.Force,
+			Yolo:              body.Yolo,
+			Verify:            body.Verify,
+			StoreAsUserSecret: body.StoreAsUserSecret,
 		}
 
 		result, err := service.CreateAPIToken(r.Context(), req)

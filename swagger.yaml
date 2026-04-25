@@ -123,12 +123,21 @@ paths:
             summary: List Proxmox LXC containers.
             operationId: ListProxmoxContainers
             parameters:
+                - $ref: '#/definitions/UUID'
+                  x-go-name: HostServerID
+                  description: Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
+                  name: host_server_id
+                  in: query
+                - $ref: '#/definitions/UUID'
+                  x-go-name: ProxmoxSecretID
+                  description: Optional stored Proxmox secret ID to use for this host.
+                  name: proxmox_secret_id
+                  in: query
                 - type: string
                   x-go-name: Node
-                  description: Proxmox node name.
+                  description: Proxmox node name. Optional when host_server_id resolves the node automatically.
                   name: node
                   in: query
-                  required: true
                 - type: boolean
                   x-go-name: Full
                   description: Whether to include full container info.
@@ -190,12 +199,21 @@ paths:
             summary: List Proxmox QEMU VMs.
             operationId: ListProxmoxVMs
             parameters:
+                - $ref: '#/definitions/UUID'
+                  x-go-name: HostServerID
+                  description: Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
+                  name: host_server_id
+                  in: query
+                - $ref: '#/definitions/UUID'
+                  x-go-name: ProxmoxSecretID
+                  description: Optional stored Proxmox secret ID to use for this host.
+                  name: proxmox_secret_id
+                  in: query
                 - type: string
                   x-go-name: Node
-                  description: Proxmox node name.
+                  description: Proxmox node name. Optional when host_server_id resolves the node automatically.
                   name: node
                   in: query
-                  required: true
                 - type: boolean
                   x-go-name: Full
                   description: Whether to include full VM info.
@@ -284,12 +302,21 @@ paths:
             summary: List all Proxmox QEMU VMs and LXC containers for a node.
             operationId: ListProxmoxWorkloads
             parameters:
+                - $ref: '#/definitions/UUID'
+                  x-go-name: HostServerID
+                  description: Host server ID for a Proxmox VE node. When supplied, auth and SSH details are resolved automatically for the current user.
+                  name: host_server_id
+                  in: query
+                - $ref: '#/definitions/UUID'
+                  x-go-name: ProxmoxSecretID
+                  description: Optional stored Proxmox secret ID to use for this host.
+                  name: proxmox_secret_id
+                  in: query
                 - type: string
                   x-go-name: Node
-                  description: Proxmox node name.
+                  description: Proxmox node name. Optional when host_server_id resolves the node automatically.
                   name: node
                   in: query
-                  required: true
                 - type: boolean
                   x-go-name: Full
                   description: Whether to include full workload info.
@@ -3399,9 +3426,6 @@ definitions:
                 x-go-name: Force
             host_server_id:
                 $ref: '#/definitions/UUID'
-            host_url:
-                type: string
-                x-go-name: HostURL
             node:
                 type: string
                 x-go-name: Node
@@ -3414,8 +3438,6 @@ definitions:
             role:
                 type: string
                 x-go-name: Role
-            ssh:
-                $ref: '#/definitions/SSHOptions'
             store_as_user_secret:
                 type: boolean
                 x-go-name: StoreAsUserSecret
@@ -3600,8 +3622,6 @@ definitions:
             arch:
                 type: string
                 x-go-name: Arch
-            auth:
-                $ref: '#/definitions/ProxmoxAuthOptions'
             cmode:
                 type: string
                 x-go-name: Cmode
@@ -3724,8 +3744,6 @@ definitions:
             realm:
                 type: string
                 x-go-name: Realm
-            ssh:
-                $ref: '#/definitions/SSHOptions'
             username:
                 type: string
                 x-go-name: Username
@@ -3805,8 +3823,6 @@ definitions:
     ProxmoxVMCreateRequest:
         type: object
         properties:
-            auth:
-                $ref: '#/definitions/ProxmoxAuthOptions'
             ci_custom_script:
                 type: string
                 x-go-name: CICustomScript
@@ -3856,8 +3872,6 @@ definitions:
                 type: integer
                 format: int64
                 x-go-name: Sockets
-            ssh:
-                $ref: '#/definitions/SSHOptions'
             ssh_public_keys:
                 type: array
                 items:
@@ -3917,8 +3931,6 @@ definitions:
     ProxmoxVMStartRequest:
         type: object
         properties:
-            auth:
-                $ref: '#/definitions/ProxmoxAuthOptions'
             host_server_id:
                 $ref: '#/definitions/UUID'
             node:
@@ -3951,8 +3963,6 @@ definitions:
             agent:
                 type: boolean
                 x-go-name: Agent
-            auth:
-                $ref: '#/definitions/ProxmoxAuthOptions'
             boot_order:
                 type: string
                 x-go-name: BootOrder
@@ -4002,8 +4012,6 @@ definitions:
                 type: integer
                 format: int64
                 x-go-name: Sockets
-            ssh:
-                $ref: '#/definitions/SSHOptions'
             storage:
                 type: string
                 x-go-name: Storage
@@ -4218,7 +4226,7 @@ definitions:
             user:
                 type: string
                 x-go-name: User
-        x-go-package: github.com/babbage88/go-infra/webutils/deployment
+        x-go-package: github.com/babbage88/go-infra/services/proxmox
     SoftDeleteRoleByIdRequest:
         type: object
         properties:
