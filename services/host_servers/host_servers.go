@@ -221,6 +221,16 @@ func (p *HostServerProviderImpl) GetHostServerByHostname(ctx context.Context, ho
 	}, nil
 }
 
+// GetHostServerIDByHostname retrieves a host server UUID by hostname
+func (p *HostServerProviderImpl) GetHostServerIDByHostname(ctx context.Context, hostname string) (uuid.UUID, error) {
+	server, err := p.db.GetHostServerByHostname(ctx, hostname)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to get host server ID by hostname: %w", err)
+	}
+
+	return server.ID, nil
+}
+
 // GetHostServerByIP retrieves a host server by IP address
 func (p *HostServerProviderImpl) GetHostServerByIP(ctx context.Context, ip netip.Addr) (*HostServer, error) {
 	server, err := p.db.GetHostServerByIP(ctx, &ip)

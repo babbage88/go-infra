@@ -94,6 +94,7 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 		hostServerByIDHandler(hostServerProvider, authService),
 		http.MethodGet, http.MethodPut, http.MethodDelete,
 	))
+	mux.Handle("/host-servers/by-hostname/{hostname}/id", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetHostServerIDByHostnameHandler(hostServerProvider))))
 	mux.Handle("/host-servers", cors.CORSWithGET(authapi.AuthMiddlewareRequirePermission(authService, "ReadHostServers", host_servers.GetAllHostServersHandler(hostServerProvider))))
 
 	// Host server types and platform types routes

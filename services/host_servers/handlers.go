@@ -60,6 +60,41 @@ func CreateHostServerHandler(provider HostServerProvider) http.HandlerFunc {
 	}
 }
 
+// swagger:route GET /host-servers/by-hostname/{hostname}/id host-servers GetHostServerIDByHostname
+// Get a host server UUID by hostname.
+// responses:
+//
+//	200: HostServerIDResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	404: description:Not Found
+//	500: description:Internal Server Error
+func GetHostServerIDByHostnameHandler(provider HostServerProvider) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		hostname := r.PathValue("hostname")
+		if hostname == "" {
+			http.Error(w, "hostname is required", http.StatusBadRequest)
+			return
+		}
+
+		id, err := provider.GetHostServerIDByHostname(r.Context(), hostname)
+		if err != nil {
+			slog.Error("Failed to get host server ID by hostname", slog.String("hostname", hostname), slog.String("error", err.Error()))
+			http.Error(w, "Failed to get host server ID by hostname", http.StatusInternalServerError)
+			return
+		}
+
+		resp := HostServerIDResponse{ID: id}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			slog.Error("Failed to encode response", slog.String("error", err.Error()))
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 // swagger:route GET /host-servers/{ID} host-servers GetHostServer
 // Get a host server by ID.
 // responses:

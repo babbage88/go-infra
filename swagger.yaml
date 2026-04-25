@@ -799,6 +799,31 @@ paths:
                     description: Unauthorized
                 "500":
                     description: Internal Server Error
+    /host-servers/by-hostname/{hostname}/id:
+        get:
+            tags:
+                - host-servers
+            summary: Get a host server UUID by hostname.
+            operationId: GetHostServerIDByHostname
+            parameters:
+                - type: string
+                  example: server-01.example.com
+                  x-go-name: Hostname
+                  description: Host server hostname
+                  name: hostname
+                  in: path
+                  required: true
+            responses:
+                "200":
+                    $ref: '#/responses/HostServerIDResponse'
+                "400":
+                    description: Invalid request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Not Found
+                "500":
+                    description: Internal Server Error
     /host-servers/create:
         post:
             tags:
@@ -2996,6 +3021,12 @@ definitions:
             Username:
                 type: string
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    HostServerIDResponse:
+        type: object
+        properties:
+            id:
+                $ref: '#/definitions/UUID'
+        x-go-package: github.com/babbage88/go-infra/services/host_servers
     HostServerResponse:
         type: object
         title: HostServerResponse represents a host server response.
@@ -4937,6 +4968,10 @@ responses:
             type: array
             items:
                 $ref: '#/definitions/UserSecretEntry'
+    HostServerIDResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/HostServerIDResponse'
     HostServerResponse:
         description: (empty)
         schema:

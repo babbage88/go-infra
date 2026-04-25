@@ -71,6 +71,9 @@ type HostServerProvider interface {
 	// GetHostServerByHostname retrieves a host server by hostname
 	GetHostServerByHostname(ctx context.Context, hostname string) (*HostServer, error)
 
+	// GetHostServerIDByHostname retrieves a host server UUID by hostname
+	GetHostServerIDByHostname(ctx context.Context, hostname string) (uuid.UUID, error)
+
 	// GetHostServerByIP retrieves a host server by IP address
 	GetHostServerByIP(ctx context.Context, ip netip.Addr) (*HostServer, error)
 

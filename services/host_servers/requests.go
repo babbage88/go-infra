@@ -158,6 +158,27 @@ type GetHostServerRequestWrapper struct {
 	ID string `json:"ID"`
 }
 
+// swagger:parameters GetHostServerIDByHostname
+// @Description Request to get a host server UUID by hostname
+type GetHostServerIDByHostnameRequestWrapper struct {
+	// Host server hostname
+	// in: path
+	// required: true
+	// example: server-01.example.com
+	Hostname string `json:"hostname"`
+}
+
+// swagger:model HostServerIDResponse
+type HostServerIDResponse struct {
+	ID uuid.UUID `json:"id"`
+}
+
+// swagger:response HostServerIDResponse
+type HostServerIDResponseWrapper struct {
+	// in: body
+	Body HostServerIDResponse `json:"body"`
+}
+
 // swagger:parameters GetAllHostServerTypes
 // @Description Request to get all host server types
 type GetAllHostServerTypesRequestWrapper struct {
