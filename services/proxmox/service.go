@@ -3,18 +3,17 @@ package proxmox
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
 	"github.com/babbage88/go-infra/api/authapi"
 	"github.com/babbage88/go-infra/database/infra_db_pg"
 	"github.com/babbage88/go-infra/services/host_servers"
+	"github.com/babbage88/go-infra/services/ssh_key_provider"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	coredeploy "github.com/babbage88/infra-core/deployment"
 	coreproxmox "github.com/babbage88/infra-core/proxmox"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 const (
@@ -25,22 +24,27 @@ const (
 type Service struct {
 	db                 *infra_db_pg.Queries
 	hostServerProvider host_servers.HostServerProvider
+	sshKeyProvider     ssh_key_provider.SshKeySecretProvider
 	secretProvider     user_secrets.UserSecretProvider
+	accessResolver     UserAccessResolver
 	defaultAuth        coredeploy.ProxmoxAuthOptions
 	defaultNode        string
 }
 
-func NewService(db *infra_db_pg.Queries, hostServerProvider host_servers.HostServerProvider, secretProvider user_secrets.UserSecretProvider) *Service {
+func NewService(db *infra_db_pg.Queries, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, secretProvider user_secrets.UserSecretProvider) *Service {
 	useToken := true
 	skipTLS := true
+	defaultAuth := coredeploy.ProxmoxAuthOptions{
+		UseToken: &useToken,
+		SkipTLS:  &skipTLS,
+	}
 	return &Service{
 		db:                 db,
 		hostServerProvider: hostServerProvider,
+		sshKeyProvider:     sshKeyProvider,
 		secretProvider:     secretProvider,
-		defaultAuth: coredeploy.ProxmoxAuthOptions{
-			UseToken: &useToken,
-			SkipTLS:  &skipTLS,
-		},
+		accessResolver:     NewUserAccessResolver(db, hostServerProvider, sshKeyProvider, secretProvider, defaultAuth, ""),
+		defaultAuth:        defaultAuth,
 	}
 }
 
