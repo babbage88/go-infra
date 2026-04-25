@@ -99,11 +99,10 @@ type ProxmoxWorkloadInventoryResult struct {
 
 // swagger:model ProxmoxVMStartRequest
 type ProxmoxVMStartRequest struct {
-	Auth            ProxmoxAuthOptions `json:"auth,omitempty"`
-	HostServerID    *uuid.UUID         `json:"host_server_id,omitempty"`
-	ProxmoxSecretID *uuid.UUID         `json:"proxmox_secret_id,omitempty"`
-	Node            string             `json:"node,omitempty"`
-	VMID            int                `json:"vmid,omitempty"`
+	HostServerID    *uuid.UUID `json:"host_server_id,omitempty"`
+	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	Node            string     `json:"node,omitempty"`
+	VMID            int        `json:"vmid,omitempty"`
 }
 
 // swagger:model ProxmoxVMStartResult
@@ -115,32 +114,31 @@ type ProxmoxVMStartResult struct {
 
 // swagger:model ProxmoxLXCRequest
 type ProxmoxLXCRequest struct {
-	Auth            ProxmoxAuthOptions `json:"auth,omitempty"`
-	HostServerID    *uuid.UUID         `json:"host_server_id,omitempty"`
-	ProxmoxSecretID *uuid.UUID         `json:"proxmox_secret_id,omitempty"`
-	Node            string             `json:"node,omitempty"`
-	VMID            int                `json:"vmid,omitempty"`
-	Hostname        string             `json:"hostname,omitempty"`
-	Password        string             `json:"password,omitempty"`
-	OSTemplate      string             `json:"ostemplate,omitempty"`
-	SshPublicKeys   []string           `json:"ssh_public_keys,omitempty"`
-	Storage         string             `json:"storage,omitempty"`
-	RootFSSize      string             `json:"rootfs_size,omitempty"`
-	Memory          int                `json:"memory,omitempty"`
-	Swap            int                `json:"swap,omitempty"`
-	Cores           int                `json:"cores,omitempty"`
-	CPULimit        int                `json:"cpu_limit,omitempty"`
-	CPUUnits        int                `json:"cpu_units,omitempty"`
-	Net0            string             `json:"net0,omitempty"`
-	Arch            string             `json:"arch,omitempty"`
-	Cmode           string             `json:"cmode,omitempty"`
-	Features        string             `json:"features,omitempty"`
-	Nameserver      string             `json:"nameserver,omitempty"`
-	SearchDomain    string             `json:"search_domain,omitempty"`
-	Description     string             `json:"description,omitempty"`
-	Unprivileged    *bool              `json:"unprivileged,omitempty"`
-	Start           *bool              `json:"start,omitempty"`
-	Console         *bool              `json:"console,omitempty"`
+	HostServerID    *uuid.UUID `json:"host_server_id,omitempty"`
+	ProxmoxSecretID *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	Node            string     `json:"node,omitempty"`
+	VMID            int        `json:"vmid,omitempty"`
+	Hostname        string     `json:"hostname,omitempty"`
+	Password        string     `json:"password,omitempty"`
+	OSTemplate      string     `json:"ostemplate,omitempty"`
+	SshPublicKeys   []string   `json:"ssh_public_keys,omitempty"`
+	Storage         string     `json:"storage,omitempty"`
+	RootFSSize      string     `json:"rootfs_size,omitempty"`
+	Memory          int        `json:"memory,omitempty"`
+	Swap            int        `json:"swap,omitempty"`
+	Cores           int        `json:"cores,omitempty"`
+	CPULimit        int        `json:"cpu_limit,omitempty"`
+	CPUUnits        int        `json:"cpu_units,omitempty"`
+	Net0            string     `json:"net0,omitempty"`
+	Arch            string     `json:"arch,omitempty"`
+	Cmode           string     `json:"cmode,omitempty"`
+	Features        string     `json:"features,omitempty"`
+	Nameserver      string     `json:"nameserver,omitempty"`
+	SearchDomain    string     `json:"search_domain,omitempty"`
+	Description     string     `json:"description,omitempty"`
+	Unprivileged    *bool      `json:"unprivileged,omitempty"`
+	Start           *bool      `json:"start,omitempty"`
+	Console         *bool      `json:"console,omitempty"`
 }
 
 // swagger:model ProxmoxLXCResult
@@ -155,29 +153,27 @@ type ProxmoxLXCResult struct {
 
 // swagger:model ProxmoxVMCreateRequest
 type ProxmoxVMCreateRequest struct {
-	Auth              ProxmoxAuthOptions `json:"auth,omitempty"`
-	SSH               SSHOptions         `json:"ssh,omitempty"`
-	HostServerID      *uuid.UUID         `json:"host_server_id,omitempty"`
-	ProxmoxSecretID   *uuid.UUID         `json:"proxmox_secret_id,omitempty"`
-	Node              string             `json:"node,omitempty"`
-	VMID              int                `json:"vmid,omitempty"`
-	TemplateVMID      int                `json:"template_vmid,omitempty"`
-	Name              string             `json:"name,omitempty"`
-	MemoryMB          int                `json:"memory_mb,omitempty"`
-	Sockets           int                `json:"sockets,omitempty"`
-	Cores             int                `json:"cores,omitempty"`
-	Description       string             `json:"description,omitempty"`
-	Storage           string             `json:"storage,omitempty"`
-	FullClone         *bool              `json:"full_clone,omitempty"`
-	Start             *bool              `json:"start,omitempty"`
-	CIUser            string             `json:"ci_user,omitempty"`
-	CIPassword        string             `json:"ci_password,omitempty"`
-	SshPublicKeys     []string           `json:"ssh_public_keys,omitempty"`
-	IPConfig0         string             `json:"ipconfig0,omitempty"`
-	Nameserver        string             `json:"nameserver,omitempty"`
-	SearchDomain      string             `json:"search_domain,omitempty"`
-	CISnippetsStorage string             `json:"ci_snippets_storage,omitempty"`
-	CICustomScript    string             `json:"ci_custom_script,omitempty"`
+	HostServerID      *uuid.UUID `json:"host_server_id,omitempty"`
+	ProxmoxSecretID   *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	Node              string     `json:"node,omitempty"`
+	VMID              int        `json:"vmid,omitempty"`
+	TemplateVMID      int        `json:"template_vmid,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	MemoryMB          int        `json:"memory_mb,omitempty"`
+	Sockets           int        `json:"sockets,omitempty"`
+	Cores             int        `json:"cores,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	Storage           string     `json:"storage,omitempty"`
+	FullClone         *bool      `json:"full_clone,omitempty"`
+	Start             *bool      `json:"start,omitempty"`
+	CIUser            string     `json:"ci_user,omitempty"`
+	CIPassword        string     `json:"ci_password,omitempty"`
+	SshPublicKeys     []string   `json:"ssh_public_keys,omitempty"`
+	IPConfig0         string     `json:"ipconfig0,omitempty"`
+	Nameserver        string     `json:"nameserver,omitempty"`
+	SearchDomain      string     `json:"search_domain,omitempty"`
+	CISnippetsStorage string     `json:"ci_snippets_storage,omitempty"`
+	CICustomScript    string     `json:"ci_custom_script,omitempty"`
 }
 
 // swagger:model ProxmoxVMCreateResult
@@ -192,27 +188,25 @@ type ProxmoxVMCreateResult struct {
 
 // swagger:model ProxmoxVMTemplateRequest
 type ProxmoxVMTemplateRequest struct {
-	Auth             ProxmoxAuthOptions `json:"auth,omitempty"`
-	SSH              SSHOptions         `json:"ssh,omitempty"`
-	HostServerID     *uuid.UUID         `json:"host_server_id,omitempty"`
-	ProxmoxSecretID  *uuid.UUID         `json:"proxmox_secret_id,omitempty"`
-	Node             string             `json:"node,omitempty"`
-	VMID             int                `json:"vmid,omitempty"`
-	Name             string             `json:"name,omitempty"`
-	ImageURL         string             `json:"image_url,omitempty"`
-	Storage          string             `json:"storage,omitempty"`
-	CloudInitStorage string             `json:"cloudinit_storage,omitempty"`
-	MemoryMB         int                `json:"memory_mb,omitempty"`
-	Sockets          int                `json:"sockets,omitempty"`
-	Cores            int                `json:"cores,omitempty"`
-	Description      string             `json:"description,omitempty"`
-	Net0             string             `json:"net0,omitempty"`
-	SCSIHW           string             `json:"scsihw,omitempty"`
-	DiskBus          string             `json:"disk_bus,omitempty"`
-	BootOrder        string             `json:"boot_order,omitempty"`
-	Agent            *bool              `json:"agent,omitempty"`
-	SerialConsole    *bool              `json:"serial_console,omitempty"`
-	CleanupImage     *bool              `json:"cleanup_image,omitempty"`
+	HostServerID     *uuid.UUID `json:"host_server_id,omitempty"`
+	ProxmoxSecretID  *uuid.UUID `json:"proxmox_secret_id,omitempty"`
+	Node             string     `json:"node,omitempty"`
+	VMID             int        `json:"vmid,omitempty"`
+	Name             string     `json:"name,omitempty"`
+	ImageURL         string     `json:"image_url,omitempty"`
+	Storage          string     `json:"storage,omitempty"`
+	CloudInitStorage string     `json:"cloudinit_storage,omitempty"`
+	MemoryMB         int        `json:"memory_mb,omitempty"`
+	Sockets          int        `json:"sockets,omitempty"`
+	Cores            int        `json:"cores,omitempty"`
+	Description      string     `json:"description,omitempty"`
+	Net0             string     `json:"net0,omitempty"`
+	SCSIHW           string     `json:"scsihw,omitempty"`
+	DiskBus          string     `json:"disk_bus,omitempty"`
+	BootOrder        string     `json:"boot_order,omitempty"`
+	Agent            *bool      `json:"agent,omitempty"`
+	SerialConsole    *bool      `json:"serial_console,omitempty"`
+	CleanupImage     *bool      `json:"cleanup_image,omitempty"`
 }
 
 // swagger:model ProxmoxVMTemplateResult
@@ -226,7 +220,6 @@ type ProxmoxVMTemplateResult struct {
 
 // swagger:model ProxmoxPVEUserCreateRequest
 type ProxmoxPVEUserCreateRequest struct {
-	SSH          SSHOptions `json:"ssh,omitempty"`
 	HostServerID *uuid.UUID `json:"host_server_id,omitempty"`
 	Node         string     `json:"node,omitempty"`
 	Username     string     `json:"username,omitempty"`
@@ -248,10 +241,8 @@ type ProxmoxPVEUserCreateResult struct {
 
 // swagger:model ProxmoxAPITokenCreateRequest
 type ProxmoxAPITokenCreateRequest struct {
-	SSH               SSHOptions `json:"ssh,omitempty"`
 	HostServerID      *uuid.UUID `json:"host_server_id,omitempty"`
 	Node              string     `json:"node,omitempty"`
-	HostURL           string     `json:"host_url,omitempty"`
 	UserID            string     `json:"userid,omitempty"`
 	Username          string     `json:"username,omitempty"`
 	Realm             string     `json:"realm,omitempty"`
