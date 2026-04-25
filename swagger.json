@@ -5321,42 +5321,7 @@
     },
     "SSHOptions": {
       "type": "object",
-      "properties": {
-        "host": {
-          "type": "string",
-          "x-go-name": "Host"
-        },
-        "key_path": {
-          "type": "string",
-          "x-go-name": "KeyPath"
-        },
-        "passphrase": {
-          "type": "string",
-          "x-go-name": "Passphrase"
-        },
-        "port": {
-          "type": "integer",
-          "format": "uint64",
-          "x-go-name": "Port"
-        },
-        "private_key_base64": {
-          "type": "string",
-          "x-go-name": "PrivateKeyBase64"
-        },
-        "private_key_pem": {
-          "type": "string",
-          "x-go-name": "PrivateKeyPEM"
-        },
-        "use_agent": {
-          "type": "boolean",
-          "x-go-name": "UseAgent"
-        },
-        "user": {
-          "type": "string",
-          "x-go-name": "User"
-        }
-      },
-      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+      "x-go-package": "github.com/babbage88/go-infra/webutils/deployment"
     },
     "SoftDeleteRoleByIdRequest": {
       "type": "object",

@@ -3,14 +3,12 @@ package proxmox
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	coredeploy "github.com/babbage88/infra-core/deployment"
+	coreproxmox "github.com/babbage88/infra-core/proxmox"
 )
 
 type Service struct {
@@ -44,7 +42,7 @@ func (s *Service) ListVMs(ctx context.Context, req coredeploy.ProxmoxVMListReque
 		return coredeploy.ProxmoxVMListResult{}, fmt.Errorf("node is required")
 	}
 
-	client, err := newClient(req.Auth)
+	client, err := newCoreClient(req.Auth)
 	if err != nil {
 		return coredeploy.ProxmoxVMListResult{}, err
 	}
@@ -53,16 +51,30 @@ func (s *Service) ListVMs(ctx context.Context, req coredeploy.ProxmoxVMListReque
 	if req.Full != nil {
 		full = *req.Full
 	}
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-
-	var vms []coredeploy.ProxmoxVM
-	path := fmt.Sprintf("%s/%s/qemu?full=%d", apiNodesPath, url.PathEscape(req.Node), boolInt(full))
-	if err := client.do(ctx, http.MethodGet, path, nil, &vms); err != nil {
+	vms, err := client.ListVMs(ctx, req.Node, full)
+	if err != nil {
 		return coredeploy.ProxmoxVMListResult{}, fmt.Errorf("list proxmox VMs: %w", err)
 	}
-
-	return coredeploy.ProxmoxVMListResult{Node: req.Node, VMs: vms}, nil
+	result := make([]coredeploy.ProxmoxVM, 0, len(vms))
+	for _, vm := range vms {
+		result = append(result, coredeploy.ProxmoxVM{
+			VMID:           vm.Vmid,
+			Name:           vm.Name,
+			Status:         vm.Status,
+			CPU:            vm.CPU,
+			MaxMem:         vm.MaxMem,
+			Mem:            vm.Mem,
+			MaxDisk:        vm.MaxDisk,
+			Disk:           vm.Disk,
+			Node:           vm.Node,
+			Tags:           vm.Tags,
+			Template:       vm.Template,
+			Uptime:         vm.Uptime,
+			RunningMachine: vm.RunningMachine,
+			RunningQemu:    vm.RunningQemu,
+		})
+	}
+	return coredeploy.ProxmoxVMListResult{Node: req.Node, VMs: result}, nil
 }
 
 func (s *Service) ListContainers(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (ProxmoxContainerListResult, error) {
@@ -71,29 +83,33 @@ func (s *Service) ListContainers(ctx context.Context, req coredeploy.ProxmoxVMLi
 		return ProxmoxContainerListResult{}, fmt.Errorf("node is required")
 	}
 
-	client, err := newClient(req.Auth)
+	client, err := newCoreClient(req.Auth)
 	if err != nil {
 		return ProxmoxContainerListResult{}, err
 	}
 
-	full := true
-	if req.Full != nil {
-		full = *req.Full
-	}
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-
-	var containers []ProxmoxContainer
-	path := fmt.Sprintf("%s/%s/lxc?full=%d", apiNodesPath, url.PathEscape(req.Node), boolInt(full))
-	if err := client.do(ctx, http.MethodGet, path, nil, &containers); err != nil {
+	containers, err := client.ListLxcContainers(ctx, req.Node)
+	if err != nil {
 		return ProxmoxContainerListResult{}, fmt.Errorf("list proxmox containers: %w", err)
 	}
-
-	for i := range containers {
-		containers[i].Node = req.Node
+	result := make([]ProxmoxContainer, 0, len(containers))
+	for _, container := range containers {
+		result = append(result, ProxmoxContainer{
+			VMID:     container.VmId,
+			Name:     firstNonEmpty(container.Name, container.Hostname),
+			Status:   container.Status,
+			CPU:      container.CPU,
+			MaxMem:   container.MaxMem,
+			Mem:      container.Mem,
+			MaxDisk:  container.MaxDisk,
+			Disk:     container.Disk,
+			Node:     firstNonEmpty(container.Node, req.Node),
+			Tags:     container.Tags,
+			Template: container.Template,
+			Uptime:   container.Uptime,
+		})
 	}
-
-	return ProxmoxContainerListResult{Node: req.Node, Containers: containers}, nil
+	return ProxmoxContainerListResult{Node: req.Node, Containers: result}, nil
 }
 
 func (s *Service) ListWorkloads(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (ProxmoxWorkloadInventoryResult, error) {
@@ -161,19 +177,20 @@ func (s *Service) StartVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequ
 		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("vmid must be greater than zero")
 	}
 
-	client, err := newClient(req.Auth)
+	client, err := newCoreClient(req.Auth)
 	if err != nil {
 		return coredeploy.ProxmoxVMStartResult{}, err
 	}
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
 
-	var upid string
-	path := fmt.Sprintf("%s/%s/qemu/%d/status/start", apiNodesPath, url.PathEscape(req.Node), req.VMID)
-	if err := client.do(ctx, http.MethodPost, path, nil, &upid); err != nil {
+	resp, err := client.StartVM(ctx, req.Node, req.VMID)
+	if err != nil {
 		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("start proxmox VM: %w", err)
 	}
-
+	upid := firstNonEmptyString(
+		stringValue(resp["upid"]),
+		stringValue(resp["UPID"]),
+		stringValue(resp["data"]),
+	)
 	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
 }
 
@@ -285,13 +302,6 @@ func firstNonEmptyEnv(keys ...string) string {
 	return ""
 }
 
-func boolInt(value bool) int {
-	if value {
-		return 1
-	}
-	return 0
-}
-
 func firstNonEmpty(values ...string) string {
 	for _, value := range values {
 		if strings.TrimSpace(value) != "" {
@@ -299,4 +309,49 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func firstNonEmptyString(values ...string) string {
+	return firstNonEmpty(values...)
+}
+
+func stringValue(value any) string {
+	return strings.TrimSpace(fmt.Sprintf("%v", value))
+}
+
+func newCoreClient(auth coredeploy.ProxmoxAuthOptions) (*coreproxmox.Client, error) {
+	hostURL := strings.TrimSpace(auth.HostURL)
+	if hostURL == "" {
+		return nil, fmt.Errorf("auth.host_url is required")
+	}
+	useToken := true
+	if auth.UseToken != nil {
+		useToken = *auth.UseToken
+	}
+	skipTLS := true
+	if auth.SkipTLS != nil {
+		skipTLS = *auth.SkipTLS
+	}
+	if useToken {
+		if apiToken := strings.TrimSpace(auth.APIToken); apiToken != "" {
+			return coreproxmox.NewClientTokenString(hostURL, apiToken, skipTLS)
+		}
+		tokenID := strings.TrimSpace(auth.APITokenID)
+		secret := strings.TrimSpace(auth.APISecret)
+		if tokenID == "" {
+			return nil, fmt.Errorf("auth.api_token_id is required")
+		}
+		if secret == "" {
+			return nil, fmt.Errorf("auth.api_secret is required")
+		}
+		return coreproxmox.NewClientToken(hostURL, tokenID, secret, skipTLS)
+	}
+	username := strings.TrimSpace(auth.Username)
+	if username == "" {
+		return nil, fmt.Errorf("auth.username is required")
+	}
+	if strings.TrimSpace(auth.Password) == "" {
+		return nil, fmt.Errorf("auth.password is required")
+	}
+	return coreproxmox.NewClient(hostURL, username, auth.Password, skipTLS, false)
 }
