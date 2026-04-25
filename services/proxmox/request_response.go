@@ -1,5 +1,7 @@
 package proxmox
 
+import coredeploy "github.com/babbage88/infra-core/deployment"
+
 // swagger:model ProxmoxAuthOptions
 type ProxmoxAuthOptions struct {
 	HostURL    string `json:"host_url,omitempty"`
@@ -97,6 +99,111 @@ type ProxmoxVMStartResult struct {
 	UPID string `json:"upid,omitempty"`
 }
 
+// swagger:model ProxmoxLXCRequest
+type ProxmoxLXCRequest struct {
+	Auth          ProxmoxAuthOptions `json:"auth,omitempty"`
+	Node          string             `json:"node,omitempty"`
+	VMID          int                `json:"vmid,omitempty"`
+	Hostname      string             `json:"hostname,omitempty"`
+	Password      string             `json:"password,omitempty"`
+	OSTemplate    string             `json:"ostemplate,omitempty"`
+	SshPublicKeys []string           `json:"ssh_public_keys,omitempty"`
+	Storage       string             `json:"storage,omitempty"`
+	RootFSSize    string             `json:"rootfs_size,omitempty"`
+	Memory        int                `json:"memory,omitempty"`
+	Swap          int                `json:"swap,omitempty"`
+	Cores         int                `json:"cores,omitempty"`
+	CPULimit      int                `json:"cpu_limit,omitempty"`
+	CPUUnits      int                `json:"cpu_units,omitempty"`
+	Net0          string             `json:"net0,omitempty"`
+	Arch          string             `json:"arch,omitempty"`
+	Cmode         string             `json:"cmode,omitempty"`
+	Features      string             `json:"features,omitempty"`
+	Nameserver    string             `json:"nameserver,omitempty"`
+	SearchDomain  string             `json:"search_domain,omitempty"`
+	Description   string             `json:"description,omitempty"`
+	Unprivileged  *bool              `json:"unprivileged,omitempty"`
+	Start         *bool              `json:"start,omitempty"`
+	Console       *bool              `json:"console,omitempty"`
+}
+
+// swagger:model ProxmoxLXCResult
+type ProxmoxLXCResult struct {
+	Node     string `json:"node"`
+	VMID     int    `json:"vmid"`
+	Hostname string `json:"hostname"`
+	Status   string `json:"status"`
+	Started  bool   `json:"started"`
+	Console  bool   `json:"console"`
+}
+
+// swagger:model ProxmoxVMCreateRequest
+type ProxmoxVMCreateRequest struct {
+	Auth              ProxmoxAuthOptions `json:"auth,omitempty"`
+	SSH               coredeploy.SSHOptions `json:"ssh,omitempty"`
+	Node              string             `json:"node,omitempty"`
+	VMID              int                `json:"vmid,omitempty"`
+	TemplateVMID      int                `json:"template_vmid,omitempty"`
+	Name              string             `json:"name,omitempty"`
+	MemoryMB          int                `json:"memory_mb,omitempty"`
+	Sockets           int                `json:"sockets,omitempty"`
+	Cores             int                `json:"cores,omitempty"`
+	Description       string             `json:"description,omitempty"`
+	Storage           string             `json:"storage,omitempty"`
+	FullClone         *bool              `json:"full_clone,omitempty"`
+	Start             *bool              `json:"start,omitempty"`
+	CIUser            string             `json:"ci_user,omitempty"`
+	CIPassword        string             `json:"ci_password,omitempty"`
+	SshPublicKeys     []string           `json:"ssh_public_keys,omitempty"`
+	IPConfig0         string             `json:"ipconfig0,omitempty"`
+	Nameserver        string             `json:"nameserver,omitempty"`
+	SearchDomain      string             `json:"search_domain,omitempty"`
+	CISnippetsStorage string             `json:"ci_snippets_storage,omitempty"`
+	CICustomScript    string             `json:"ci_custom_script,omitempty"`
+}
+
+// swagger:model ProxmoxVMCreateResult
+type ProxmoxVMCreateResult struct {
+	Node         string `json:"node"`
+	VMID         int    `json:"vmid"`
+	TemplateVMID int    `json:"template_vmid"`
+	Name         string `json:"name"`
+	Status       string `json:"status"`
+	Started      bool   `json:"started"`
+}
+
+// swagger:model ProxmoxVMTemplateRequest
+type ProxmoxVMTemplateRequest struct {
+	Auth             ProxmoxAuthOptions `json:"auth,omitempty"`
+	SSH              coredeploy.SSHOptions `json:"ssh,omitempty"`
+	Node             string             `json:"node,omitempty"`
+	VMID             int                `json:"vmid,omitempty"`
+	Name             string             `json:"name,omitempty"`
+	ImageURL         string             `json:"image_url,omitempty"`
+	Storage          string             `json:"storage,omitempty"`
+	CloudInitStorage string             `json:"cloudinit_storage,omitempty"`
+	MemoryMB         int                `json:"memory_mb,omitempty"`
+	Sockets          int                `json:"sockets,omitempty"`
+	Cores            int                `json:"cores,omitempty"`
+	Description      string             `json:"description,omitempty"`
+	Net0             string             `json:"net0,omitempty"`
+	SCSIHW           string             `json:"scsihw,omitempty"`
+	DiskBus          string             `json:"disk_bus,omitempty"`
+	BootOrder        string             `json:"boot_order,omitempty"`
+	Agent            *bool              `json:"agent,omitempty"`
+	SerialConsole    *bool              `json:"serial_console,omitempty"`
+	CleanupImage     *bool              `json:"cleanup_image,omitempty"`
+}
+
+// swagger:model ProxmoxVMTemplateResult
+type ProxmoxVMTemplateResult struct {
+	Node             string `json:"node"`
+	VMID             int    `json:"vmid"`
+	Name             string `json:"name"`
+	ImportedVolumeID string `json:"imported_volume_id"`
+	Template         bool   `json:"template"`
+}
+
 // swagger:parameters ListProxmoxVMs
 type ListProxmoxVMsParams struct {
 	// Proxmox node name.
@@ -116,6 +223,24 @@ type StartProxmoxVMParams struct {
 	// Request body.
 	// in: body
 	Body ProxmoxVMStartRequest
+}
+
+// swagger:parameters CreateProxmoxLXC
+type CreateProxmoxLXCParams struct {
+	// in: body
+	Body ProxmoxLXCRequest
+}
+
+// swagger:parameters CreateProxmoxVM
+type CreateProxmoxVMParams struct {
+	// in: body
+	Body ProxmoxVMCreateRequest
+}
+
+// swagger:parameters CreateProxmoxVMTemplate
+type CreateProxmoxVMTemplateParams struct {
+	// in: body
+	Body ProxmoxVMTemplateRequest
 }
 
 // swagger:response ProxmoxVMListResponse
@@ -140,4 +265,22 @@ type ProxmoxWorkloadInventoryResponse struct {
 type ProxmoxVMStartResponse struct {
 	// in: body
 	Body ProxmoxVMStartResult
+}
+
+// swagger:response ProxmoxLXCResponse
+type ProxmoxLXCResponse struct {
+	// in: body
+	Body ProxmoxLXCResult
+}
+
+// swagger:response ProxmoxVMCreateResponse
+type ProxmoxVMCreateResponse struct {
+	// in: body
+	Body ProxmoxVMCreateResult
+}
+
+// swagger:response ProxmoxVMTemplateResponse
+type ProxmoxVMTemplateResponse struct {
+	// in: body
+	Body ProxmoxVMTemplateResult
 }
