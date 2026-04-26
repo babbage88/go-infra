@@ -374,6 +374,28 @@ type StopProxmoxContainerParams struct {
 	Body ProxmoxVMStartRequest
 }
 
+// swagger:parameters DeleteProxmoxVM
+type DeleteProxmoxVMParams struct {
+	// VMID to delete.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Request body.
+	// in: body
+	Body ProxmoxVMStartRequest
+}
+
+// swagger:parameters DeleteProxmoxContainer
+type DeleteProxmoxContainerParams struct {
+	// VMID to delete.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Request body.
+	// in: body
+	Body ProxmoxVMStartRequest
+}
+
 // swagger:parameters CreateProxmoxLXC
 type CreateProxmoxLXCParams struct {
 	// in: body

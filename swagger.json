@@ -236,6 +236,48 @@
         }
       }
     },
+    "/api/v1/proxmox/container/{vmid}": {
+      "delete": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Delete a Proxmox LXC container.",
+        "operationId": "DeleteProxmoxContainer",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to delete.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMStartRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMStartResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/v1/proxmox/container/{vmid}/start": {
       "post": {
         "tags": [
@@ -486,6 +528,48 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ProxmoxVMTemplateResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/vm/{vmid}": {
+      "delete": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Delete a Proxmox QEMU VM.",
+        "operationId": "DeleteProxmoxVM",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to delete.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMStartRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMStartResponse"
           },
           "400": {
             "description": "Invalid request"

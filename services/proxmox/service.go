@@ -300,6 +300,56 @@ func (s *Service) StopContainer(ctx context.Context, req coredeploy.ProxmoxVMSta
 	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
 }
 
+func (s *Service) DeleteVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMStartResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+
+	upid, err := client.DeleteVM(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("delete proxmox VM: %w", err)
+	}
+	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
+}
+
+func (s *Service) DeleteContainer(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMStartResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+
+	upid, err := client.DeleteLXCContainer(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("delete proxmox LXC: %w", err)
+	}
+	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
+}
+
 func (s *Service) CreateLXC(ctx context.Context, req coredeploy.ProxmoxLXCRequest) (coredeploy.ProxmoxLXCResult, error) {
 	var err error
 	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)

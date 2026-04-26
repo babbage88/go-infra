@@ -256,6 +256,88 @@ func StopContainerHandler(service *Service) http.HandlerFunc {
 	}
 }
 
+// swagger:route DELETE /api/v1/proxmox/vm/{vmid} Proxmox DeleteProxmoxVM
+// Delete a Proxmox QEMU VM.
+// responses:
+//
+//	200: ProxmoxVMStartResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func DeleteVMHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		body := ProxmoxVMStartRequest{VMID: vmid}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+		req := coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    body.HostServerID,
+			ProxmoxSecretID: body.ProxmoxSecretID,
+			Node:            body.Node,
+			VMID:            vmid,
+		}
+
+		result, err := service.DeleteVM(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to delete proxmox VM", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route DELETE /api/v1/proxmox/container/{vmid} Proxmox DeleteProxmoxContainer
+// Delete a Proxmox LXC container.
+// responses:
+//
+//	200: ProxmoxVMStartResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func DeleteContainerHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		body := ProxmoxVMStartRequest{VMID: vmid}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+		req := coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    body.HostServerID,
+			ProxmoxSecretID: body.ProxmoxSecretID,
+			Node:            body.Node,
+			VMID:            vmid,
+		}
+
+		result, err := service.DeleteContainer(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to delete proxmox container", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
 // swagger:route POST /api/v1/proxmox/lxc Proxmox CreateProxmoxLXC
 // Create a Proxmox LXC container.
 // responses:
