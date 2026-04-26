@@ -201,6 +201,12 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("POST /api/v1/proxmox/container/{vmid}/stop", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.StopContainerHandler(proxmoxService)),
 	))
+	mux.Handle("GET /api/v1/proxmox/container/{vmid}/resources", cors.CORSWithGET(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.GetLXCResourcesHandler(proxmoxService)),
+	))
+	mux.Handle("PUT /api/v1/proxmox/container/{vmid}/resources", cors.CORSWithPUT(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.UpdateLXCResourcesHandler(proxmoxService)),
+	))
 	mux.Handle("DELETE /api/v1/proxmox/container/{vmid}", cors.CORSWithDELETE(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.DeleteContainerHandler(proxmoxService)),
 	))
@@ -212,6 +218,12 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("POST /api/v1/proxmox/vm/{vmid}/stop", cors.CORSWithPOST(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.StopVMHandler(proxmoxService)),
+	))
+	mux.Handle("GET /api/v1/proxmox/vm/{vmid}/hardware", cors.CORSWithGET(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.GetVMHardwareHandler(proxmoxService)),
+	))
+	mux.Handle("PUT /api/v1/proxmox/vm/{vmid}/hardware", cors.CORSWithPUT(
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.UpdateVMHardwareHandler(proxmoxService)),
 	))
 	mux.Handle("DELETE /api/v1/proxmox/vm/{vmid}", cors.CORSWithDELETE(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.DeleteVMHandler(proxmoxService)),

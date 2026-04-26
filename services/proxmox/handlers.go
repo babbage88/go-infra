@@ -338,6 +338,170 @@ func DeleteContainerHandler(service *Service) http.HandlerFunc {
 	}
 }
 
+// swagger:route GET /api/v1/proxmox/vm/{vmid}/hardware Proxmox GetProxmoxVMHardware
+// Get configured hardware values for a Proxmox QEMU VM.
+// responses:
+//
+//	200: ProxmoxVMHardwareResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetVMHardwareHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, ok := parseListRequest(w, r)
+		if !ok {
+			return
+		}
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		result, err := service.GetVMHardware(r.Context(), coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    req.HostServerID,
+			ProxmoxSecretID: req.ProxmoxSecretID,
+			Node:            req.Node,
+			VMID:            vmid,
+		})
+		if err != nil {
+			slog.Error("failed to get proxmox VM hardware", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route PUT /api/v1/proxmox/vm/{vmid}/hardware Proxmox UpdateProxmoxVMHardware
+// Update configured hardware values for a Proxmox QEMU VM.
+// responses:
+//
+//	200: ProxmoxVMHardwareResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func UpdateVMHardwareHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		body := ProxmoxVMHardwareUpdateRequest{VMID: vmid}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.UpdateVMHardware(r.Context(), coredeploy.ProxmoxVMHardwareUpdateRequest{
+			HostServerID:    body.HostServerID,
+			ProxmoxSecretID: body.ProxmoxSecretID,
+			Node:            body.Node,
+			VMID:            vmid,
+			MemoryMB:        body.MemoryMB,
+			Sockets:         body.Sockets,
+			Cores:           body.Cores,
+			Bridge:          body.Bridge,
+			VLANTag:         body.VLANTag,
+			DiskSizeGB:      body.DiskSizeGB,
+		})
+		if err != nil {
+			slog.Error("failed to update proxmox VM hardware", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route GET /api/v1/proxmox/container/{vmid}/resources Proxmox GetProxmoxLXCResources
+// Get configured resource values for a Proxmox LXC container.
+// responses:
+//
+//	200: ProxmoxLXCResourcesResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetLXCResourcesHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, ok := parseListRequest(w, r)
+		if !ok {
+			return
+		}
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		result, err := service.GetLXCResources(r.Context(), coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    req.HostServerID,
+			ProxmoxSecretID: req.ProxmoxSecretID,
+			Node:            req.Node,
+			VMID:            vmid,
+		})
+		if err != nil {
+			slog.Error("failed to get proxmox LXC resources", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route PUT /api/v1/proxmox/container/{vmid}/resources Proxmox UpdateProxmoxLXCResources
+// Update configured resource values for a Proxmox LXC container.
+// responses:
+//
+//	200: ProxmoxLXCResourcesResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func UpdateLXCResourcesHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		body := ProxmoxLXCResourcesUpdateRequest{VMID: vmid}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+
+		result, err := service.UpdateLXCResources(r.Context(), coredeploy.ProxmoxLXCResourcesUpdateRequest{
+			HostServerID:    body.HostServerID,
+			ProxmoxSecretID: body.ProxmoxSecretID,
+			Node:            body.Node,
+			VMID:            vmid,
+			MemoryMB:        body.MemoryMB,
+			SwapMB:          body.SwapMB,
+			Cores:           body.Cores,
+			Bridge:          body.Bridge,
+			VLANTag:         body.VLANTag,
+			RootFSSizeGB:    body.RootFSSizeGB,
+		})
+		if err != nil {
+			slog.Error("failed to update proxmox LXC resources", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
 // swagger:route POST /api/v1/proxmox/lxc Proxmox CreateProxmoxLXC
 // Create a Proxmox LXC container.
 // responses:
