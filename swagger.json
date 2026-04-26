@@ -362,6 +362,101 @@
         }
       }
     },
+    "/api/v1/proxmox/container/{vmid}/resources": {
+      "get": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Get configured resource values for a Proxmox LXC container.",
+        "operationId": "GetProxmoxLXCResources",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to inspect.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxLXCResourcesResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Update configured resource values for a Proxmox LXC container.",
+        "operationId": "UpdateProxmoxLXCResources",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to update.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxLXCResourcesUpdateRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxLXCResourcesResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/v1/proxmox/lxc": {
       "post": {
         "tags": [
@@ -654,6 +749,101 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ProxmoxVMStartResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/vm/{vmid}/hardware": {
+      "get": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Get configured hardware values for a Proxmox QEMU VM.",
+        "operationId": "GetProxmoxVMHardware",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to inspect.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMHardwareResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Update configured hardware values for a Proxmox QEMU VM.",
+        "operationId": "UpdateProxmoxVMHardware",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to update.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMHardwareUpdateRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMHardwareResponse"
           },
           "400": {
             "description": "Invalid request"
