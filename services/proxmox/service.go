@@ -2,7 +2,9 @@ package proxmox
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -350,6 +352,243 @@ func (s *Service) DeleteContainer(ctx context.Context, req coredeploy.ProxmoxVMS
 	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
 }
 
+func (s *Service) GetVMHardware(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMHardwareResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, err
+	}
+
+	cfg, err := client.GetVMConfig(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("get proxmox VM config: %w", err)
+	}
+
+	result := coredeploy.ProxmoxVMHardwareResult{
+		Node: req.Node,
+		VMID: req.VMID,
+		Name: cfg.Name,
+		Raw:  cfg.Raw,
+	}
+	result.MemoryMB, _ = parseJSONNumberInt(cfg.MemoryMB)
+	result.Sockets, _ = parseJSONNumberInt(cfg.Sockets)
+	result.Cores, _ = parseJSONNumberInt(cfg.Cores)
+
+	if diskKey, diskValue := findPrimaryVMDisk(cfg.Raw); diskKey != "" {
+		result.DiskInterface = diskKey
+		result.DiskSize = parseConfigSize(diskValue)
+	}
+
+	if netValue, ok := cfg.Raw["net0"]; ok {
+		model, mac, bridge, vlan := parseVMNetString(netValue)
+		result.NICModel = model
+		result.MACAddress = mac
+		result.Bridge = bridge
+		result.VLANTag = vlan
+	}
+
+	return result, nil
+}
+
+func (s *Service) UpdateVMHardware(ctx context.Context, req coredeploy.ProxmoxVMHardwareUpdateRequest) (coredeploy.ProxmoxVMHardwareResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, err
+	}
+
+	current, err := client.GetVMConfig(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("get proxmox VM config: %w", err)
+	}
+
+	update := &coreproxmox.ProxmoxQemuVmConfig{Raw: make(map[string]string)}
+	if req.MemoryMB != nil {
+		update.MemoryMB = jsonNumberFromInt(*req.MemoryMB)
+	}
+	if req.Sockets != nil {
+		update.Sockets = jsonNumberFromInt(*req.Sockets)
+	}
+	if req.Cores != nil {
+		update.Cores = jsonNumberFromInt(*req.Cores)
+	}
+
+	if req.Bridge != nil || req.VLANTag != nil {
+		if currentNet, ok := current.Raw["net0"]; ok {
+			_, _, nextBridge, nextVLAN := parseVMNetString(currentNet)
+			updatedNet := rewriteVMNetString(
+				currentNet,
+				firstNonEmptyString(derefString(req.Bridge), nextBridge),
+				coalesceVLAN(derefString(req.VLANTag), nextVLAN),
+			)
+			update.Raw["net0"] = updatedNet
+		}
+	}
+
+	if len(update.Raw) > 0 || update.MemoryMB != "" || update.Sockets != "" || update.Cores != "" {
+		if err := client.UpdateVMConfig(ctx, req.Node, req.VMID, update); err != nil {
+			return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("update proxmox VM config: %w", err)
+		}
+	}
+
+	if req.DiskSizeGB != nil {
+		diskKey, diskValue := findPrimaryVMDisk(current.Raw)
+		if diskKey == "" {
+			return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("unable to determine primary VM disk")
+		}
+		currentSizeGB, err := parseSizeGiB(parseConfigSize(diskValue))
+		if err != nil {
+			return coredeploy.ProxmoxVMHardwareResult{}, err
+		}
+		if *req.DiskSizeGB < currentSizeGB {
+			return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("disk size can only be expanded")
+		}
+		if *req.DiskSizeGB > currentSizeGB {
+			delta := *req.DiskSizeGB - currentSizeGB
+			if _, err := client.ResizeVMDisk(ctx, req.Node, req.VMID, diskKey, fmt.Sprintf("+%dG", delta)); err != nil {
+				return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("resize proxmox VM disk: %w", err)
+			}
+		}
+	}
+
+	return s.GetVMHardware(ctx, coredeploy.ProxmoxVMStartRequest{
+		Auth:            req.Auth,
+		HostServerID:    req.HostServerID,
+		ProxmoxSecretID: req.ProxmoxSecretID,
+		Node:            req.Node,
+		VMID:            req.VMID,
+	})
+}
+
+func (s *Service) GetLXCResources(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxLXCResourcesResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, err
+	}
+
+	raw, err := client.GetLXCConfig(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("get proxmox LXC config: %w", err)
+	}
+	cfg := coreproxmox.ParseLXCConfig(raw, req.VMID)
+
+	result := coredeploy.ProxmoxLXCResourcesResult{
+		Node:       req.Node,
+		VMID:       req.VMID,
+		Hostname:   cfg.Hostname,
+		MemoryMB:   cfg.Memory,
+		SwapMB:     cfg.Swap,
+		Cores:      cfg.Cores,
+		RootFS:     raw["rootfs"],
+		RootFSSize: parseRootFSSize(raw["rootfs"]),
+		Storage:    cfg.Storage,
+		Raw:        raw,
+	}
+	if netValue, ok := raw["net0"]; ok {
+		result.Bridge, result.VLANTag = parseLXCNetString(netValue)
+	}
+	return result, nil
+}
+
+func (s *Service) UpdateLXCResources(ctx context.Context, req coredeploy.ProxmoxLXCResourcesUpdateRequest) (coredeploy.ProxmoxLXCResourcesResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, err
+	}
+
+	current, err := client.GetLXCConfig(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("get proxmox LXC config: %w", err)
+	}
+	params := map[string]string{}
+	if req.MemoryMB != nil {
+		params["memory"] = strconv.Itoa(*req.MemoryMB)
+	}
+	if req.SwapMB != nil {
+		params["swap"] = strconv.Itoa(*req.SwapMB)
+	}
+	if req.Cores != nil {
+		params["cores"] = strconv.Itoa(*req.Cores)
+	}
+	if req.Bridge != nil || req.VLANTag != nil {
+		bridge, vlan := parseLXCNetString(current["net0"])
+		params["net0"] = rewriteLXCNetString(
+			current["net0"],
+			firstNonEmptyString(derefString(req.Bridge), bridge),
+			coalesceVLAN(derefString(req.VLANTag), vlan),
+		)
+	}
+	if req.RootFSSizeGB != nil {
+		storage, size := parseLXCStorageAndSize(current["rootfs"])
+		currentSizeGB, err := parseSizeGiB(size)
+		if err != nil {
+			return coredeploy.ProxmoxLXCResourcesResult{}, err
+		}
+		if *req.RootFSSizeGB < currentSizeGB {
+			return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("rootfs size can only be expanded")
+		}
+		params["rootfs"] = fmt.Sprintf("%s:%dG", storage, *req.RootFSSizeGB)
+	}
+
+	if err := client.UpdateLXCConfig(ctx, req.Node, req.VMID, params); err != nil {
+		return coredeploy.ProxmoxLXCResourcesResult{}, fmt.Errorf("update proxmox LXC config: %w", err)
+	}
+
+	return s.GetLXCResources(ctx, coredeploy.ProxmoxVMStartRequest{
+		Auth:            req.Auth,
+		HostServerID:    req.HostServerID,
+		ProxmoxSecretID: req.ProxmoxSecretID,
+		Node:            req.Node,
+		VMID:            req.VMID,
+	})
+}
+
 func (s *Service) CreateLXC(ctx context.Context, req coredeploy.ProxmoxLXCRequest) (coredeploy.ProxmoxLXCResult, error) {
 	var err error
 	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
@@ -439,6 +678,211 @@ func (s *Service) CreateAPIToken(ctx context.Context, req coreproxmox.CreateAPIT
 	}
 	result.StoredSecretID = &secretID
 	return result, nil
+}
+
+func jsonNumberFromInt(value int) json.Number {
+	return json.Number(strconv.Itoa(value))
+}
+
+func parseJSONNumberInt(value json.Number) (int, error) {
+	if value == "" {
+		return 0, nil
+	}
+	return strconv.Atoi(value.String())
+}
+
+func parseVMNetString(value string) (model string, mac string, bridge string, vlan string) {
+	parts := strings.Split(value, ",")
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if key, val, ok := strings.Cut(part, "="); ok {
+			switch key {
+			case "bridge":
+				bridge = val
+			case "tag":
+				vlan = val
+			default:
+				if model == "" && !strings.Contains(key, "rate") {
+					model = key
+					mac = val
+				}
+			}
+		}
+	}
+	return
+}
+
+func rewriteVMNetString(value string, bridge string, vlan string) string {
+	parts := strings.Split(value, ",")
+	foundBridge := false
+	foundTag := false
+	for i, part := range parts {
+		key, _, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if !ok {
+			continue
+		}
+		switch key {
+		case "bridge":
+			parts[i] = "bridge=" + bridge
+			foundBridge = true
+		case "tag":
+			foundTag = true
+			if strings.TrimSpace(vlan) == "" {
+				parts[i] = ""
+			} else {
+				parts[i] = "tag=" + vlan
+			}
+		}
+	}
+	filtered := make([]string, 0, len(parts)+1)
+	for _, part := range parts {
+		if strings.TrimSpace(part) != "" {
+			filtered = append(filtered, part)
+		}
+	}
+	if !foundBridge && strings.TrimSpace(bridge) != "" {
+		filtered = append(filtered, "bridge="+bridge)
+	}
+	if !foundTag && strings.TrimSpace(vlan) != "" {
+		filtered = append(filtered, "tag="+vlan)
+	}
+	return strings.Join(filtered, ",")
+}
+
+func parseLXCNetString(value string) (bridge string, vlan string) {
+	parts := strings.Split(value, ",")
+	for _, part := range parts {
+		key, val, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if !ok {
+			continue
+		}
+		switch key {
+		case "bridge":
+			bridge = val
+		case "tag":
+			vlan = val
+		}
+	}
+	return
+}
+
+func rewriteLXCNetString(value string, bridge string, vlan string) string {
+	parts := strings.Split(value, ",")
+	foundBridge := false
+	foundTag := false
+	for i, part := range parts {
+		key, _, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if !ok {
+			continue
+		}
+		switch key {
+		case "bridge":
+			parts[i] = "bridge=" + bridge
+			foundBridge = true
+		case "tag":
+			foundTag = true
+			if strings.TrimSpace(vlan) == "" {
+				parts[i] = ""
+			} else {
+				parts[i] = "tag=" + vlan
+			}
+		}
+	}
+	filtered := make([]string, 0, len(parts)+1)
+	for _, part := range parts {
+		if strings.TrimSpace(part) != "" {
+			filtered = append(filtered, part)
+		}
+	}
+	if !foundBridge && strings.TrimSpace(bridge) != "" {
+		filtered = append(filtered, "bridge="+bridge)
+	}
+	if !foundTag && strings.TrimSpace(vlan) != "" {
+		filtered = append(filtered, "tag="+vlan)
+	}
+	return strings.Join(filtered, ",")
+}
+
+func findPrimaryVMDisk(raw map[string]string) (string, string) {
+	prefixes := []string{"scsi", "virtio", "sata", "ide"}
+	for _, prefix := range prefixes {
+		for key, value := range raw {
+			if key == "ide2" || strings.HasPrefix(key, "unused") || strings.HasPrefix(key, "efidisk") || strings.HasPrefix(key, "tpmstate") {
+				continue
+			}
+			if strings.HasPrefix(key, prefix) && strings.Contains(value, "size=") {
+				return key, value
+			}
+		}
+	}
+	return "", ""
+}
+
+func parseConfigSize(value string) string {
+	for _, part := range strings.Split(value, ",") {
+		key, val, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if ok && key == "size" {
+			return val
+		}
+	}
+	return ""
+}
+
+func parseRootFSSize(value string) string {
+	if idx := strings.Index(value, ":"); idx >= 0 && idx < len(value)-1 {
+		return value[idx+1:]
+	}
+	return value
+}
+
+func parseLXCStorageAndSize(rootfs string) (string, string) {
+	if idx := strings.Index(rootfs, ":"); idx >= 0 && idx < len(rootfs)-1 {
+		return rootfs[:idx], rootfs[idx+1:]
+	}
+	return "", rootfs
+}
+
+func parseSizeGiB(value string) (int, error) {
+	if value == "" {
+		return 0, fmt.Errorf("size is missing")
+	}
+	upper := strings.ToUpper(strings.TrimSpace(value))
+	switch {
+	case strings.HasSuffix(upper, "G"):
+		return strconv.Atoi(strings.TrimSuffix(upper, "G"))
+	case strings.HasSuffix(upper, "M"):
+		mb, err := strconv.Atoi(strings.TrimSuffix(upper, "M"))
+		if err != nil {
+			return 0, err
+		}
+		gb := mb / 1024
+		if mb%1024 != 0 {
+			gb++
+		}
+		return gb, nil
+	case strings.HasSuffix(upper, "T"):
+		tb, err := strconv.Atoi(strings.TrimSuffix(upper, "T"))
+		if err != nil {
+			return 0, err
+		}
+		return tb * 1024, nil
+	default:
+		return strconv.Atoi(upper)
+	}
+}
+
+func derefString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(*value)
+}
+
+func coalesceVLAN(requested string, current string) string {
+	if requested == "" && current != "" {
+		return current
+	}
+	return requested
 }
 
 func (s *Service) resolveAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (coredeploy.ProxmoxAuthOptions, coredeploy.SSHOptions, string, error) {
