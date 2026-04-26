@@ -218,15 +218,10 @@ func (s *Service) StartVM(ctx context.Context, req coredeploy.ProxmoxVMStartRequ
 		return coredeploy.ProxmoxVMStartResult{}, err
 	}
 
-	resp, err := client.StartVM(ctx, req.Node, req.VMID)
+	upid, err := client.StartVM(ctx, req.Node, req.VMID)
 	if err != nil {
 		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("start proxmox VM: %w", err)
 	}
-	upid := firstNonEmptyString(
-		stringValue(resp["upid"]),
-		stringValue(resp["UPID"]),
-		stringValue(resp["data"]),
-	)
 	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
 }
 
@@ -248,15 +243,60 @@ func (s *Service) StopVM(ctx context.Context, req coredeploy.ProxmoxVMStartReque
 		return coredeploy.ProxmoxVMStartResult{}, err
 	}
 
-	resp, err := client.StopVM(ctx, req.Node, req.VMID)
+	upid, err := client.StopVM(ctx, req.Node, req.VMID)
 	if err != nil {
 		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("stop proxmox VM: %w", err)
 	}
-	upid := firstNonEmptyString(
-		stringValue(resp["upid"]),
-		stringValue(resp["UPID"]),
-		stringValue(resp["data"]),
-	)
+	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
+}
+
+func (s *Service) StartContainer(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMStartResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+
+	upid, err := client.StartLXCContainer(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("start proxmox LXC: %w", err)
+	}
+	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
+}
+
+func (s *Service) StopContainer(ctx context.Context, req coredeploy.ProxmoxVMStartRequest) (coredeploy.ProxmoxVMStartResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, err
+	}
+
+	upid, err := client.StopLXCContainer(ctx, req.Node, req.VMID)
+	if err != nil {
+		return coredeploy.ProxmoxVMStartResult{}, fmt.Errorf("stop proxmox LXC: %w", err)
+	}
 	return coredeploy.ProxmoxVMStartResult{Node: req.Node, VMID: req.VMID, UPID: upid}, nil
 }
 

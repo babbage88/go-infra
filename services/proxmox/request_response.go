@@ -341,6 +341,39 @@ type StartProxmoxVMParams struct {
 	Body ProxmoxVMStartRequest
 }
 
+// swagger:parameters StopProxmoxVM
+type StopProxmoxVMParams struct {
+	// VMID to stop.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Request body.
+	// in: body
+	Body ProxmoxVMStartRequest
+}
+
+// swagger:parameters StartProxmoxContainer
+type StartProxmoxContainerParams struct {
+	// VMID to start.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Request body.
+	// in: body
+	Body ProxmoxVMStartRequest
+}
+
+// swagger:parameters StopProxmoxContainer
+type StopProxmoxContainerParams struct {
+	// VMID to stop.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Request body.
+	// in: body
+	Body ProxmoxVMStartRequest
+}
+
 // swagger:parameters CreateProxmoxLXC
 type CreateProxmoxLXCParams struct {
 	// in: body
