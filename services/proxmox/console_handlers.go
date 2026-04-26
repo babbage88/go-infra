@@ -7,12 +7,54 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	coredeploy "github.com/babbage88/infra-core/deployment"
 	coreproxmox "github.com/babbage88/infra-core/proxmox"
 	"github.com/gorilla/websocket"
 )
+
+type vmConsoleSessionResponse struct {
+	Port   int    `json:"port"`
+	Ticket string `json:"ticket"`
+	User   string `json:"user,omitempty"`
+}
+
+func VMConsoleSessionHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, ok := parseListRequest(w, r)
+		if !ok {
+			return
+		}
+
+		vmid, err := parseVMIDPath(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		_, node, client, err := resolveConsoleClient(r.Context(), service, req, vmid)
+		if err != nil {
+			slog.Error("failed to resolve proxmox VM console session access", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		proxyDetails, err := client.CreateQemuVNCProxy(r.Context(), node, vmid)
+		if err != nil {
+			slog.Error("failed to create proxmox VM console session", slog.Int("vmid", vmid), slog.String("node", node), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, vmConsoleSessionResponse{
+			Port:   proxyDetails.Port,
+			Ticket: proxyDetails.Ticket,
+			User:   proxyDetails.User,
+		})
+	}
+}
 
 func VMConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +76,7 @@ func VMConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 			return
 		}
 
-		proxyDetails, err := client.CreateQemuVNCProxy(r.Context(), node, vmid)
+		proxyDetails, err := vmConsoleProxyFromRequest(r, client, node, vmid)
 		if err != nil {
 			slog.Error("failed to create proxmox VM vncproxy", slog.Int("vmid", vmid), slog.String("node", node), slog.String("error", err.Error()))
 			writeServiceError(w, err)
@@ -45,6 +87,24 @@ func VMConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 			slog.Error("failed to bridge proxmox VM console websocket", slog.Int("vmid", vmid), slog.String("node", node), slog.String("error", err.Error()))
 		}
 	}
+}
+
+func vmConsoleProxyFromRequest(r *http.Request, client *coreproxmox.Client, node string, vmid int) (*coreproxmox.ConsoleProxyResponse, error) {
+	portValue := strings.TrimSpace(r.URL.Query().Get("port"))
+	ticket := strings.TrimSpace(r.URL.Query().Get("ticket"))
+	if portValue == "" || ticket == "" {
+		return client.CreateQemuVNCProxy(r.Context(), node, vmid)
+	}
+
+	port, err := strconv.Atoi(portValue)
+	if err != nil || port <= 0 {
+		return nil, fmt.Errorf("invalid console port")
+	}
+
+	return &coreproxmox.ConsoleProxyResponse{
+		Port:   port,
+		Ticket: ticket,
+	}, nil
 }
 
 func LXCConsoleWebSocketHandler(service *Service) http.HandlerFunc {
@@ -67,7 +127,7 @@ func LXCConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 			return
 		}
 
-		proxyDetails, err := client.CreateLXCTermProxy(r.Context(), node, vmid)
+		proxyDetails, err := client.CreateLXCTermProxy(r.Context(), node, vmid, buildLXCTermProxyReferer(auth.HostURL, node, vmid))
 		if err != nil {
 			slog.Error("failed to create proxmox LXC termproxy", slog.Int("vmid", vmid), slog.String("node", node), slog.String("error", err.Error()))
 			writeServiceError(w, err)
@@ -78,6 +138,24 @@ func LXCConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 			slog.Error("failed to bridge proxmox LXC console websocket", slog.Int("vmid", vmid), slog.String("node", node), slog.String("error", err.Error()))
 		}
 	}
+}
+
+func buildLXCTermProxyReferer(hostURL string, node string, vmid int) string {
+	base, err := url.Parse(strings.TrimSpace(hostURL))
+	if err != nil {
+		return ""
+	}
+
+	query := url.Values{}
+	query.Set("console", "lxc")
+	query.Set("xtermjs", "1")
+	query.Set("vmid", strconv.Itoa(vmid))
+	query.Set("node", node)
+	query.Set("cmd", "")
+
+	base.Path = "/"
+	base.RawQuery = query.Encode()
+	return base.String()
 }
 
 func resolveConsoleClient(
@@ -165,6 +243,13 @@ func bridgeProxmoxConsoleWebSocket(
 	}
 	defer upstreamConn.Close()
 
+	if workloadType == "lxc" {
+		if err := sendTermProxyAuth(upstreamConn, proxyDetails); err != nil {
+			http.Error(w, "failed to authenticate proxmox container console", http.StatusBadGateway)
+			return err
+		}
+	}
+
 	upgrader := websocket.Upgrader{
 		CheckOrigin:       func(_ *http.Request) bool { return true },
 		EnableCompression: true,
@@ -181,13 +266,31 @@ func bridgeProxmoxConsoleWebSocket(
 	go relayWebSocket(errCh, upstreamConn, clientConn)
 
 	err = <-errCh
-	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 		return nil
 	}
 	if err == nil || strings.Contains(strings.ToLower(err.Error()), "closed") {
 		return nil
 	}
 	return err
+}
+
+func sendTermProxyAuth(conn *websocket.Conn, proxyDetails *coreproxmox.ConsoleProxyResponse) error {
+	if conn == nil {
+		return fmt.Errorf("upstream console websocket missing")
+	}
+	if proxyDetails == nil {
+		return fmt.Errorf("console proxy details missing")
+	}
+
+	user := strings.TrimSpace(proxyDetails.User)
+	ticket := strings.TrimSpace(proxyDetails.Ticket)
+	if user == "" || ticket == "" {
+		return fmt.Errorf("termproxy auth requires user and ticket")
+	}
+
+	authLine := fmt.Sprintf("%s:%s\n", user, ticket)
+	return conn.WriteMessage(websocket.TextMessage, []byte(authLine))
 }
 
 func relayWebSocket(errCh chan<- error, dst *websocket.Conn, src *websocket.Conn) {
