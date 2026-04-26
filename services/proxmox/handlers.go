@@ -3,6 +3,7 @@ package proxmox
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -795,4 +796,12 @@ func parseListRequest(w http.ResponseWriter, r *http.Request) (coredeploy.Proxmo
 		req.Full = &value
 	}
 	return req, true
+}
+
+func parseVMIDPath(r *http.Request) (int, error) {
+	vmid, err := strconv.Atoi(r.PathValue("vmid"))
+	if err != nil || vmid <= 0 {
+		return 0, fmt.Errorf("vmid path parameter must be a positive integer")
+	}
+	return vmid, nil
 }

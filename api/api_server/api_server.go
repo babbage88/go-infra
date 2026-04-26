@@ -204,6 +204,9 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("GET /api/v1/proxmox/container/{vmid}/resources", cors.CORSWithGET(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.GetLXCResourcesHandler(proxmoxService)),
 	))
+	mux.Handle("GET /api/v1/proxmox/container/{vmid}/console/websocket",
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.LXCConsoleWebSocketHandler(proxmoxService)),
+	)
 	mux.Handle("PUT /api/v1/proxmox/container/{vmid}/resources", cors.CORSWithPUT(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.UpdateLXCResourcesHandler(proxmoxService)),
 	))
@@ -222,6 +225,9 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	mux.Handle("GET /api/v1/proxmox/vm/{vmid}/hardware", cors.CORSWithGET(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.GetVMHardwareHandler(proxmoxService)),
 	))
+	mux.Handle("GET /api/v1/proxmox/vm/{vmid}/console/websocket",
+		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.VMConsoleWebSocketHandler(proxmoxService)),
+	)
 	mux.Handle("PUT /api/v1/proxmox/vm/{vmid}/hardware", cors.CORSWithPUT(
 		authapi.AuthMiddlewareRequireRoleOrPermission(authService, "Admin", "ManageHostServers", proxmoxsvc.UpdateVMHardwareHandler(proxmoxService)),
 	))
