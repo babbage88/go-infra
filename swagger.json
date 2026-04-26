@@ -6197,6 +6197,230 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
+    "ProxmoxVMHardwareResult": {
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "type": "string",
+          "x-go-name": "Bridge"
+        },
+        "cores": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cores"
+        },
+        "disk_interface": {
+          "type": "string",
+          "x-go-name": "DiskInterface"
+        },
+        "disk_size": {
+          "type": "string",
+          "x-go-name": "DiskSize"
+        },
+        "mac_address": {
+          "type": "string",
+          "x-go-name": "MACAddress"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MemoryMB"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "nic_model": {
+          "type": "string",
+          "x-go-name": "NICModel"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "raw": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Raw"
+        },
+        "sockets": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Sockets"
+        },
+        "vlan_tag": {
+          "type": "string",
+          "x-go-name": "VLANTag"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxVMHardwareUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "type": "string",
+          "x-go-name": "Bridge"
+        },
+        "cores": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cores"
+        },
+        "disk_size_gb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DiskSizeGB"
+        },
+        "host_server_id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MemoryMB"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "proxmox_secret_id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "sockets": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Sockets"
+        },
+        "vlan_tag": {
+          "type": "string",
+          "x-go-name": "VLANTag"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxLXCResourcesResult": {
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "type": "string",
+          "x-go-name": "Bridge"
+        },
+        "cores": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cores"
+        },
+        "hostname": {
+          "type": "string",
+          "x-go-name": "Hostname"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MemoryMB"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "raw": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Raw"
+        },
+        "rootfs": {
+          "type": "string",
+          "x-go-name": "RootFS"
+        },
+        "rootfs_size": {
+          "type": "string",
+          "x-go-name": "RootFSSize"
+        },
+        "storage": {
+          "type": "string",
+          "x-go-name": "Storage"
+        },
+        "swap_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "SwapMB"
+        },
+        "vlan_tag": {
+          "type": "string",
+          "x-go-name": "VLANTag"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxLXCResourcesUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "type": "string",
+          "x-go-name": "Bridge"
+        },
+        "cores": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cores"
+        },
+        "host_server_id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MemoryMB"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "proxmox_secret_id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "rootfs_size_gb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RootFSSizeGB"
+        },
+        "swap_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "SwapMB"
+        },
+        "vlan_tag": {
+          "type": "string",
+          "x-go-name": "VLANTag"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
     "ProxmoxVMTemplateRequest": {
       "type": "object",
       "properties": {
@@ -7684,6 +7908,12 @@
         "$ref": "#/definitions/ProxmoxContainerListResult"
       }
     },
+    "ProxmoxLXCResourcesResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ProxmoxLXCResourcesResult"
+      }
+    },
     "ProxmoxLXCResponse": {
       "description": "(empty)",
       "schema": {
@@ -7712,6 +7942,12 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxVMStartResult"
+      }
+    },
+    "ProxmoxVMHardwareResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ProxmoxVMHardwareResult"
       }
     },
     "ProxmoxVMTemplateResponse": {
