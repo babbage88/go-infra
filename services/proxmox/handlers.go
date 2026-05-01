@@ -421,6 +421,140 @@ func UpdateVMHardwareHandler(service *Service) http.HandlerFunc {
 	}
 }
 
+// swagger:route GET /api/v1/proxmox/vm/{vmid}/guest-summary Proxmox GetProxmoxVMGuestSummary
+// Get guest-agent network summary for a Proxmox QEMU VM.
+// responses:
+//
+//	200: ProxmoxGuestSummaryResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetVMGuestSummaryHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, ok := parseListRequest(w, r)
+		if !ok {
+			return
+		}
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		result, err := service.GetGuestSummary(r.Context(), coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    req.HostServerID,
+			ProxmoxSecretID: req.ProxmoxSecretID,
+			Node:            req.Node,
+			VMID:            vmid,
+		}, "qemu")
+		if err != nil {
+			slog.Error("failed to get proxmox VM guest summary", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route GET /api/v1/proxmox/container/{vmid}/guest-summary Proxmox GetProxmoxContainerGuestSummary
+// Get guest network summary for a Proxmox LXC container.
+// responses:
+//
+//	200: ProxmoxGuestSummaryResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetContainerGuestSummaryHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, ok := parseListRequest(w, r)
+		if !ok {
+			return
+		}
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		result, err := service.GetGuestSummary(r.Context(), coredeploy.ProxmoxVMStartRequest{
+			HostServerID:    req.HostServerID,
+			ProxmoxSecretID: req.ProxmoxSecretID,
+			Node:            req.Node,
+			VMID:            vmid,
+		}, "lxc")
+		if err != nil {
+			slog.Error("failed to get proxmox container guest summary", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route GET /api/v1/proxmox/node/options Proxmox GetProxmoxNodeOptions
+// List Proxmox node bridges, storage, and ISO media options.
+// responses:
+//
+//	200: ProxmoxNodeOptionsResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func GetNodeOptionsHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, ok := parseListRequest(w, r)
+		if !ok {
+			return
+		}
+
+		result, err := service.GetNodeOptions(r.Context(), req)
+		if err != nil {
+			slog.Error("failed to get proxmox node options", slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
+// swagger:route PUT /api/v1/proxmox/vm/{vmid}/hardware/action Proxmox ApplyProxmoxVMHardwareAction
+// Apply an arbitrary Proxmox QEMU hardware config action.
+// responses:
+//
+//	200: ProxmoxVMHardwareResponse
+//	400: description:Invalid request
+//	401: description:Unauthorized
+//	500: description:Internal Server Error
+func ApplyVMHardwareActionHandler(service *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vmid, err := strconv.Atoi(r.PathValue("vmid"))
+		if err != nil || vmid <= 0 {
+			http.Error(w, "vmid path parameter must be a positive integer", http.StatusBadRequest)
+			return
+		}
+
+		body := ProxmoxVMHardwareActionRequest{VMID: vmid}
+		if r.Body != nil {
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+				http.Error(w, "invalid request body", http.StatusBadRequest)
+				return
+			}
+		}
+		body.VMID = vmid
+
+		result, err := service.ApplyVMHardwareAction(r.Context(), body)
+		if err != nil {
+			slog.Error("failed to apply proxmox VM hardware action", slog.Int("vmid", vmid), slog.String("error", err.Error()))
+			writeServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, result)
+	}
+}
+
 // swagger:route GET /api/v1/proxmox/container/{vmid}/resources Proxmox GetProxmoxLXCResources
 // Get configured resource values for a Proxmox LXC container.
 // responses:

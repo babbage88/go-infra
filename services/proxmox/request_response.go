@@ -143,6 +143,79 @@ type ProxmoxVMHardwareUpdateRequest struct {
 	DiskSizeGB      *int       `json:"disk_size_gb,omitempty"`
 }
 
+// swagger:model ProxmoxGuestIPAddress
+type ProxmoxGuestIPAddress struct {
+	IPAddress     string `json:"ip_address,omitempty"`
+	IPAddressType string `json:"ip_address_type,omitempty"`
+	Prefix        int    `json:"prefix,omitempty"`
+}
+
+// swagger:model ProxmoxGuestNetworkInterface
+type ProxmoxGuestNetworkInterface struct {
+	Name          string                 `json:"name,omitempty"`
+	HardwareAddr  string                 `json:"hardware_address,omitempty"`
+	IPAddresses   []ProxmoxGuestIPAddress `json:"ip_addresses,omitempty"`
+	Raw           map[string]interface{} `json:"raw,omitempty"`
+}
+
+// swagger:model ProxmoxGuestSummaryResult
+type ProxmoxGuestSummaryResult struct {
+	Node       string                         `json:"node"`
+	VMID       int                            `json:"vmid"`
+	Kind       string                         `json:"kind"`
+	Interfaces []ProxmoxGuestNetworkInterface `json:"interfaces,omitempty"`
+	IPAddresses []string                      `json:"ip_addresses,omitempty"`
+	Error      string                         `json:"error,omitempty"`
+}
+
+// swagger:model ProxmoxNodeBridge
+type ProxmoxNodeBridge struct {
+	Name        string `json:"name"`
+	Active      bool   `json:"active"`
+	Autostart   bool   `json:"autostart"`
+	BridgePorts string `json:"bridge_ports,omitempty"`
+	CIDR        string `json:"cidr,omitempty"`
+	Gateway     string `json:"gateway,omitempty"`
+}
+
+// swagger:model ProxmoxNodeStorage
+type ProxmoxNodeStorage struct {
+	Name    string `json:"name"`
+	Type    string `json:"type,omitempty"`
+	Content string `json:"content,omitempty"`
+	Enabled bool   `json:"enabled"`
+	Active  bool   `json:"active"`
+	Shared  bool   `json:"shared"`
+}
+
+// swagger:model ProxmoxStorageContent
+type ProxmoxStorageContent struct {
+	VolID   string `json:"volid"`
+	Content string `json:"content,omitempty"`
+	Format  string `json:"format,omitempty"`
+	Size    int64  `json:"size,omitempty"`
+}
+
+// swagger:model ProxmoxNodeOptionsResult
+type ProxmoxNodeOptionsResult struct {
+	Node      string                  `json:"node"`
+	Bridges   []ProxmoxNodeBridge      `json:"bridges,omitempty"`
+	Storage   []ProxmoxNodeStorage     `json:"storage,omitempty"`
+	ISOImages []ProxmoxStorageContent  `json:"iso_images,omitempty"`
+}
+
+// swagger:model ProxmoxVMHardwareActionRequest
+type ProxmoxVMHardwareActionRequest struct {
+	HostServerID    *uuid.UUID        `json:"host_server_id,omitempty"`
+	ProxmoxSecretID *uuid.UUID        `json:"proxmox_secret_id,omitempty"`
+	Node            string            `json:"node,omitempty"`
+	VMID            int               `json:"vmid,omitempty"`
+	Device          string            `json:"device,omitempty"`
+	Value           string            `json:"value,omitempty"`
+	Delete          string            `json:"delete,omitempty"`
+	Params          map[string]string `json:"params,omitempty"`
+}
+
 // swagger:model ProxmoxLXCResourcesResult
 type ProxmoxLXCResourcesResult struct {
 	Node       string            `json:"node"`
@@ -485,6 +558,64 @@ type UpdateProxmoxVMHardwareParams struct {
 	Body ProxmoxVMHardwareUpdateRequest
 }
 
+// swagger:parameters GetProxmoxVMGuestSummary
+type GetProxmoxVMGuestSummaryParams struct {
+	// VMID to inspect.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Host server ID for a Proxmox VE node.
+	// in: query
+	HostServerID string `json:"host_server_id,omitempty"`
+	// Optional stored Proxmox secret ID to use for this host.
+	// in: query
+	ProxmoxSecretID string `json:"proxmox_secret_id,omitempty"`
+	// Proxmox node name.
+	// in: query
+	Node string `json:"node,omitempty"`
+}
+
+// swagger:parameters GetProxmoxContainerGuestSummary
+type GetProxmoxContainerGuestSummaryParams struct {
+	// VMID to inspect.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Host server ID for a Proxmox VE node.
+	// in: query
+	HostServerID string `json:"host_server_id,omitempty"`
+	// Optional stored Proxmox secret ID to use for this host.
+	// in: query
+	ProxmoxSecretID string `json:"proxmox_secret_id,omitempty"`
+	// Proxmox node name.
+	// in: query
+	Node string `json:"node,omitempty"`
+}
+
+// swagger:parameters GetProxmoxNodeOptions
+type GetProxmoxNodeOptionsParams struct {
+	// Host server ID for a Proxmox VE node.
+	// in: query
+	HostServerID string `json:"host_server_id,omitempty"`
+	// Optional stored Proxmox secret ID to use for this host.
+	// in: query
+	ProxmoxSecretID string `json:"proxmox_secret_id,omitempty"`
+	// Proxmox node name.
+	// in: query
+	Node string `json:"node,omitempty"`
+}
+
+// swagger:parameters ApplyProxmoxVMHardwareAction
+type ApplyProxmoxVMHardwareActionParams struct {
+	// VMID to update.
+	// in: path
+	// required: true
+	VMID int `json:"vmid"`
+	// Request body.
+	// in: body
+	Body ProxmoxVMHardwareActionRequest
+}
+
 // swagger:parameters GetProxmoxLXCResources
 type GetProxmoxLXCResourcesParams struct {
 	// VMID to inspect.
@@ -571,6 +702,18 @@ type ProxmoxVMStartResponse struct {
 type ProxmoxVMHardwareResponse struct {
 	// in: body
 	Body ProxmoxVMHardwareResult
+}
+
+// swagger:response ProxmoxGuestSummaryResponse
+type ProxmoxGuestSummaryResponse struct {
+	// in: body
+	Body ProxmoxGuestSummaryResult
+}
+
+// swagger:response ProxmoxNodeOptionsResponse
+type ProxmoxNodeOptionsResponse struct {
+	// in: body
+	Body ProxmoxNodeOptionsResult
 }
 
 // swagger:response ProxmoxLXCResourcesResponse

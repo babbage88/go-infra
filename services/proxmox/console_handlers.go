@@ -292,6 +292,12 @@ func bridgeProxmoxConsoleWebSocket(
 	}
 	defer clientConn.Close()
 
+	if workloadType == "lxc" {
+		if err := nudgeTermProxyPrompt(upstreamConn); err != nil {
+			slog.Debug("failed to nudge proxmox LXC console prompt", slog.Int("vmid", vmid), slog.String("node", node), slog.String("error", err.Error()))
+		}
+	}
+
 	errCh := make(chan error, 2)
 	go relayWebSocket(errCh, clientConn, upstreamConn)
 	go relayWebSocket(errCh, upstreamConn, clientConn)
@@ -359,6 +365,13 @@ func proxmoxAuthUsesToken(auth coredeploy.ProxmoxAuthOptions) bool {
 	return strings.TrimSpace(auth.APIToken) != "" ||
 		strings.TrimSpace(auth.APITokenID) != "" ||
 		strings.TrimSpace(auth.APISecret) != ""
+}
+
+func nudgeTermProxyPrompt(conn *websocket.Conn) error {
+	if conn == nil {
+		return fmt.Errorf("upstream console websocket missing")
+	}
+	return conn.WriteMessage(websocket.TextMessage, []byte("0:1:\r"))
 }
 
 func relayWebSocket(errCh chan<- error, dst *websocket.Conn, src *websocket.Conn) {

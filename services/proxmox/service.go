@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -478,6 +479,176 @@ func (s *Service) UpdateVMHardware(ctx context.Context, req coredeploy.ProxmoxVM
 		HostServerID:    req.HostServerID,
 		ProxmoxSecretID: req.ProxmoxSecretID,
 		Node:            req.Node,
+		VMID:            req.VMID,
+	})
+}
+
+func (s *Service) GetGuestSummary(ctx context.Context, req coredeploy.ProxmoxVMStartRequest, kind string) (ProxmoxGuestSummaryResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return ProxmoxGuestSummaryResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return ProxmoxGuestSummaryResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return ProxmoxGuestSummaryResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return ProxmoxGuestSummaryResult{}, err
+	}
+
+	result := ProxmoxGuestSummaryResult{Node: req.Node, VMID: req.VMID, Kind: kind}
+	var interfaces []coreproxmox.GuestNetworkInterface
+	if kind == "lxc" {
+		interfaces, err = client.GetLXCInterfaces(ctx, req.Node, req.VMID)
+	} else {
+		interfaces, err = client.GetQemuAgentNetworkInterfaces(ctx, req.Node, req.VMID)
+	}
+	if err != nil {
+		result.Error = err.Error()
+		return result, nil
+	}
+
+	seen := map[string]struct{}{}
+	for _, iface := range interfaces {
+		next := ProxmoxGuestNetworkInterface{
+			Name:         iface.Name,
+			HardwareAddr: iface.HardwareAddr,
+			Raw:          iface.Raw,
+		}
+		for _, ip := range iface.IPAddresses {
+			if strings.TrimSpace(ip.IPAddress) == "" || strings.HasPrefix(ip.IPAddress, "127.") || ip.IPAddress == "::1" {
+				continue
+			}
+			next.IPAddresses = append(next.IPAddresses, ProxmoxGuestIPAddress{
+				IPAddress:     ip.IPAddress,
+				IPAddressType: ip.IPAddressType,
+				Prefix:        ip.Prefix,
+			})
+			if _, ok := seen[ip.IPAddress]; !ok {
+				seen[ip.IPAddress] = struct{}{}
+				result.IPAddresses = append(result.IPAddresses, ip.IPAddress)
+			}
+		}
+		result.Interfaces = append(result.Interfaces, next)
+	}
+
+	return result, nil
+}
+
+func (s *Service) GetNodeOptions(ctx context.Context, req coredeploy.ProxmoxVMListRequest) (ProxmoxNodeOptionsResult, error) {
+	var err error
+	req.Auth, _, req.Node, err = s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return ProxmoxNodeOptionsResult{}, err
+	}
+	if strings.TrimSpace(req.Node) == "" {
+		return ProxmoxNodeOptionsResult{}, fmt.Errorf("node is required")
+	}
+
+	client, err := newCoreClient(req.Auth)
+	if err != nil {
+		return ProxmoxNodeOptionsResult{}, err
+	}
+
+	result := ProxmoxNodeOptionsResult{Node: req.Node}
+	bridges, err := client.ListNodeBridges(ctx, req.Node)
+	if err != nil {
+		return ProxmoxNodeOptionsResult{}, fmt.Errorf("list proxmox node bridges: %w", err)
+	}
+	for _, bridge := range bridges {
+		result.Bridges = append(result.Bridges, ProxmoxNodeBridge{
+			Name:        bridge.Iface,
+			Active:      bridge.Active == 1,
+			Autostart:   bridge.Autostart == 1,
+			BridgePorts: bridge.BridgePorts,
+			CIDR:        bridge.CIDR,
+			Gateway:     bridge.Gateway,
+		})
+	}
+
+	storages, err := client.ListNodeStorage(ctx, req.Node)
+	if err != nil {
+		return ProxmoxNodeOptionsResult{}, fmt.Errorf("list proxmox node storage: %w", err)
+	}
+	for _, storage := range storages {
+		result.Storage = append(result.Storage, ProxmoxNodeStorage{
+			Name:    storage.Storage,
+			Type:    storage.Type,
+			Content: storage.Content,
+			Enabled: storage.Enabled == 1,
+			Active:  storage.Active == 1,
+			Shared:  storage.Shared == 1,
+		})
+		if storage.Enabled == 0 || !storage.Supports(coreproxmox.Iso) {
+			continue
+		}
+		items, err := client.ListStorageContent(ctx, req.Node, storage.Storage, coreproxmox.Iso)
+		if err != nil {
+			continue
+		}
+		for _, item := range items {
+			result.ISOImages = append(result.ISOImages, ProxmoxStorageContent{
+				VolID:   item.Volid,
+				Content: item.Content,
+				Format:  item.Format,
+				Size:    item.Size,
+			})
+		}
+	}
+
+	return result, nil
+}
+
+func (s *Service) ApplyVMHardwareAction(ctx context.Context, req ProxmoxVMHardwareActionRequest) (coredeploy.ProxmoxVMHardwareResult, error) {
+	var err error
+	auth, _, node, err := s.resolveAccess(ctx, req.HostServerID, req.ProxmoxSecretID, coredeploy.ProxmoxAuthOptions{}, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, err
+	}
+	if strings.TrimSpace(node) == "" {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("node is required")
+	}
+	if req.VMID <= 0 {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("vmid must be greater than zero")
+	}
+
+	params := url.Values{}
+	if strings.TrimSpace(req.Delete) != "" {
+		params.Set("delete", strings.TrimSpace(req.Delete))
+	} else {
+		if strings.TrimSpace(req.Device) == "" {
+			return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("device is required")
+		}
+		if strings.TrimSpace(req.Value) == "" {
+			return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("value is required")
+		}
+		params.Set(strings.TrimSpace(req.Device), strings.TrimSpace(req.Value))
+	}
+	for key, value := range req.Params {
+		if strings.TrimSpace(key) == "" {
+			continue
+		}
+		params.Set(strings.TrimSpace(key), strings.TrimSpace(value))
+	}
+
+	client, err := newCoreClient(auth)
+	if err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, err
+	}
+	if err := client.UpdateVMConfigRaw(ctx, node, req.VMID, params); err != nil {
+		return coredeploy.ProxmoxVMHardwareResult{}, fmt.Errorf("apply proxmox VM hardware action: %w", err)
+	}
+
+	return s.GetVMHardware(ctx, coredeploy.ProxmoxVMStartRequest{
+		Auth:            auth,
+		HostServerID:    req.HostServerID,
+		ProxmoxSecretID: req.ProxmoxSecretID,
+		Node:            node,
 		VMID:            req.VMID,
 	})
 }
