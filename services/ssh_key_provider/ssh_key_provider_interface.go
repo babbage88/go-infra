@@ -55,14 +55,15 @@ type SshKeyRecord struct {
 }
 
 type CreateSshKeyHostMappingResult struct {
-	ID                 uuid.UUID `json:"id"`
-	SshKeyID           uuid.UUID `json:"sshKeyId"`
-	HostServerID       uuid.UUID `json:"hostServerId"`
-	UserID             uuid.UUID `json:"userId"`
-	HostserverUsername string    `json:"hostserverUsername"`
-	CreatedAt          time.Time `json:"createdAt"`
-	LastModified       time.Time `json:"lastModified"`
-	Error              error     `json:"error"`
+	ID                  uuid.UUID  `json:"id"`
+	SshKeyID            uuid.UUID  `json:"sshKeyId"`
+	HostServerID        uuid.UUID  `json:"hostServerId"`
+	UserID              uuid.UUID  `json:"userId"`
+	HostserverUsername  string     `json:"hostserverUsername"`
+	SudoPasswordTokenID *uuid.UUID `json:"sudoPasswordTokenId,omitempty"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	LastModified        time.Time  `json:"lastModified"`
+	Error               error      `json:"error"`
 }
 
 type UpdateSshKeyHostMappingResult struct {

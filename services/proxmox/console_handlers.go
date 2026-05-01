@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	coredeploy "github.com/babbage88/infra-core/deployment"
 	coreproxmox "github.com/babbage88/infra-core/proxmox"
@@ -35,7 +36,7 @@ func VMConsoleSessionHandler(service *Service) http.HandlerFunc {
 			return
 		}
 
-		_, node, client, err := resolveConsoleClient(r.Context(), service, req, vmid)
+		_, node, client, err := resolveConsoleCookieClient(r.Context(), service, req, vmid)
 		if err != nil {
 			slog.Error("failed to resolve proxmox VM console session access", slog.Int("vmid", vmid), slog.String("error", err.Error()))
 			writeServiceError(w, err)
@@ -71,7 +72,7 @@ func VMConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 			return
 		}
 
-		auth, node, client, err := resolveConsoleClient(r.Context(), service, req, vmid)
+		auth, node, client, err := resolveConsoleCookieClient(r.Context(), service, req, vmid)
 		if err != nil {
 			slog.Error("failed to resolve proxmox VM console access", slog.Int("vmid", vmid), slog.String("error", err.Error()))
 			writeServiceError(w, err)
@@ -122,7 +123,7 @@ func LXCConsoleWebSocketHandler(service *Service) http.HandlerFunc {
 			return
 		}
 
-		auth, node, client, err := resolveConsoleClient(r.Context(), service, req, vmid)
+		auth, node, client, err := resolveConsoleCookieClient(r.Context(), service, req, vmid)
 		if err != nil {
 			slog.Error("failed to resolve proxmox LXC console access", slog.Int("vmid", vmid), slog.String("error", err.Error()))
 			writeServiceError(w, err)
@@ -178,6 +179,34 @@ func resolveConsoleClient(
 	}
 	client, err := newCoreClient(auth)
 	if err != nil {
+		return coredeploy.ProxmoxAuthOptions{}, "", nil, err
+	}
+	return auth, node, client, nil
+}
+
+func resolveConsoleCookieClient(
+	ctx context.Context,
+	service *Service,
+	req coredeploy.ProxmoxVMListRequest,
+	vmid int,
+) (coredeploy.ProxmoxAuthOptions, string, *coreproxmox.Client, error) {
+	useToken := false
+	req.Auth.UseToken = &useToken
+	auth, _, node, err := service.resolveConsoleCookieAccess(ctx, req.HostServerID, req.Auth, coredeploy.SSHOptions{}, req.Node)
+	if err != nil {
+		return coredeploy.ProxmoxAuthOptions{}, "", nil, err
+	}
+	if strings.TrimSpace(node) == "" {
+		return coredeploy.ProxmoxAuthOptions{}, "", nil, fmt.Errorf("node is required")
+	}
+	if vmid <= 0 {
+		return coredeploy.ProxmoxAuthOptions{}, "", nil, fmt.Errorf("vmid must be greater than zero")
+	}
+	client, err := newCoreClient(auth)
+	if err != nil {
+		return coredeploy.ProxmoxAuthOptions{}, "", nil, err
+	}
+	if err := client.Login(ctx); err != nil {
 		return coredeploy.ProxmoxAuthOptions{}, "", nil, err
 	}
 	return auth, node, client, nil
@@ -246,7 +275,7 @@ func bridgeProxmoxConsoleWebSocket(
 	defer upstreamConn.Close()
 
 	if workloadType == "lxc" {
-		if err := sendTermProxyAuth(upstreamConn, proxyDetails); err != nil {
+		if err := sendTermProxyAuth(upstreamConn, proxyDetails, auth); err != nil {
 			http.Error(w, "failed to authenticate proxmox container console", http.StatusBadGateway)
 			return err
 		}
@@ -277,7 +306,7 @@ func bridgeProxmoxConsoleWebSocket(
 	return err
 }
 
-func sendTermProxyAuth(conn *websocket.Conn, proxyDetails *coreproxmox.ConsoleProxyResponse) error {
+func sendTermProxyAuth(conn *websocket.Conn, proxyDetails *coreproxmox.ConsoleProxyResponse, auth coredeploy.ProxmoxAuthOptions) error {
 	if conn == nil {
 		return fmt.Errorf("upstream console websocket missing")
 	}
@@ -292,7 +321,27 @@ func sendTermProxyAuth(conn *websocket.Conn, proxyDetails *coreproxmox.ConsolePr
 	}
 
 	authLine := fmt.Sprintf("%s:%s\n", user, ticket)
-	return conn.WriteMessage(websocket.TextMessage, []byte(authLine))
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(authLine)); err != nil {
+		return err
+	}
+
+	if err := conn.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
+		return err
+	}
+	_, payload, err := conn.ReadMessage()
+	_ = conn.SetReadDeadline(time.Time{})
+	if err != nil {
+		if proxmoxAuthUsesToken(auth) {
+			return fmt.Errorf("termproxy rejected the console ticket before sending OK; Proxmox vncwebsocket commonly rejects API-token-owned console tickets: %w", err)
+		}
+		return fmt.Errorf("termproxy rejected the console ticket before sending OK: %w", err)
+	}
+
+	if strings.TrimSpace(string(payload)) != "OK" {
+		return fmt.Errorf("termproxy returned unexpected auth response %q", strings.TrimSpace(string(payload)))
+	}
+
+	return nil
 }
 
 func termProxyAuthUser(user string) string {
@@ -301,6 +350,15 @@ func termProxyAuthUser(user string) string {
 		return baseUser
 	}
 	return trimmed
+}
+
+func proxmoxAuthUsesToken(auth coredeploy.ProxmoxAuthOptions) bool {
+	if auth.UseToken != nil && !*auth.UseToken {
+		return false
+	}
+	return strings.TrimSpace(auth.APIToken) != "" ||
+		strings.TrimSpace(auth.APITokenID) != "" ||
+		strings.TrimSpace(auth.APISecret) != ""
 }
 
 func relayWebSocket(errCh chan<- error, dst *websocket.Conn, src *websocket.Conn) {

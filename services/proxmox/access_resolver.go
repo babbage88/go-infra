@@ -24,6 +24,7 @@ type AccessResolution struct {
 
 type UserAccessResolver interface {
 	ResolveAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error)
+	ResolveConsoleCookieAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error)
 	ResolveSSHAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error)
 	EnsureExternalAppID(ctx context.Context, name string) (uuid.UUID, error)
 }
@@ -54,6 +55,58 @@ func (r *UserAccessResolverImpl) ResolveAccess(ctx context.Context, hostServerID
 
 func (r *UserAccessResolverImpl) ResolveSSHAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error) {
 	return r.resolveHostAccess(ctx, hostServerID, nil, auth, ssh, node, false)
+}
+
+func (r *UserAccessResolverImpl) ResolveConsoleCookieAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (AccessResolution, error) {
+	resolution, err := r.resolveHostAccess(ctx, hostServerID, nil, auth, ssh, node, false)
+	if err != nil {
+		return AccessResolution{}, err
+	}
+
+	useToken := false
+	resolution.Auth.UseToken = &useToken
+	resolution.Auth.APIToken = ""
+	resolution.Auth.APITokenID = ""
+	resolution.Auth.APISecret = ""
+
+	if strings.TrimSpace(resolution.Auth.Username) != "" && strings.TrimSpace(resolution.Auth.Password) != "" {
+		resolution.Auth.Username = normalizeProxmoxPasswordUser(resolution.Auth.Username)
+		return resolution, nil
+	}
+
+	if hostServerID == nil {
+		return AccessResolution{}, fmt.Errorf("cookie-based Proxmox console auth requires auth.username and auth.password when host_server_id is not supplied")
+	}
+	if r.db == nil || r.hostServerProvider == nil || r.secretProvider == nil || r.sshKeyProvider == nil {
+		return AccessResolution{}, fmt.Errorf("host-scoped proxmox console credential resolution is unavailable")
+	}
+
+	userID, err := authapi.GetUserIDFromContext(ctx)
+	if err != nil {
+		return AccessResolution{}, err
+	}
+	mapping, err := r.getUserSSHMappingForHost(userID, *hostServerID)
+	if err != nil {
+		return AccessResolution{}, err
+	}
+	if mapping.SudoPasswordTokenID != nil {
+		secret, err := r.secretProvider.RetrieveSecret(*mapping.SudoPasswordTokenID)
+		if err != nil {
+			return AccessResolution{}, fmt.Errorf("retrieve Proxmox console password secret %s: %w", mapping.SudoPasswordTokenID.String(), err)
+		}
+		resolution.Auth.Password = string(secret.ExternalAuthToken.Token)
+	}
+
+	if strings.TrimSpace(resolution.Auth.Username) == "" {
+		resolution.Auth.Username = mapping.HostserverUsername
+	}
+	resolution.Auth.Username = normalizeProxmoxPasswordUser(resolution.Auth.Username)
+
+	if strings.TrimSpace(resolution.Auth.Password) == "" {
+		return AccessResolution{}, fmt.Errorf("cookie-based Proxmox console auth requires a sudo password secret on the host SSH mapping or explicit auth.password")
+	}
+
+	return resolution, nil
 }
 
 func (r *UserAccessResolverImpl) resolveHostAccess(ctx context.Context, hostServerID, proxmoxSecretID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string, requireProxmoxAuth bool) (AccessResolution, error) {

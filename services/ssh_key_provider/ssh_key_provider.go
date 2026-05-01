@@ -242,6 +242,14 @@ func (p *PgSshKeySecretStore) GetSshKeyById(sshKeyId uuid.UUID) (*SshKeyRecord, 
 	return record, nil
 }
 
+func uuidPtrFromPgtype(value pgtype.UUID) *uuid.UUID {
+	if !value.Valid {
+		return nil
+	}
+	id := uuid.UUID(value.Bytes)
+	return &id
+}
+
 // SSH Key Host Mapping CRUD operations
 
 func (p *PgSshKeySecretStore) CreateSshKeyHostMapping(mapping *CreateSshKeyHostMappingRequest) CreateSshKeyHostMappingResult {
@@ -272,14 +280,15 @@ func (p *PgSshKeySecretStore) CreateSshKeyHostMapping(mapping *CreateSshKeyHostM
 	}
 
 	return CreateSshKeyHostMappingResult{
-		ID:                 sshKeyHostMapping.ID,
-		SshKeyID:           sshKeyHostMapping.SshKeyID,
-		HostServerID:       sshKeyHostMapping.HostServerID,
-		UserID:             sshKeyHostMapping.UserID,
-		HostserverUsername: sshKeyHostMapping.HostserverUsername,
-		CreatedAt:          sshKeyHostMapping.CreatedAt.Time,
-		LastModified:       sshKeyHostMapping.LastModified.Time,
-		Error:              nil,
+		ID:                  sshKeyHostMapping.ID,
+		SshKeyID:            sshKeyHostMapping.SshKeyID,
+		HostServerID:        sshKeyHostMapping.HostServerID,
+		UserID:              sshKeyHostMapping.UserID,
+		HostserverUsername:  sshKeyHostMapping.HostserverUsername,
+		SudoPasswordTokenID: uuidPtrFromPgtype(sshKeyHostMapping.SudoPasswordTokenID),
+		CreatedAt:           sshKeyHostMapping.CreatedAt.Time,
+		LastModified:        sshKeyHostMapping.LastModified.Time,
+		Error:               nil,
 	}
 }
 
@@ -294,14 +303,15 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingById(id uuid.UUID) (*CreateSsh
 	}
 
 	return &CreateSshKeyHostMappingResult{
-		ID:                 sshKeyHostMapping.ID,
-		SshKeyID:           sshKeyHostMapping.SshKeyID,
-		HostServerID:       sshKeyHostMapping.HostServerID,
-		UserID:             sshKeyHostMapping.UserID,
-		HostserverUsername: sshKeyHostMapping.HostserverUsername,
-		CreatedAt:          sshKeyHostMapping.CreatedAt.Time,
-		LastModified:       sshKeyHostMapping.LastModified.Time,
-		Error:              nil,
+		ID:                  sshKeyHostMapping.ID,
+		SshKeyID:            sshKeyHostMapping.SshKeyID,
+		HostServerID:        sshKeyHostMapping.HostServerID,
+		UserID:              sshKeyHostMapping.UserID,
+		HostserverUsername:  sshKeyHostMapping.HostserverUsername,
+		SudoPasswordTokenID: uuidPtrFromPgtype(sshKeyHostMapping.SudoPasswordTokenID),
+		CreatedAt:           sshKeyHostMapping.CreatedAt.Time,
+		LastModified:        sshKeyHostMapping.LastModified.Time,
+		Error:               nil,
 	}, nil
 }
 
@@ -318,13 +328,14 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByUserId(userId uuid.UUID) ([
 	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
 	for _, mapping := range userSshKeyMappings {
 		result = append(result, CreateSshKeyHostMappingResult{
-			ID:                 mapping.MappingID,
-			SshKeyID:           mapping.SshKeyID,
-			HostServerID:       mapping.HostServerID,
-			UserID:             mapping.UserID,
-			HostserverUsername: mapping.HostserverUsername,
-			CreatedAt:          mapping.CreatedAt.Time,
-			LastModified:       mapping.LastModified.Time,
+			ID:                  mapping.MappingID,
+			SshKeyID:            mapping.SshKeyID,
+			HostServerID:        mapping.HostServerID,
+			UserID:              mapping.UserID,
+			HostserverUsername:  mapping.HostserverUsername,
+			SudoPasswordTokenID: uuidPtrFromPgtype(mapping.SudoPasswordTokenID),
+			CreatedAt:           mapping.CreatedAt.Time,
+			LastModified:        mapping.LastModified.Time,
 		})
 	}
 
@@ -344,13 +355,14 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByHostId(hostId uuid.UUID) ([
 	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
 	for _, mapping := range userSshKeyMappings {
 		result = append(result, CreateSshKeyHostMappingResult{
-			ID:                 mapping.MappingID,
-			SshKeyID:           mapping.SshKeyID,
-			HostServerID:       mapping.HostServerID,
-			UserID:             mapping.UserID,
-			HostserverUsername: mapping.HostserverUsername,
-			CreatedAt:          mapping.CreatedAt.Time,
-			LastModified:       mapping.LastModified.Time,
+			ID:                  mapping.MappingID,
+			SshKeyID:            mapping.SshKeyID,
+			HostServerID:        mapping.HostServerID,
+			UserID:              mapping.UserID,
+			HostserverUsername:  mapping.HostserverUsername,
+			SudoPasswordTokenID: uuidPtrFromPgtype(mapping.SudoPasswordTokenID),
+			CreatedAt:           mapping.CreatedAt.Time,
+			LastModified:        mapping.LastModified.Time,
 		})
 	}
 
@@ -370,13 +382,14 @@ func (p *PgSshKeySecretStore) GetSshKeyHostMappingsByKeyId(keyId uuid.UUID) ([]C
 	result := make([]CreateSshKeyHostMappingResult, 0, len(userSshKeyMappings))
 	for _, mapping := range userSshKeyMappings {
 		result = append(result, CreateSshKeyHostMappingResult{
-			ID:                 mapping.MappingID,
-			SshKeyID:           mapping.SshKeyID,
-			HostServerID:       mapping.HostServerID,
-			UserID:             mapping.UserID,
-			HostserverUsername: mapping.HostserverUsername,
-			CreatedAt:          mapping.CreatedAt.Time,
-			LastModified:       mapping.LastModified.Time,
+			ID:                  mapping.MappingID,
+			SshKeyID:            mapping.SshKeyID,
+			HostServerID:        mapping.HostServerID,
+			UserID:              mapping.UserID,
+			HostserverUsername:  mapping.HostserverUsername,
+			SudoPasswordTokenID: uuidPtrFromPgtype(mapping.SudoPasswordTokenID),
+			CreatedAt:           mapping.CreatedAt.Time,
+			LastModified:        mapping.LastModified.Time,
 		})
 	}
 

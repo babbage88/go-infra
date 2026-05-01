@@ -921,6 +921,44 @@ func (s *Service) resolveSSHAccess(ctx context.Context, hostServerID *uuid.UUID,
 	return resolution.Auth, resolution.SSH, resolution.Node, nil
 }
 
+func (s *Service) resolveConsoleCookieAccess(ctx context.Context, hostServerID *uuid.UUID, auth coredeploy.ProxmoxAuthOptions, ssh coredeploy.SSHOptions, node string) (coredeploy.ProxmoxAuthOptions, coredeploy.SSHOptions, string, error) {
+	if s.accessResolver == nil {
+		auth = mergeAuthDefaults(auth, s.defaultAuth)
+		auth = ensureAuthBooleans(auth)
+		useToken := false
+		auth.UseToken = &useToken
+		auth.APIToken = ""
+		auth.APITokenID = ""
+		auth.APISecret = ""
+		auth.Username = normalizeProxmoxPasswordUser(auth.Username)
+		if strings.TrimSpace(auth.Username) == "" {
+			return coredeploy.ProxmoxAuthOptions{}, coredeploy.SSHOptions{}, "", fmt.Errorf("auth.username is required for cookie-based Proxmox console auth")
+		}
+		if strings.TrimSpace(auth.Password) == "" {
+			return coredeploy.ProxmoxAuthOptions{}, coredeploy.SSHOptions{}, "", fmt.Errorf("auth.password is required for cookie-based Proxmox console auth")
+		}
+		if strings.TrimSpace(node) == "" {
+			node = s.defaultNode
+		}
+		return auth, ssh, node, nil
+	}
+
+	resolution, err := s.accessResolver.ResolveConsoleCookieAccess(ctx, hostServerID, auth, ssh, node)
+	if err != nil {
+		return auth, ssh, node, err
+	}
+
+	return resolution.Auth, resolution.SSH, resolution.Node, nil
+}
+
+func normalizeProxmoxPasswordUser(username string) string {
+	username = strings.TrimSpace(username)
+	if username == "" || strings.Contains(username, "@") {
+		return username
+	}
+	return username + "@pam"
+}
+
 func (s *Service) ensureExternalAppID(ctx context.Context, name string) (uuid.UUID, error) {
 	if s.accessResolver != nil {
 		return s.accessResolver.EnsureExternalAppID(ctx, name)
