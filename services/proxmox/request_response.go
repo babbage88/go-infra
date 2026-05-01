@@ -1,6 +1,9 @@
 package proxmox
 
-import "github.com/google/uuid"
+import (
+	coredeploy "github.com/babbage88/infra-core/proxmox"
+	"github.com/google/uuid"
+)
 
 // swagger:model ProxmoxAuthOptions
 type ProxmoxAuthOptions struct {
@@ -145,9 +148,9 @@ type ProxmoxVMHardwareUpdateRequest struct {
 
 // swagger:model ProxmoxGuestIPAddress
 type ProxmoxGuestIPAddress struct {
-	IPAddress     string `json:"ip_address,omitempty"`
-	IPAddressType string `json:"ip_address_type,omitempty"`
-	Prefix        int    `json:"prefix,omitempty"`
+	IPAddress     string             `json:"ip_address,omitempty"`
+	IPAddressType string             `json:"ip_address_type,omitempty"`
+	Prefix        coredeploy.JsonInt `json:"prefix,omitempty"`
 }
 
 // swagger:model ProxmoxGuestNetworkInterface

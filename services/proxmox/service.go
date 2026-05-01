@@ -1234,10 +1234,6 @@ func firstNonEmptyString(values ...string) string {
 	return firstNonEmpty(values...)
 }
 
-func stringValue(value any) string {
-	return strings.TrimSpace(fmt.Sprintf("%v", value))
-}
-
 func newCoreClient(auth coredeploy.ProxmoxAuthOptions) (*coreproxmox.Client, error) {
 	hostURL := strings.TrimSpace(auth.HostURL)
 	if hostURL == "" {
