@@ -278,77 +278,48 @@
         }
       }
     },
-    "/api/v1/proxmox/container/{vmid}/start": {
-      "post": {
+    "/api/v1/proxmox/container/{vmid}/guest-summary": {
+      "get": {
         "tags": [
           "Proxmox"
         ],
-        "summary": "Start a Proxmox LXC container.",
-        "operationId": "StartProxmoxContainer",
+        "summary": "Get guest network summary for a Proxmox LXC container.",
+        "operationId": "GetProxmoxContainerGuestSummary",
         "parameters": [
           {
             "type": "integer",
             "format": "int64",
             "x-go-name": "VMID",
-            "description": "VMID to start.",
+            "description": "VMID to inspect.",
             "name": "vmid",
             "in": "path",
             "required": true
           },
           {
-            "description": "Request body.",
-            "name": "Body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ProxmoxVMStartRequest"
-            }
+            "type": "string",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/ProxmoxVMStartResponse"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/api/v1/proxmox/container/{vmid}/stop": {
-      "post": {
-        "tags": [
-          "Proxmox"
-        ],
-        "summary": "Stop a Proxmox LXC container.",
-        "operationId": "StopProxmoxContainer",
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "VMID",
-            "description": "VMID to stop.",
-            "name": "vmid",
-            "in": "path",
-            "required": true
-          },
-          {
-            "description": "Request body.",
-            "name": "Body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ProxmoxVMStartRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ProxmoxVMStartResponse"
+            "$ref": "#/responses/ProxmoxGuestSummaryResponse"
           },
           "400": {
             "description": "Invalid request"
@@ -457,6 +428,90 @@
         }
       }
     },
+    "/api/v1/proxmox/container/{vmid}/start": {
+      "post": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Start a Proxmox LXC container.",
+        "operationId": "StartProxmoxContainer",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to start.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMStartRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMStartResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/container/{vmid}/stop": {
+      "post": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Stop a Proxmox LXC container.",
+        "operationId": "StopProxmoxContainer",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to stop.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMStartRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMStartResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/v1/proxmox/lxc": {
       "post": {
         "tags": [
@@ -476,6 +531,52 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ProxmoxLXCResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/node/options": {
+      "get": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "List Proxmox node bridges, storage, and ISO media options.",
+        "operationId": "GetProxmoxNodeOptions",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxNodeOptionsResponse"
           },
           "400": {
             "description": "Invalid request"
@@ -678,77 +779,48 @@
         }
       }
     },
-    "/api/v1/proxmox/vm/{vmid}/start": {
-      "post": {
+    "/api/v1/proxmox/vm/{vmid}/guest-summary": {
+      "get": {
         "tags": [
           "Proxmox"
         ],
-        "summary": "Start a Proxmox QEMU VM.",
-        "operationId": "StartProxmoxVM",
+        "summary": "Get guest-agent network summary for a Proxmox QEMU VM.",
+        "operationId": "GetProxmoxVMGuestSummary",
         "parameters": [
           {
             "type": "integer",
             "format": "int64",
             "x-go-name": "VMID",
-            "description": "VMID to start.",
+            "description": "VMID to inspect.",
             "name": "vmid",
             "in": "path",
             "required": true
           },
           {
-            "description": "Request body.",
-            "name": "Body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ProxmoxVMStartRequest"
-            }
+            "type": "string",
+            "x-go-name": "HostServerID",
+            "description": "Host server ID for a Proxmox VE node.",
+            "name": "host_server_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "ProxmoxSecretID",
+            "description": "Optional stored Proxmox secret ID to use for this host.",
+            "name": "proxmox_secret_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Node",
+            "description": "Proxmox node name.",
+            "name": "node",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/ProxmoxVMStartResponse"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/api/v1/proxmox/vm/{vmid}/stop": {
-      "post": {
-        "tags": [
-          "Proxmox"
-        ],
-        "summary": "Stop a Proxmox QEMU VM.",
-        "operationId": "StopProxmoxVM",
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "x-go-name": "VMID",
-            "description": "VMID to stop.",
-            "name": "vmid",
-            "in": "path",
-            "required": true
-          },
-          {
-            "description": "Request body.",
-            "name": "Body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ProxmoxVMStartRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/ProxmoxVMStartResponse"
+            "$ref": "#/responses/ProxmoxGuestSummaryResponse"
           },
           "400": {
             "description": "Invalid request"
@@ -844,6 +916,132 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ProxmoxVMHardwareResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/vm/{vmid}/hardware/action": {
+      "put": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Apply an arbitrary Proxmox QEMU hardware config action.",
+        "operationId": "ApplyProxmoxVMHardwareAction",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to update.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMHardwareActionRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMHardwareResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/vm/{vmid}/start": {
+      "post": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Start a Proxmox QEMU VM.",
+        "operationId": "StartProxmoxVM",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to start.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMStartRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMStartResponse"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/proxmox/vm/{vmid}/stop": {
+      "post": {
+        "tags": [
+          "Proxmox"
+        ],
+        "summary": "Stop a Proxmox QEMU VM.",
+        "operationId": "StopProxmoxVM",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "VMID",
+            "description": "VMID to stop.",
+            "name": "vmid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Request body.",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxmoxVMStartRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ProxmoxVMStartResponse"
           },
           "400": {
             "description": "Invalid request"
@@ -5740,6 +5938,88 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
+    "ProxmoxGuestIPAddress": {
+      "type": "object",
+      "properties": {
+        "ip_address": {
+          "type": "string",
+          "x-go-name": "IPAddress"
+        },
+        "ip_address_type": {
+          "type": "string",
+          "x-go-name": "IPAddressType"
+        },
+        "prefix": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Prefix"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxGuestNetworkInterface": {
+      "type": "object",
+      "properties": {
+        "hardware_address": {
+          "type": "string",
+          "x-go-name": "HardwareAddr"
+        },
+        "ip_addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProxmoxGuestIPAddress"
+          },
+          "x-go-name": "IPAddresses"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "raw": {
+          "type": "object",
+          "additionalProperties": {},
+          "x-go-name": "Raw"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxGuestSummaryResult": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-go-name": "Error"
+        },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProxmoxGuestNetworkInterface"
+          },
+          "x-go-name": "Interfaces"
+        },
+        "ip_addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "IPAddresses"
+        },
+        "kind": {
+          "type": "string",
+          "x-go-name": "Kind"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
     "ProxmoxLXCRequest": {
       "type": "object",
       "properties": {
@@ -5853,6 +6133,116 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
+    "ProxmoxLXCResourcesResult": {
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "type": "string",
+          "x-go-name": "Bridge"
+        },
+        "cores": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cores"
+        },
+        "hostname": {
+          "type": "string",
+          "x-go-name": "Hostname"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MemoryMB"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "raw": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Raw"
+        },
+        "rootfs": {
+          "type": "string",
+          "x-go-name": "RootFS"
+        },
+        "rootfs_size": {
+          "type": "string",
+          "x-go-name": "RootFSSize"
+        },
+        "storage": {
+          "type": "string",
+          "x-go-name": "Storage"
+        },
+        "swap_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "SwapMB"
+        },
+        "vlan_tag": {
+          "type": "string",
+          "x-go-name": "VLANTag"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxLXCResourcesUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "type": "string",
+          "x-go-name": "Bridge"
+        },
+        "cores": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Cores"
+        },
+        "host_server_id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MemoryMB"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "proxmox_secret_id": {
+          "$ref": "#/definitions/UUID"
+        },
+        "rootfs_size_gb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RootFSSizeGB"
+        },
+        "swap_mb": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "SwapMB"
+        },
+        "vlan_tag": {
+          "type": "string",
+          "x-go-name": "VLANTag"
+        },
+        "vmid": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
     "ProxmoxLXCResult": {
       "type": "object",
       "properties": {
@@ -5880,6 +6270,97 @@
           "type": "integer",
           "format": "int64",
           "x-go-name": "VMID"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxNodeBridge": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "x-go-name": "Active"
+        },
+        "autostart": {
+          "type": "boolean",
+          "x-go-name": "Autostart"
+        },
+        "bridge_ports": {
+          "type": "string",
+          "x-go-name": "BridgePorts"
+        },
+        "cidr": {
+          "type": "string",
+          "x-go-name": "CIDR"
+        },
+        "gateway": {
+          "type": "string",
+          "x-go-name": "Gateway"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxNodeOptionsResult": {
+      "type": "object",
+      "properties": {
+        "bridges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProxmoxNodeBridge"
+          },
+          "x-go-name": "Bridges"
+        },
+        "iso_images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProxmoxStorageContent"
+          },
+          "x-go-name": "ISOImages"
+        },
+        "node": {
+          "type": "string",
+          "x-go-name": "Node"
+        },
+        "storage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProxmoxNodeStorage"
+          },
+          "x-go-name": "Storage"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxNodeStorage": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "x-go-name": "Active"
+        },
+        "content": {
+          "type": "string",
+          "x-go-name": "Content"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "shared": {
+          "type": "boolean",
+          "x-go-name": "Shared"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
@@ -5943,6 +6424,29 @@
         "username": {
           "type": "string",
           "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxStorageContent": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "x-go-name": "Content"
+        },
+        "format": {
+          "type": "string",
+          "x-go-name": "Format"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Size"
+        },
+        "volid": {
+          "type": "string",
+          "x-go-name": "VolID"
         }
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
@@ -6140,26 +6644,17 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
-    "ProxmoxVMListResult": {
+    "ProxmoxVMHardwareActionRequest": {
       "type": "object",
       "properties": {
-        "node": {
+        "delete": {
           "type": "string",
-          "x-go-name": "Node"
+          "x-go-name": "Delete"
         },
-        "vms": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ProxmoxVM"
-          },
-          "x-go-name": "VMs"
-        }
-      },
-      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
-    },
-    "ProxmoxVMStartRequest": {
-      "type": "object",
-      "properties": {
+        "device": {
+          "type": "string",
+          "x-go-name": "Device"
+        },
         "host_server_id": {
           "$ref": "#/definitions/UUID"
         },
@@ -6167,27 +6662,19 @@
           "type": "string",
           "x-go-name": "Node"
         },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Params"
+        },
         "proxmox_secret_id": {
           "$ref": "#/definitions/UUID"
         },
-        "vmid": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "VMID"
-        }
-      },
-      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
-    },
-    "ProxmoxVMStartResult": {
-      "type": "object",
-      "properties": {
-        "node": {
+        "value": {
           "type": "string",
-          "x-go-name": "Node"
-        },
-        "upid": {
-          "type": "string",
-          "x-go-name": "UPID"
+          "x-go-name": "Value"
         },
         "vmid": {
           "type": "integer",
@@ -6311,58 +6798,35 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
-    "ProxmoxLXCResourcesResult": {
+    "ProxmoxVMListResult": {
       "type": "object",
       "properties": {
-        "bridge": {
+        "node": {
           "type": "string",
-          "x-go-name": "Bridge"
+          "x-go-name": "Node"
         },
-        "cores": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "Cores"
-        },
-        "hostname": {
-          "type": "string",
-          "x-go-name": "Hostname"
-        },
-        "memory_mb": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "MemoryMB"
+        "vms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProxmoxVM"
+          },
+          "x-go-name": "VMs"
+        }
+      },
+      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+    },
+    "ProxmoxVMStartRequest": {
+      "type": "object",
+      "properties": {
+        "host_server_id": {
+          "$ref": "#/definitions/UUID"
         },
         "node": {
           "type": "string",
           "x-go-name": "Node"
         },
-        "raw": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "x-go-name": "Raw"
-        },
-        "rootfs": {
-          "type": "string",
-          "x-go-name": "RootFS"
-        },
-        "rootfs_size": {
-          "type": "string",
-          "x-go-name": "RootFSSize"
-        },
-        "storage": {
-          "type": "string",
-          "x-go-name": "Storage"
-        },
-        "swap_mb": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "SwapMB"
-        },
-        "vlan_tag": {
-          "type": "string",
-          "x-go-name": "VLANTag"
+        "proxmox_secret_id": {
+          "$ref": "#/definitions/UUID"
         },
         "vmid": {
           "type": "integer",
@@ -6372,46 +6836,16 @@
       },
       "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
     },
-    "ProxmoxLXCResourcesUpdateRequest": {
+    "ProxmoxVMStartResult": {
       "type": "object",
       "properties": {
-        "bridge": {
-          "type": "string",
-          "x-go-name": "Bridge"
-        },
-        "cores": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "Cores"
-        },
-        "host_server_id": {
-          "$ref": "#/definitions/UUID"
-        },
-        "memory_mb": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "MemoryMB"
-        },
         "node": {
           "type": "string",
           "x-go-name": "Node"
         },
-        "proxmox_secret_id": {
-          "$ref": "#/definitions/UUID"
-        },
-        "rootfs_size_gb": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "RootFSSizeGB"
-        },
-        "swap_mb": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "SwapMB"
-        },
-        "vlan_tag": {
+        "upid": {
           "type": "string",
-          "x-go-name": "VLANTag"
+          "x-go-name": "UPID"
         },
         "vmid": {
           "type": "integer",
@@ -6781,7 +7215,7 @@
           "x-go-name": "User"
         }
       },
-      "x-go-package": "github.com/babbage88/go-infra/services/proxmox"
+      "x-go-package": "github.com/babbage88/go-infra/webutils/deployment"
     },
     "SoftDeleteRoleByIdRequest": {
       "type": "object",
@@ -7908,6 +8342,12 @@
         "$ref": "#/definitions/ProxmoxContainerListResult"
       }
     },
+    "ProxmoxGuestSummaryResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ProxmoxGuestSummaryResult"
+      }
+    },
     "ProxmoxLXCResourcesResponse": {
       "description": "(empty)",
       "schema": {
@@ -7918,6 +8358,12 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxLXCResult"
+      }
+    },
+    "ProxmoxNodeOptionsResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ProxmoxNodeOptionsResult"
       }
     },
     "ProxmoxPVEUserCreateResponse": {
@@ -7932,6 +8378,12 @@
         "$ref": "#/definitions/ProxmoxVMCreateResult"
       }
     },
+    "ProxmoxVMHardwareResponse": {
+      "description": "(empty)",
+      "schema": {
+        "$ref": "#/definitions/ProxmoxVMHardwareResult"
+      }
+    },
     "ProxmoxVMListResponse": {
       "description": "(empty)",
       "schema": {
@@ -7942,12 +8394,6 @@
       "description": "(empty)",
       "schema": {
         "$ref": "#/definitions/ProxmoxVMStartResult"
-      }
-    },
-    "ProxmoxVMHardwareResponse": {
-      "description": "(empty)",
-      "schema": {
-        "$ref": "#/definitions/ProxmoxVMHardwareResult"
       }
     },
     "ProxmoxVMTemplateResponse": {
