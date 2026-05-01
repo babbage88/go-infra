@@ -152,20 +152,20 @@ type ProxmoxGuestIPAddress struct {
 
 // swagger:model ProxmoxGuestNetworkInterface
 type ProxmoxGuestNetworkInterface struct {
-	Name          string                 `json:"name,omitempty"`
-	HardwareAddr  string                 `json:"hardware_address,omitempty"`
-	IPAddresses   []ProxmoxGuestIPAddress `json:"ip_addresses,omitempty"`
-	Raw           map[string]interface{} `json:"raw,omitempty"`
+	Name         string                  `json:"name,omitempty"`
+	HardwareAddr string                  `json:"hardware_address,omitempty"`
+	IPAddresses  []ProxmoxGuestIPAddress `json:"ip_addresses,omitempty"`
+	Raw          map[string]interface{}  `json:"raw,omitempty"`
 }
 
 // swagger:model ProxmoxGuestSummaryResult
 type ProxmoxGuestSummaryResult struct {
-	Node       string                         `json:"node"`
-	VMID       int                            `json:"vmid"`
-	Kind       string                         `json:"kind"`
-	Interfaces []ProxmoxGuestNetworkInterface `json:"interfaces,omitempty"`
-	IPAddresses []string                      `json:"ip_addresses,omitempty"`
-	Error      string                         `json:"error,omitempty"`
+	Node        string                         `json:"node"`
+	VMID        int                            `json:"vmid"`
+	Kind        string                         `json:"kind"`
+	Interfaces  []ProxmoxGuestNetworkInterface `json:"interfaces,omitempty"`
+	IPAddresses []string                       `json:"ip_addresses,omitempty"`
+	Error       string                         `json:"error,omitempty"`
 }
 
 // swagger:model ProxmoxNodeBridge
@@ -199,9 +199,9 @@ type ProxmoxStorageContent struct {
 // swagger:model ProxmoxNodeOptionsResult
 type ProxmoxNodeOptionsResult struct {
 	Node      string                  `json:"node"`
-	Bridges   []ProxmoxNodeBridge      `json:"bridges,omitempty"`
-	Storage   []ProxmoxNodeStorage     `json:"storage,omitempty"`
-	ISOImages []ProxmoxStorageContent  `json:"iso_images,omitempty"`
+	Bridges   []ProxmoxNodeBridge     `json:"bridges,omitempty"`
+	Storage   []ProxmoxNodeStorage    `json:"storage,omitempty"`
+	ISOImages []ProxmoxStorageContent `json:"iso_images,omitempty"`
 }
 
 // swagger:model ProxmoxVMHardwareActionRequest
