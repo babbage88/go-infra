@@ -16,9 +16,10 @@ import (
 )
 
 type vmConsoleSessionResponse struct {
-	Port   int    `json:"port"`
-	Ticket string `json:"ticket"`
-	User   string `json:"user,omitempty"`
+	Port     int    `json:"port"`
+	Ticket   string `json:"ticket"`
+	User     string `json:"user,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 func VMConsoleSessionHandler(service *Service) http.HandlerFunc {
@@ -49,9 +50,10 @@ func VMConsoleSessionHandler(service *Service) http.HandlerFunc {
 		}
 
 		writeJSON(w, http.StatusOK, vmConsoleSessionResponse{
-			Port:   proxyDetails.Port,
-			Ticket: proxyDetails.Ticket,
-			User:   proxyDetails.User,
+			Port:     proxyDetails.Port,
+			Ticket:   proxyDetails.Ticket,
+			User:     proxyDetails.User,
+			Password: proxyDetails.Password,
 		})
 	}
 }
@@ -283,7 +285,7 @@ func sendTermProxyAuth(conn *websocket.Conn, proxyDetails *coreproxmox.ConsolePr
 		return fmt.Errorf("console proxy details missing")
 	}
 
-	user := strings.TrimSpace(proxyDetails.User)
+	user := termProxyAuthUser(proxyDetails.User)
 	ticket := strings.TrimSpace(proxyDetails.Ticket)
 	if user == "" || ticket == "" {
 		return fmt.Errorf("termproxy auth requires user and ticket")
@@ -291,6 +293,14 @@ func sendTermProxyAuth(conn *websocket.Conn, proxyDetails *coreproxmox.ConsolePr
 
 	authLine := fmt.Sprintf("%s:%s\n", user, ticket)
 	return conn.WriteMessage(websocket.TextMessage, []byte(authLine))
+}
+
+func termProxyAuthUser(user string) string {
+	trimmed := strings.TrimSpace(user)
+	if baseUser, _, ok := strings.Cut(trimmed, "!"); ok {
+		return baseUser
+	}
+	return trimmed
 }
 
 func relayWebSocket(errCh chan<- error, dst *websocket.Conn, src *websocket.Conn) {
