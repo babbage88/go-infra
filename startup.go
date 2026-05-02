@@ -84,6 +84,9 @@ func testPgSecretStore() {
 }
 
 func startInLocalDevelopmentMode(envFile string) {
+	if envFile == "" {
+		envFile = ".env"
+	}
 	slog.Info("Local Development mode configure, loading envars from env-file", slog.String("env-file", envFile))
 	err := godotenv.Load(envFile)
 	if err != nil {
@@ -142,7 +145,7 @@ func bootstrapDb() {
 
 func parseFlags() {
 	flag.BoolVar(&isLocalDevelopment, "local-development", false, "Flag to configure running local developement mode, envars set froma .env file")
-	flag.StringVar(&envFile, "env-file", ".env", "Path to .env file to load Environment Variables.")
+	flag.StringVar(&envFile, "env-file", "", "Optional path to an env file to load Environment Variables from.")
 	flag.StringVar(&srvport, "srvadr", ":8993", "Address and port that http server will listed on. :8993 is default")
 	flag.BoolVar(&bootstrapNewDb, "db-bootstrap", false, "Create new dev database.")
 	flag.BoolVar(&initDevUser, "devuser", false, "Update the devuser password")
@@ -161,9 +164,9 @@ func parseFlags() {
 }
 
 func configureStartupOptions() {
-	if isLocalDevelopment || envFile != ".env" {
+	if isLocalDevelopment {
 		startInLocalDevelopmentMode(envFile)
-	} else {
+	} else if envFile != "" {
 		loadEnvFileIfPresent(envFile)
 	}
 
