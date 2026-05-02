@@ -55,3 +55,4 @@ devtest.sh
 
 # Go workspace file
 go.work
+dist
