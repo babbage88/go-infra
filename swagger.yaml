@@ -3,6 +3,7 @@ consumes:
 produces:
     - application/json
 schemes:
+    - http
     - https
 swagger: "2.0"
 info:
@@ -2374,6 +2375,135 @@ paths:
                     description: Internal Server Error
             security:
                 - bearer: []
+    /user-applications:
+        get:
+            tags:
+                - user-applications
+            summary: Get all registered user applications.
+            operationId: getAllUserApplications
+            responses:
+                "200":
+                    $ref: '#/responses/UserApplicationsResponse'
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+        post:
+            tags:
+                - user-applications
+            summary: Register a deployable user application and its infrastructure dependencies.
+            operationId: createUserApplication
+            parameters:
+                - x-go-name: Body
+                  name: body
+                  in: body
+                  schema:
+                    $ref: '#/definitions/CreateUserApplicationRequest'
+            responses:
+                "201":
+                    $ref: '#/responses/UserApplicationResponse'
+                "400":
+                    description: Bad request - invalid input data
+                "500":
+                    description: Internal server error
+            security:
+                - bearer: []
+    /user-applications/by-name/{name}:
+        get:
+            tags:
+                - user-applications
+            summary: Get a registered user application by name.
+            operationId: getUserApplicationByName
+            parameters:
+                - type: string
+                  x-go-name: Name
+                  name: name
+                  in: path
+                  required: true
+            responses:
+                "200":
+                    $ref: '#/responses/UserApplicationResponse'
+                "404":
+                    description: User application not found
+            security:
+                - bearer: []
+        delete:
+            tags:
+                - user-applications
+            summary: Delete a registered user application by name.
+            operationId: deleteUserApplicationByName
+            parameters:
+                - type: string
+                  x-go-name: Name
+                  name: name
+                  in: path
+                  required: true
+            responses:
+                "204":
+                    description: User application deleted
+            security:
+                - bearer: []
+    /user-applications/{ID}:
+        get:
+            tags:
+                - user-applications
+            summary: Get a registered user application by ID.
+            operationId: getUserApplicationById
+            parameters:
+                - type: string
+                  name: ID
+                  in: path
+                  required: true
+            responses:
+                "200":
+                    $ref: '#/responses/UserApplicationResponse'
+                "400":
+                    description: Bad request - invalid UUID format
+                "404":
+                    description: User application not found
+            security:
+                - bearer: []
+        put:
+            tags:
+                - user-applications
+            summary: Update a registered user application.
+            operationId: updateUserApplication
+            parameters:
+                - type: string
+                  name: ID
+                  in: path
+                  required: true
+                - x-go-name: Body
+                  name: body
+                  in: body
+                  schema:
+                    $ref: '#/definitions/UpdateUserApplicationRequest'
+            responses:
+                "200":
+                    $ref: '#/responses/UserApplicationResponse'
+                "400":
+                    description: Bad request - invalid UUID format or request body
+                "404":
+                    description: User application not found
+            security:
+                - bearer: []
+        delete:
+            tags:
+                - user-applications
+            summary: Delete a registered user application by ID.
+            operationId: deleteUserApplicationById
+            parameters:
+                - type: string
+                  name: ID
+                  in: path
+                  required: true
+            responses:
+                "204":
+                    description: User application deleted
+                "400":
+                    description: Bad request - invalid UUID format
+            security:
+                - bearer: []
     /user/delete:
         delete:
             tags:
@@ -2859,6 +2989,24 @@ definitions:
             hostServerTypeId:
                 $ref: '#/definitions/UUID'
         x-go-package: github.com/babbage88/go-infra/services/host_servers
+    CreateInfraDependencyRequest:
+        type: object
+        properties:
+            config:
+                type: object
+                additionalProperties: {}
+                x-go-name: Config
+            dependencyName:
+                type: string
+                x-go-name: DependencyName
+            dependencyType:
+                type: string
+                x-go-name: DependencyType
+            hostServerTypeId:
+                $ref: '#/definitions/UUID'
+            platformTypeId:
+                $ref: '#/definitions/UUID'
+        x-go-package: github.com/babbage88/go-infra/services/user_applications
     CreateNewUserRequest:
         type: object
         properties:
@@ -3060,6 +3208,53 @@ definitions:
             userId:
                 $ref: '#/definitions/UUID'
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    CreateUserApplicationRequest:
+        type: object
+        properties:
+            buildConfig:
+                type: object
+                additionalProperties: {}
+                x-go-name: BuildConfig
+            deployConfig:
+                type: object
+                additionalProperties: {}
+                x-go-name: DeployConfig
+            deployKind:
+                type: string
+                x-go-name: DeployKind
+            description:
+                type: string
+                x-go-name: Description
+            infraDependencies:
+                type: array
+                items:
+                    $ref: '#/definitions/CreateInfraDependencyRequest'
+                x-go-name: InfraDependencies
+            manifestPath:
+                type: string
+                x-go-name: ManifestPath
+            moduleName:
+                type: string
+                x-go-name: ModuleName
+            name:
+                type: string
+                x-go-name: Name
+            packageManager:
+                type: string
+                x-go-name: PackageManager
+            packageName:
+                type: string
+                x-go-name: PackageName
+            registerable:
+                type: boolean
+                x-go-name: Registerable
+            repositoryUrl:
+                type: string
+                x-go-name: RepositoryUrl
+            sourceKind:
+                type: string
+                x-go-name: SourceKind
+        x-go-package: github.com/babbage88/go-infra/services/user_applications
     CreateUserRoleRequest:
         type: object
         properties:
@@ -3534,6 +3729,40 @@ definitions:
             PlatformName:
                 type: string
         x-go-package: github.com/babbage88/go-infra/services/user_crud_svc
+    InfraDependencyDao:
+        type: object
+        properties:
+            config:
+                type: object
+                additionalProperties: {}
+                x-go-name: Config
+            createdAt:
+                type: string
+                format: date-time
+                x-go-name: CreatedAt
+            dependencyName:
+                type: string
+                x-go-name: DependencyName
+            dependencyType:
+                type: string
+                x-go-name: DependencyType
+            hostServerTypeId:
+                $ref: '#/definitions/UUID'
+            hostServerTypeName:
+                type: string
+                x-go-name: HostServerTypeName
+            id:
+                $ref: '#/definitions/UUID'
+            lastModified:
+                type: string
+                format: date-time
+                x-go-name: LastModified
+            platformTypeId:
+                $ref: '#/definitions/UUID'
+            platformTypeName:
+                type: string
+                x-go-name: PlatformTypeName
+        x-go-package: github.com/babbage88/go-infra/services/user_applications
     JsonInt:
         type: integer
         format: int64
@@ -4974,7 +5203,7 @@ definitions:
             user:
                 type: string
                 x-go-name: User
-        x-go-package: github.com/babbage88/go-infra/services/proxmox
+        x-go-package: github.com/babbage88/go-infra/webutils/deployment
     SoftDeleteRoleByIdRequest:
         type: object
         properties:
@@ -5309,6 +5538,53 @@ definitions:
             id:
                 $ref: '#/definitions/UUID'
         x-go-package: github.com/babbage88/go-infra/services/ssh_key_provider
+    UpdateUserApplicationRequest:
+        type: object
+        properties:
+            buildConfig:
+                type: object
+                additionalProperties: {}
+                x-go-name: BuildConfig
+            deployConfig:
+                type: object
+                additionalProperties: {}
+                x-go-name: DeployConfig
+            deployKind:
+                type: string
+                x-go-name: DeployKind
+            description:
+                type: string
+                x-go-name: Description
+            infraDependencies:
+                type: array
+                items:
+                    $ref: '#/definitions/CreateInfraDependencyRequest'
+                x-go-name: InfraDependencies
+            manifestPath:
+                type: string
+                x-go-name: ManifestPath
+            moduleName:
+                type: string
+                x-go-name: ModuleName
+            name:
+                type: string
+                x-go-name: Name
+            packageManager:
+                type: string
+                x-go-name: PackageManager
+            packageName:
+                type: string
+                x-go-name: PackageName
+            registerable:
+                type: boolean
+                x-go-name: Registerable
+            repositoryUrl:
+                type: string
+                x-go-name: RepositoryUrl
+            sourceKind:
+                type: string
+                x-go-name: SourceKind
+        x-go-package: github.com/babbage88/go-infra/services/user_applications
     UpdateUserPasswordRequest:
         type: object
         properties:
@@ -5337,6 +5613,63 @@ definitions:
                 type: boolean
                 x-go-name: Success
         x-go-package: github.com/babbage88/go-infra/api/user_api_handlers
+    UserApplicationDao:
+        type: object
+        properties:
+            buildConfig:
+                type: object
+                additionalProperties: {}
+                x-go-name: BuildConfig
+            createdAt:
+                type: string
+                format: date-time
+                x-go-name: CreatedAt
+            deployConfig:
+                type: object
+                additionalProperties: {}
+                x-go-name: DeployConfig
+            deployKind:
+                type: string
+                x-go-name: DeployKind
+            description:
+                type: string
+                x-go-name: Description
+            id:
+                $ref: '#/definitions/UUID'
+            infraDependencies:
+                type: array
+                items:
+                    $ref: '#/definitions/InfraDependencyDao'
+                x-go-name: InfraDependencies
+            lastModified:
+                type: string
+                format: date-time
+                x-go-name: LastModified
+            manifestPath:
+                type: string
+                x-go-name: ManifestPath
+            moduleName:
+                type: string
+                x-go-name: ModuleName
+            name:
+                type: string
+                x-go-name: Name
+            packageManager:
+                type: string
+                x-go-name: PackageManager
+            packageName:
+                type: string
+                x-go-name: PackageName
+            registerable:
+                type: boolean
+                x-go-name: Registerable
+            repositoryUrl:
+                type: string
+                x-go-name: RepositoryUrl
+            sourceKind:
+                type: string
+                x-go-name: SourceKind
+        x-go-package: github.com/babbage88/go-infra/services/user_applications
     UserDao:
         type: object
         title: Respose will return login result and the user info.
@@ -5870,6 +6203,16 @@ responses:
         description: (empty)
         schema:
             $ref: '#/definitions/UpdateUserRoleMappingResponse'
+    UserApplicationResponse:
+        description: (empty)
+        schema:
+            $ref: '#/definitions/UserApplicationDao'
+    UserApplicationsResponse:
+        description: (empty)
+        schema:
+            type: array
+            items:
+                $ref: '#/definitions/UserApplicationDao'
     UserPasswordUpdateResponse:
         description: (empty)
         schema:

@@ -1,3 +1,18 @@
+// infractl:name=go-infra
+// infractl:description=The infractl API service deployed as a remote systemd workload.
+// infractl:repository_url=https://github.com/babbage88/go-infra
+// infractl:manifest_path=go.mod
+// infractl:deploy_kind=systemd_service
+// infractl:package_manager=go
+// infractl:registerable=true
+// infractl:build_config={"buildCommand":"go build -o dist/goinfra .","entryPackage":"."}
+// infractl:deploy_config={"appName":"go-infra","destinationBinary":"goinfra","installDir":"/etc/go-infra","systemdUnit":"go-infra.service"}
+// infractl:dependency=host_server_type:Application Server
+// infractl:dependency=platform_type:Linux VPS
+// infractl:dependency=platform_type:Linux VM
+// infractl:dependency=platform_type:Postgres SQL
+// infractl:dependency=platform_type:Valkey
+// infractl:dependency=platform_type:Garage S3
 module github.com/babbage88/go-infra
 
 go 1.26.2

@@ -142,6 +142,10 @@ func (svc *UserApplicationsService) GetAllUserApplications() ([]UserApplicationD
 func (svc *UserApplicationsService) UpdateUserApplication(id uuid.UUID, req UpdateUserApplicationRequest) (*UserApplicationDao, error) {
 	queries := infra_db_pg.New(svc.DbConn)
 	ctx := context.Background()
+	current, err := queries.GetUserApplicationById(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get user application before update: %w", err)
+	}
 
 	deployConfig, err := marshalOptionalJSON(req.DeployConfig)
 	if err != nil {
@@ -163,18 +167,45 @@ func (svc *UserApplicationsService) UpdateUserApplication(id uuid.UUID, req Upda
 	}()
 	qtx := queries.WithTx(tx)
 
+	name := current.Name
+	if req.Name != "" {
+		name = req.Name
+	}
+	repositoryURL := current.RepositoryUrl
+	if req.RepositoryUrl != "" {
+		repositoryURL = req.RepositoryUrl
+	}
+	sourceKind := current.SourceKind
+	if req.SourceKind != "" {
+		sourceKind = req.SourceKind
+	}
+	deployKind := current.DeployKind
+	if req.DeployKind != "" {
+		deployKind = req.DeployKind
+	}
+	registerable := current.Registerable
+	if req.Registerable != nil {
+		registerable = *req.Registerable
+	}
+	if deployConfig == nil {
+		deployConfig = current.DeployConfig
+	}
+	if buildConfig == nil {
+		buildConfig = current.BuildConfig
+	}
+
 	dbApp, err := qtx.UpdateUserApplication(ctx, infra_db_pg.UpdateUserApplicationParams{
 		ID:             id,
-		Name:           pgtype.Text{String: req.Name, Valid: req.Name != ""},
+		Name:           name,
 		Description:    pgtype.Text{String: req.Description, Valid: req.Description != ""},
-		RepositoryUrl:  pgtype.Text{String: req.RepositoryUrl, Valid: req.RepositoryUrl != ""},
+		RepositoryUrl:  repositoryURL,
 		ManifestPath:   pgtype.Text{String: req.ManifestPath, Valid: req.ManifestPath != ""},
-		SourceKind:     pgtype.Text{String: req.SourceKind, Valid: req.SourceKind != ""},
+		SourceKind:     sourceKind,
 		ModuleName:     pgtype.Text{String: req.ModuleName, Valid: req.ModuleName != ""},
 		PackageName:    pgtype.Text{String: req.PackageName, Valid: req.PackageName != ""},
 		PackageManager: pgtype.Text{String: req.PackageManager, Valid: req.PackageManager != ""},
-		DeployKind:     pgtype.Text{String: req.DeployKind, Valid: req.DeployKind != ""},
-		Registerable:   req.Registerable,
+		DeployKind:     deployKind,
+		Registerable:   registerable,
 		DeployConfig:   deployConfig,
 		BuildConfig:    buildConfig,
 	})
@@ -249,11 +280,11 @@ func createInfraDependencies(ctx context.Context, queries dependencyQueryRunner,
 			LastModified:   row.LastModified.Time,
 		}
 		if row.HostServerTypeID.Valid {
-			id := row.HostServerTypeID.Bytes
+			id := uuid.UUID(row.HostServerTypeID.Bytes)
 			createdDep.HostServerTypeId = &id
 		}
 		if row.PlatformTypeID.Valid {
-			id := row.PlatformTypeID.Bytes
+			id := uuid.UUID(row.PlatformTypeID.Bytes)
 			createdDep.PlatformTypeId = &id
 		}
 		created = append(created, createdDep)

@@ -1,6 +1,9 @@
 package user_applications
 
-import "github.com/babbage88/go-infra/database/infra_db_pg"
+import (
+	"github.com/babbage88/go-infra/database/infra_db_pg"
+	"github.com/google/uuid"
+)
 
 func parseUserApplication(dbApp infra_db_pg.UserApplication, deps []InfraDependencyDao) UserApplicationDao {
 	return UserApplicationDao{
@@ -37,11 +40,11 @@ func parseInfraDependencies(rows []infra_db_pg.GetUserApplicationInfraDependenci
 			LastModified:       row.LastModified.Time,
 		}
 		if row.HostServerTypeID.Valid {
-			id := row.HostServerTypeID.Bytes
+			id := uuid.UUID(row.HostServerTypeID.Bytes)
 			dep.HostServerTypeId = &id
 		}
 		if row.PlatformTypeID.Valid {
-			id := row.PlatformTypeID.Bytes
+			id := uuid.UUID(row.PlatformTypeID.Bytes)
 			dep.PlatformTypeId = &id
 		}
 		deps = append(deps, dep)
