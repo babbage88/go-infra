@@ -38,6 +38,7 @@ import (
 	"github.com/babbage88/go-infra/services/host_servers"
 	rolesservice "github.com/babbage88/go-infra/services/roles_service"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
+	"github.com/babbage88/go-infra/services/user_applications"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	"github.com/google/uuid"
@@ -73,6 +74,7 @@ func main() {
 	hostServerProvider := host_servers.NewHostServerProvider(infra_db_pg.New(connPool), secretProvider)
 	sshKeyProvider := ssh_key_provider.NewPgSshKeySecretStore(connPool)
 	externalAppsService := &external_applications.ExternalApplicationsService{DbConn: connPool}
+	userApplicationsService := &user_applications.UserApplicationsService{DbConn: connPool}
 	sshConnectionManager := initializeSshConnMgr(connPool, secretProvider, 30, 200, 20)
 
 	apiServer := api_server.APIServer{
@@ -85,6 +87,7 @@ func main() {
 		HostServerProvider:      hostServerProvider,
 		SshKeyProvider:          sshKeyProvider,
 		ExternalAppsService:     externalAppsService,
+		UserApplicationsService: userApplicationsService,
 		SSHConnectionManager:    sshConnectionManager,
 		UseSsl:                  userHttps,
 		Certificate:             certFile,

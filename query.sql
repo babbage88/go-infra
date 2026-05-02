@@ -405,6 +405,185 @@ SELECT "name" FROM external_integration_apps WHERE id = $1;
 -- name: GetAllExternalApps :many
 SELECT id, "name" FROM external_integration_apps;
 
+-- name: CreateUserApplication :one
+INSERT INTO public.user_applications (
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified;
+
+-- name: GetUserApplicationById :one
+SELECT
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+FROM public.user_applications
+WHERE id = $1;
+
+-- name: GetUserApplicationByName :one
+SELECT
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+FROM public.user_applications
+WHERE name = $1;
+
+-- name: GetAllUserApplications :many
+SELECT
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+FROM public.user_applications
+ORDER BY name;
+
+-- name: UpdateUserApplication :one
+UPDATE public.user_applications
+SET
+  name = COALESCE($2, name),
+  description = COALESCE($3, description),
+  repository_url = COALESCE($4, repository_url),
+  manifest_path = COALESCE($5, manifest_path),
+  source_kind = COALESCE($6, source_kind),
+  module_name = COALESCE($7, module_name),
+  package_name = COALESCE($8, package_name),
+  package_manager = COALESCE($9, package_manager),
+  deploy_kind = COALESCE($10, deploy_kind),
+  registerable = COALESCE($11, registerable),
+  deploy_config = COALESCE($12, deploy_config),
+  build_config = COALESCE($13, build_config),
+  last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified;
+
+-- name: DeleteUserApplicationById :exec
+DELETE FROM public.user_applications
+WHERE id = $1;
+
+-- name: DeleteUserApplicationByName :exec
+DELETE FROM public.user_applications
+WHERE name = $1;
+
+-- name: CreateUserApplicationInfraDependency :one
+INSERT INTO public.user_application_infra_dependencies (
+  user_application_id,
+  dependency_type,
+  dependency_name,
+  host_server_type_id,
+  platform_type_id,
+  dependency_config
+)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+  id,
+  user_application_id,
+  dependency_type,
+  dependency_name,
+  host_server_type_id,
+  platform_type_id,
+  dependency_config,
+  created_at,
+  last_modified;
+
+-- name: GetUserApplicationInfraDependenciesByAppId :many
+SELECT
+  d.id,
+  d.user_application_id,
+  d.dependency_type,
+  d.dependency_name,
+  d.host_server_type_id,
+  hst.name AS host_server_type_name,
+  d.platform_type_id,
+  pt.name AS platform_type_name,
+  d.dependency_config,
+  d.created_at,
+  d.last_modified
+FROM public.user_application_infra_dependencies d
+LEFT JOIN public.host_server_types hst ON d.host_server_type_id = hst.host_server_type_id
+LEFT JOIN public.platform_types pt ON d.platform_type_id = pt.platform_type_id
+WHERE d.user_application_id = $1
+ORDER BY d.created_at ASC;
+
+-- name: DeleteUserApplicationInfraDependenciesByAppId :exec
+DELETE FROM public.user_application_infra_dependencies
+WHERE user_application_id = $1;
+
 -- name: GetLatestExternalAuthToken :one
 SELECT * FROM external_auth_tokens
 WHERE user_id = $1 AND external_app_id = $2

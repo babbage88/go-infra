@@ -194,6 +194,36 @@ type User struct {
 	IsDeleted    bool
 }
 
+type UserApplication struct {
+	ID             uuid.UUID
+	Name           string
+	Description    pgtype.Text
+	RepositoryUrl  string
+	ManifestPath   pgtype.Text
+	SourceKind     string
+	ModuleName     pgtype.Text
+	PackageName    pgtype.Text
+	PackageManager pgtype.Text
+	DeployKind     string
+	Registerable   bool
+	DeployConfig   []byte
+	BuildConfig    []byte
+	CreatedAt      pgtype.Timestamptz
+	LastModified   pgtype.Timestamptz
+}
+
+type UserApplicationInfraDependency struct {
+	ID                uuid.UUID
+	UserApplicationID uuid.UUID
+	DependencyType    string
+	DependencyName    string
+	HostServerTypeID  pgtype.UUID
+	PlatformTypeID    pgtype.UUID
+	DependencyConfig  []byte
+	CreatedAt         pgtype.Timestamptz
+	LastModified      pgtype.Timestamptz
+}
+
 type UserAuthAppMapping struct {
 	UserID          uuid.UUID
 	Username        pgtype.Text

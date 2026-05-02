@@ -19,6 +19,7 @@ import (
 	"github.com/babbage88/go-infra/services/s3_admin"
 	"github.com/babbage88/go-infra/services/ssh_connections"
 	"github.com/babbage88/go-infra/services/ssh_key_provider"
+	"github.com/babbage88/go-infra/services/user_applications"
 	"github.com/babbage88/go-infra/services/user_crud_svc"
 	"github.com/babbage88/go-infra/services/user_secrets"
 	deployweb "github.com/babbage88/go-infra/webutils/deployment"
@@ -45,8 +46,36 @@ func hostServerByIDHandler(provider host_servers.HostServerProvider, authService
 	})
 }
 
+func userApplicationByIDHandler(service user_applications.UserApplications, authService authapi.AuthService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			authapi.AuthMiddlewareRequirePermission(authService, "ReadUserApplications", user_applications.GetUserApplicationByIdHandler(service)).ServeHTTP(w, r)
+		case http.MethodPut:
+			authapi.AuthMiddlewareRequirePermission(authService, "UpdateUserApplication", user_applications.UpdateUserApplicationHandler(service)).ServeHTTP(w, r)
+		case http.MethodDelete:
+			authapi.AuthMiddlewareRequirePermission(authService, "DeleteUserApplication", user_applications.DeleteUserApplicationByIdHandler(service)).ServeHTTP(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
+
+func userApplicationByNameHandler(service user_applications.UserApplications, authService authapi.AuthService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			authapi.AuthMiddlewareRequirePermission(authService, "ReadUserApplications", user_applications.GetUserApplicationByNameHandler(service)).ServeHTTP(w, r)
+		case http.MethodDelete:
+			authapi.AuthMiddlewareRequirePermission(authService, "DeleteUserApplication", user_applications.DeleteUserApplicationByNameHandler(service)).ServeHTTP(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
+
 func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.HealthCheckService, authService authapi.AuthService, roleService *rolesservice.RoleCRUDService, userCRUDService *user_crud_svc.UserCRUDService,
-	userSecretStore user_secrets.UserSecretProvider, dbQueries *infra_db_pg.Queries, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
+	userSecretStore user_secrets.UserSecretProvider, dbQueries *infra_db_pg.Queries, hostServerProvider host_servers.HostServerProvider, sshKeyProvider ssh_key_provider.SshKeySecretProvider, externalAppsService external_applications.ExternalApplications, userApplicationsService user_applications.UserApplications, swaggerSpec []byte, sshConnectionManager *ssh_connections.SSHConnectionManager) {
 	mux.Handle("/renew", cors.CORSWithPOST(authapi.AuthMiddleware(cert_renew.Renewcert_renew())))
 	mux.Handle("/login", cors.CORSWithPOST(authapi.LoginHandler(authService)))
 	mux.Handle("/logout", cors.CORSWithPOST(authapi.LogoutHandler()))
@@ -168,6 +197,28 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 	))
 	mux.Handle("/external-applications/name/{ID}", cors.CORSWithGET(
 		external_applications.GetExternalApplicationNameByIdHandler(externalAppsService),
+	))
+
+	mux.Handle("/user-applications", cors.CORSWithMethods(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				authapi.AuthMiddlewareRequirePermission(authService, "ReadUserApplications", user_applications.GetAllUserApplicationsHandler(userApplicationsService)).ServeHTTP(w, r)
+			case http.MethodPost:
+				authapi.AuthMiddlewareRequirePermission(authService, "CreateUserApplication", user_applications.CreateUserApplicationHandler(userApplicationsService)).ServeHTTP(w, r)
+			default:
+				http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			}
+		}),
+		http.MethodGet, http.MethodPost,
+	))
+	mux.Handle("/user-applications/{ID}", cors.CORSWithMethods(
+		userApplicationByIDHandler(userApplicationsService, authService),
+		http.MethodGet, http.MethodPut, http.MethodDelete,
+	))
+	mux.Handle("/user-applications/by-name/{name}", cors.CORSWithMethods(
+		userApplicationByNameHandler(userApplicationsService, authService),
+		http.MethodGet, http.MethodDelete,
 	))
 
 	s3AdminService := s3_admin.NewService(hostServerProvider)
@@ -336,7 +387,7 @@ func (api *APIServer) StartAPIServices(srvadr *string) error {
 		slog.Info("WS_LISTEN_ADDR env variable is not set, using default :8090")
 		wsListenAddr = ":8090"
 	}
-	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.RoleService, api.UserCRUDService, api.UserSecretsStoreService, api.DBQueries, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.SwaggerSpec, api.SSHConnectionManager)
+	AddApplicationRoutes(mux, api.HealthCheckService, api.AuthService, api.RoleService, api.UserCRUDService, api.UserSecretsStoreService, api.DBQueries, api.HostServerProvider, api.SshKeyProvider, api.ExternalAppsService, api.UserApplicationsService, api.SwaggerSpec, api.SSHConnectionManager)
 
 	// Start a dedicated WebSocket server on :8090 with no middleware for /ssh/websocket/{connectionId}
 	go func() {

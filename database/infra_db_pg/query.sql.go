@@ -369,6 +369,146 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const createUserApplication = `-- name: CreateUserApplication :one
+INSERT INTO public.user_applications (
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+`
+
+type CreateUserApplicationParams struct {
+	Name           string
+	Description    pgtype.Text
+	RepositoryUrl  string
+	ManifestPath   pgtype.Text
+	SourceKind     string
+	ModuleName     pgtype.Text
+	PackageName    pgtype.Text
+	PackageManager pgtype.Text
+	DeployKind     string
+	Registerable   bool
+	DeployConfig   []byte
+	BuildConfig    []byte
+}
+
+func (q *Queries) CreateUserApplication(ctx context.Context, arg CreateUserApplicationParams) (UserApplication, error) {
+	row := q.db.QueryRow(ctx, createUserApplication,
+		arg.Name,
+		arg.Description,
+		arg.RepositoryUrl,
+		arg.ManifestPath,
+		arg.SourceKind,
+		arg.ModuleName,
+		arg.PackageName,
+		arg.PackageManager,
+		arg.DeployKind,
+		arg.Registerable,
+		arg.DeployConfig,
+		arg.BuildConfig,
+	)
+	var i UserApplication
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.RepositoryUrl,
+		&i.ManifestPath,
+		&i.SourceKind,
+		&i.ModuleName,
+		&i.PackageName,
+		&i.PackageManager,
+		&i.DeployKind,
+		&i.Registerable,
+		&i.DeployConfig,
+		&i.BuildConfig,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const createUserApplicationInfraDependency = `-- name: CreateUserApplicationInfraDependency :one
+INSERT INTO public.user_application_infra_dependencies (
+  user_application_id,
+  dependency_type,
+  dependency_name,
+  host_server_type_id,
+  platform_type_id,
+  dependency_config
+)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+  id,
+  user_application_id,
+  dependency_type,
+  dependency_name,
+  host_server_type_id,
+  platform_type_id,
+  dependency_config,
+  created_at,
+  last_modified
+`
+
+type CreateUserApplicationInfraDependencyParams struct {
+	UserApplicationID uuid.UUID
+	DependencyType    string
+	DependencyName    string
+	HostServerTypeID  pgtype.UUID
+	PlatformTypeID    pgtype.UUID
+	DependencyConfig  []byte
+}
+
+func (q *Queries) CreateUserApplicationInfraDependency(ctx context.Context, arg CreateUserApplicationInfraDependencyParams) (UserApplicationInfraDependency, error) {
+	row := q.db.QueryRow(ctx, createUserApplicationInfraDependency,
+		arg.UserApplicationID,
+		arg.DependencyType,
+		arg.DependencyName,
+		arg.HostServerTypeID,
+		arg.PlatformTypeID,
+		arg.DependencyConfig,
+	)
+	var i UserApplicationInfraDependency
+	err := row.Scan(
+		&i.ID,
+		&i.UserApplicationID,
+		&i.DependencyType,
+		&i.DependencyName,
+		&i.HostServerTypeID,
+		&i.PlatformTypeID,
+		&i.DependencyConfig,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
 const dbHealthCheckRead = `-- name: DbHealthCheckRead :one
 SELECT id, status, check_type
 FROM public.health_check WHERE check_type = 'Read'
@@ -535,6 +675,36 @@ WHERE name = $1
 
 func (q *Queries) DeleteSSHKeyType(ctx context.Context, name string) error {
 	_, err := q.db.Exec(ctx, deleteSSHKeyType, name)
+	return err
+}
+
+const deleteUserApplicationById = `-- name: DeleteUserApplicationById :exec
+DELETE FROM public.user_applications
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUserApplicationById(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserApplicationById, id)
+	return err
+}
+
+const deleteUserApplicationByName = `-- name: DeleteUserApplicationByName :exec
+DELETE FROM public.user_applications
+WHERE name = $1
+`
+
+func (q *Queries) DeleteUserApplicationByName(ctx context.Context, name string) error {
+	_, err := q.db.Exec(ctx, deleteUserApplicationByName, name)
+	return err
+}
+
+const deleteUserApplicationInfraDependenciesByAppId = `-- name: DeleteUserApplicationInfraDependenciesByAppId :exec
+DELETE FROM public.user_application_infra_dependencies
+WHERE user_application_id = $1
+`
+
+func (q *Queries) DeleteUserApplicationInfraDependenciesByAppId(ctx context.Context, userApplicationID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserApplicationInfraDependenciesByAppId, userApplicationID)
 	return err
 }
 
@@ -937,6 +1107,63 @@ func (q *Queries) GetAllSSHKeyTypes(ctx context.Context) ([]SshKeyType, error) {
 			&i.ID,
 			&i.Name,
 			&i.Description,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllUserApplications = `-- name: GetAllUserApplications :many
+SELECT
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+FROM public.user_applications
+ORDER BY name
+`
+
+func (q *Queries) GetAllUserApplications(ctx context.Context) ([]UserApplication, error) {
+	rows, err := q.db.Query(ctx, getAllUserApplications)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserApplication
+	for rows.Next() {
+		var i UserApplication
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.RepositoryUrl,
+			&i.ManifestPath,
+			&i.SourceKind,
+			&i.ModuleName,
+			&i.PackageName,
+			&i.PackageManager,
+			&i.DeployKind,
+			&i.Registerable,
+			&i.DeployConfig,
+			&i.BuildConfig,
 			&i.CreatedAt,
 			&i.LastModified,
 		); err != nil {
@@ -2181,6 +2408,160 @@ func (q *Queries) GetSSHSessionById(ctx context.Context, id uuid.UUID) (GetSSHSe
 	return i, err
 }
 
+const getUserApplicationById = `-- name: GetUserApplicationById :one
+SELECT
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+FROM public.user_applications
+WHERE id = $1
+`
+
+func (q *Queries) GetUserApplicationById(ctx context.Context, id uuid.UUID) (UserApplication, error) {
+	row := q.db.QueryRow(ctx, getUserApplicationById, id)
+	var i UserApplication
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.RepositoryUrl,
+		&i.ManifestPath,
+		&i.SourceKind,
+		&i.ModuleName,
+		&i.PackageName,
+		&i.PackageManager,
+		&i.DeployKind,
+		&i.Registerable,
+		&i.DeployConfig,
+		&i.BuildConfig,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getUserApplicationByName = `-- name: GetUserApplicationByName :one
+SELECT
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+FROM public.user_applications
+WHERE name = $1
+`
+
+func (q *Queries) GetUserApplicationByName(ctx context.Context, name string) (UserApplication, error) {
+	row := q.db.QueryRow(ctx, getUserApplicationByName, name)
+	var i UserApplication
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.RepositoryUrl,
+		&i.ManifestPath,
+		&i.SourceKind,
+		&i.ModuleName,
+		&i.PackageName,
+		&i.PackageManager,
+		&i.DeployKind,
+		&i.Registerable,
+		&i.DeployConfig,
+		&i.BuildConfig,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
+}
+
+const getUserApplicationInfraDependenciesByAppId = `-- name: GetUserApplicationInfraDependenciesByAppId :many
+SELECT
+  d.id,
+  d.user_application_id,
+  d.dependency_type,
+  d.dependency_name,
+  d.host_server_type_id,
+  hst.name AS host_server_type_name,
+  d.platform_type_id,
+  pt.name AS platform_type_name,
+  d.dependency_config,
+  d.created_at,
+  d.last_modified
+FROM public.user_application_infra_dependencies d
+LEFT JOIN public.host_server_types hst ON d.host_server_type_id = hst.host_server_type_id
+LEFT JOIN public.platform_types pt ON d.platform_type_id = pt.platform_type_id
+WHERE d.user_application_id = $1
+ORDER BY d.created_at ASC
+`
+
+type GetUserApplicationInfraDependenciesByAppIdRow struct {
+	ID                 uuid.UUID
+	UserApplicationID  uuid.UUID
+	DependencyType     string
+	DependencyName     string
+	HostServerTypeID   pgtype.UUID
+	HostServerTypeName pgtype.Text
+	PlatformTypeID     pgtype.UUID
+	PlatformTypeName   pgtype.Text
+	DependencyConfig   []byte
+	CreatedAt          pgtype.Timestamptz
+	LastModified       pgtype.Timestamptz
+}
+
+func (q *Queries) GetUserApplicationInfraDependenciesByAppId(ctx context.Context, userApplicationID uuid.UUID) ([]GetUserApplicationInfraDependenciesByAppIdRow, error) {
+	rows, err := q.db.Query(ctx, getUserApplicationInfraDependenciesByAppId, userApplicationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserApplicationInfraDependenciesByAppIdRow
+	for rows.Next() {
+		var i GetUserApplicationInfraDependenciesByAppIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserApplicationID,
+			&i.DependencyType,
+			&i.DependencyName,
+			&i.HostServerTypeID,
+			&i.HostServerTypeName,
+			&i.PlatformTypeID,
+			&i.PlatformTypeName,
+			&i.DependencyConfig,
+			&i.CreatedAt,
+			&i.LastModified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT
     "id",
@@ -3112,6 +3493,94 @@ type UpdateSSHSessionActivityParams struct {
 func (q *Queries) UpdateSSHSessionActivity(ctx context.Context, arg UpdateSSHSessionActivityParams) error {
 	_, err := q.db.Exec(ctx, updateSSHSessionActivity, arg.ID, arg.LastActivity)
 	return err
+}
+
+const updateUserApplication = `-- name: UpdateUserApplication :one
+UPDATE public.user_applications
+SET
+  name = COALESCE($2, name),
+  description = COALESCE($3, description),
+  repository_url = COALESCE($4, repository_url),
+  manifest_path = COALESCE($5, manifest_path),
+  source_kind = COALESCE($6, source_kind),
+  module_name = COALESCE($7, module_name),
+  package_name = COALESCE($8, package_name),
+  package_manager = COALESCE($9, package_manager),
+  deploy_kind = COALESCE($10, deploy_kind),
+  registerable = COALESCE($11, registerable),
+  deploy_config = COALESCE($12, deploy_config),
+  build_config = COALESCE($13, build_config),
+  last_modified = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING
+  id,
+  name,
+  description,
+  repository_url,
+  manifest_path,
+  source_kind,
+  module_name,
+  package_name,
+  package_manager,
+  deploy_kind,
+  registerable,
+  deploy_config,
+  build_config,
+  created_at,
+  last_modified
+`
+
+type UpdateUserApplicationParams struct {
+	ID             uuid.UUID
+	Name           string
+	Description    pgtype.Text
+	RepositoryUrl  string
+	ManifestPath   pgtype.Text
+	SourceKind     string
+	ModuleName     pgtype.Text
+	PackageName    pgtype.Text
+	PackageManager pgtype.Text
+	DeployKind     string
+	Registerable   bool
+	DeployConfig   []byte
+	BuildConfig    []byte
+}
+
+func (q *Queries) UpdateUserApplication(ctx context.Context, arg UpdateUserApplicationParams) (UserApplication, error) {
+	row := q.db.QueryRow(ctx, updateUserApplication,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.RepositoryUrl,
+		arg.ManifestPath,
+		arg.SourceKind,
+		arg.ModuleName,
+		arg.PackageName,
+		arg.PackageManager,
+		arg.DeployKind,
+		arg.Registerable,
+		arg.DeployConfig,
+		arg.BuildConfig,
+	)
+	var i UserApplication
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.RepositoryUrl,
+		&i.ManifestPath,
+		&i.SourceKind,
+		&i.ModuleName,
+		&i.PackageName,
+		&i.PackageManager,
+		&i.DeployKind,
+		&i.Registerable,
+		&i.DeployConfig,
+		&i.BuildConfig,
+		&i.CreatedAt,
+		&i.LastModified,
+	)
+	return i, err
 }
 
 const updateUserEmailById = `-- name: UpdateUserEmailById :one
