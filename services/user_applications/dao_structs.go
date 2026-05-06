@@ -50,6 +50,43 @@ type CreateInfraDependencyRequest struct {
 	Config           map[string]interface{} `json:"config,omitempty"`
 }
 
+// swagger:model DiscoveredInfraDependency
+type DiscoveredInfraDependency struct {
+	DependencyType string                 `json:"dependencyType"`
+	DependencyName string                 `json:"dependencyName"`
+	Config         map[string]interface{} `json:"config,omitempty"`
+}
+
+// swagger:model DiscoverUserApplicationRequest
+type DiscoverUserApplicationRequest struct {
+	RepositoryUrl string `json:"repositoryUrl" validate:"required"`
+	Branch        string `json:"branch,omitempty"`
+	Tag           string `json:"tag,omitempty"`
+}
+
+// swagger:model DiscoveredUserApplicationCandidate
+type DiscoveredUserApplicationCandidate struct {
+	Name              string                      `json:"name"`
+	Description       string                      `json:"description,omitempty"`
+	RepositoryUrl     string                      `json:"repositoryUrl"`
+	ManifestPath      string                      `json:"manifestPath,omitempty"`
+	SourceKind        string                      `json:"sourceKind,omitempty"`
+	ModuleName        string                      `json:"moduleName,omitempty"`
+	PackageName       string                      `json:"packageName,omitempty"`
+	PackageManager    string                      `json:"packageManager,omitempty"`
+	DeployKind        string                      `json:"deployKind,omitempty"`
+	ApplicationKind   string                      `json:"applicationKind,omitempty"`
+	Registerable      bool                        `json:"registerable"`
+	DeployConfig      map[string]interface{}      `json:"deployConfig,omitempty"`
+	BuildConfig       map[string]interface{}      `json:"buildConfig,omitempty"`
+	InfraDependencies []DiscoveredInfraDependency `json:"infraDependencies,omitempty"`
+}
+
+// swagger:model DiscoverUserApplicationResponse
+type DiscoverUserApplicationResponse struct {
+	Candidates []DiscoveredUserApplicationCandidate `json:"candidates"`
+}
+
 // swagger:model CreateUserApplicationRequest
 type CreateUserApplicationRequest struct {
 	Name              string                         `json:"name" validate:"required"`

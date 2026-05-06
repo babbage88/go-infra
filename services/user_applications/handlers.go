@@ -15,6 +15,12 @@ type CreateUserApplicationRequestWrapper struct {
 	Body CreateUserApplicationRequest `json:"body"`
 }
 
+// swagger:parameters discoverUserApplication
+type DiscoverUserApplicationRequestWrapper struct {
+	// in:body
+	Body DiscoverUserApplicationRequest `json:"body"`
+}
+
 // swagger:parameters updateUserApplication
 type UpdateUserApplicationRequestWrapper struct {
 	// In: path
@@ -64,6 +70,12 @@ type UserApplicationsResponseWrapper struct {
 	Body []UserApplicationDao `json:"body"`
 }
 
+// swagger:response DiscoverUserApplicationResponse
+type DiscoverUserApplicationResponseWrapper struct {
+	// in:body
+	Body DiscoverUserApplicationResponse `json:"body"`
+}
+
 // swagger:route POST /user-applications user-applications createUserApplication
 // Register a deployable user application and its infrastructure dependencies.
 //
@@ -95,6 +107,39 @@ func CreateUserApplicationHandler(service UserApplications) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		_ = json.NewEncoder(w).Encode(app)
+	}
+}
+
+// swagger:route POST /user-applications/discover user-applications discoverUserApplication
+// Discover deployable application manifests from a source repository.
+//
+// security:
+// - bearer:
+// responses:
+// 200: DiscoverUserApplicationResponse
+// 400: description:Bad request - invalid input data
+// 500: description:Internal server error
+func DiscoverUserApplicationHandler(service UserApplications) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req DiscoverUserApplicationRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		if req.RepositoryUrl == "" {
+			http.Error(w, "repositoryUrl is required", http.StatusBadRequest)
+			return
+		}
+
+		result, err := service.DiscoverUserApplication(req)
+		if err != nil {
+			slog.Error("failed to discover user application", slog.String("repositoryUrl", req.RepositoryUrl), slog.String("error", err.Error()))
+			http.Error(w, fmt.Sprintf("Failed to discover user application: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(result)
 	}
 }
 

@@ -16,6 +16,7 @@ type UserApplicationsService struct {
 
 type UserApplications interface {
 	CreateUserApplication(req CreateUserApplicationRequest) (*UserApplicationDao, error)
+	DiscoverUserApplication(req DiscoverUserApplicationRequest) (*DiscoverUserApplicationResponse, error)
 	GetUserApplicationById(id uuid.UUID) (*UserApplicationDao, error)
 	GetUserApplicationByName(name string) (*UserApplicationDao, error)
 	GetAllUserApplications() ([]UserApplicationDao, error)

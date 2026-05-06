@@ -212,6 +212,9 @@ func AddApplicationRoutes(mux *http.ServeMux, healthCheckService *user_crud_svc.
 		}),
 		http.MethodGet, http.MethodPost,
 	))
+	mux.Handle("/user-applications/discover", cors.CORSWithPOST(
+		authapi.AuthMiddlewareRequirePermission(authService, "CreateUserApplication", user_applications.DiscoverUserApplicationHandler(userApplicationsService)),
+	))
 	mux.Handle("/user-applications/{ID}", cors.CORSWithMethods(
 		userApplicationByIDHandler(userApplicationsService, authService),
 		http.MethodGet, http.MethodPut, http.MethodDelete,
