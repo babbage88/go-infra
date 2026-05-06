@@ -260,6 +260,9 @@ func createInfraDependencies(ctx context.Context, queries dependencyQueryRunner,
 		if err != nil {
 			return nil, fmt.Errorf("marshal dependency config for %q: %w", dep.DependencyName, err)
 		}
+		if cfg == nil {
+			cfg = []byte("{}")
+		}
 		row, err := queries.CreateUserApplicationInfraDependency(ctx, infra_db_pg.CreateUserApplicationInfraDependencyParams{
 			UserApplicationID: appID,
 			DependencyType:    dep.DependencyType,
