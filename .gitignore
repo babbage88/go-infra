@@ -56,3 +56,4 @@ devtest.sh
 # Go workspace file
 go.work
 dist
+.DS_Store**
